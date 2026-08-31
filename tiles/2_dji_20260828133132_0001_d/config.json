@@ -1,0 +1,38 @@
+{
+  "mode": "single",
+  "format": "tiled",
+  "yaw_1": 0.0,
+  "pitch_1": 0.0,
+  "yaw_2": 0.0,
+  "pitch_2": 0.0,
+  "label_1": "DJI_20260828133132_0001_D",
+  "label_2": "",
+  "autorotate": false,
+  "hotspots_1": [],
+  "hotspots_2": [],
+  "levels_1": [
+    {
+      "tileSize": 256,
+      "size": 256,
+      "fallbackOnly": true
+    },
+    {
+      "tileSize": 512,
+      "size": 512
+    },
+    {
+      "tileSize": 512,
+      "size": 1024
+    },
+    {
+      "tileSize": 512,
+      "size": 2048
+    },
+    {
+      "tileSize": 512,
+      "size": 4096
+    }
+  ],
+  "levels_2": [],
+  "pin_style": "dot"
+}

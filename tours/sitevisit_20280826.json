@@ -1,0 +1,45 @@
+{
+  "name": "sitevisit_20280826",
+  "sites": [
+    {
+      "site_id": "1_dji_20260828132858_0001_d",
+      "display_name": "Waypoint 1"
+    },
+    {
+      "site_id": "2_dji_20260828133132_0001_d",
+      "display_name": "Waypoint 2"
+    },
+    {
+      "site_id": "3_dji_20260828133337_0001_d",
+      "display_name": "Waypoint 3"
+    },
+    {
+      "site_id": "4_dji_20260828133527_0001_d",
+      "display_name": "Waypoint 4"
+    },
+    {
+      "site_id": "5_dji_20260828133753_0001_d",
+      "display_name": "Waypoint 5"
+    },
+    {
+      "site_id": "6_dji_20260828133959_0001_d",
+      "display_name": "Waypoint 6"
+    },
+    {
+      "site_id": "7_dji_20260828134146_0001_d",
+      "display_name": "Waypoint 6"
+    },
+    {
+      "site_id": "8_img_20260828_120243_00_968",
+      "display_name": "Ground Shot 1"
+    },
+    {
+      "site_id": "9_img_20260828_121536_00_969",
+      "display_name": "Ground Shot 2"
+    },
+    {
+      "site_id": "10_img_20260828_122223_00_970",
+      "display_name": "Ground Shot 3"
+    }
+  ]
+}

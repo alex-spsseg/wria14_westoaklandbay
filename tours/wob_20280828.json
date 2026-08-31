@@ -1,0 +1,45 @@
+{
+  "name": "WOB 360 Imagery - 20260828",
+  "sites": [
+    {
+      "site_id": "1_dji_20260828132858_0001_d",
+      "display_name": "South Lobe (Aerial)"
+    },
+    {
+      "site_id": "2_dji_20260828133132_0001_d",
+      "display_name": "ELJs on Goldsborough Creek"
+    },
+    {
+      "site_id": "3_dji_20260828133337_0001_d",
+      "display_name": "West Lobe - East View (Aerial)"
+    },
+    {
+      "site_id": "9_img_20260828_121536_00_969",
+      "display_name": "West Lobe - North View (Ground)"
+    },
+    {
+      "site_id": "10_img_20260828_122223_00_970",
+      "display_name": "Growth on Bessies (Ground)"
+    },
+    {
+      "site_id": "8_img_20260828_120243_00_968",
+      "display_name": "West Lobe - South View (Ground)"
+    },
+    {
+      "site_id": "4_dji_20260828133527_0001_d",
+      "display_name": "West Lobe - High Berm (Aerial)"
+    },
+    {
+      "site_id": "5_dji_20260828133753_0001_d",
+      "display_name": "Shelton Creek (Aerial)"
+    },
+    {
+      "site_id": "6_dji_20260828133959_0001_d",
+      "display_name": "North Lobe (Aerial)"
+    },
+    {
+      "site_id": "7_dji_20260828134146_0001_d",
+      "display_name": "Yacht Club (Aerial)"
+    }
+  ]
+}

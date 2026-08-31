@@ -195,23 +195,31 @@
     .hotspot-form-buttons button.hf-save { background: #019fc4; }
     .hotspot-form-buttons button.hf-delete { background: #e05555; border-color: #e05555; margin-right: auto; }
 
-    #tour-overlay {
-      position: fixed; inset: 0; z-index: 5000;
-      background: linear-gradient(135deg, #0e1b33, #1b3f95);
-      display: flex; align-items: center; justify-content: center;
-      font-family: sans-serif; color: #ffffff; padding: 24px; box-sizing: border-box;
+    #tour-sidebar-toggle {
+      position: absolute; top: 12px; left: 12px; z-index: 4001;
+      background: rgba(14, 27, 51, 0.9); color: #ffffff; border: 1px solid #019fc4;
+      border-radius: 4px; width: 36px; height: 36px; font-size: 18px; cursor: pointer;
+      display: none;
     }
-    #tour-panel { max-width: 480px; width: 100%; text-align: center; }
-    #tour-panel h1 { font-size: 22px; margin-bottom: 24px; font-weight: bold; }
-    #tour-panel p { color: #b7c6e0; line-height: 1.5; }
-    #tour-list { display: flex; flex-direction: column; gap: 10px; max-height: 70vh; overflow-y: auto; }
-    .tour-site-link {
-      display: block; background: rgba(255,255,255,0.08); color: #ffffff;
-      text-decoration: none; padding: 14px 18px; border-radius: 8px;
-      border: 1px solid rgba(1,159,196,0.4); font-size: 15px; font-weight: bold;
-      transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+    #tour-sidebar {
+      position: absolute; top: 60px; left: 12px; z-index: 3999; width: 220px;
+      max-height: 70vh; overflow-y: auto; font-family: sans-serif;
+      background: rgba(14, 27, 51, 0.92); border: 1px solid rgba(1, 159, 196, 0.4);
+      border-radius: 8px; padding: 12px; box-shadow: 0 6px 20px rgba(0,0,0,0.5);
+      transition: transform 0.2s ease, opacity 0.2s ease;
     }
-    .tour-site-link:hover { background: #019fc4; border-color: #ffffff; color: #0e1b33; }
+    #tour-sidebar.collapsed { transform: translateX(-260px); opacity: 0; pointer-events: none; }
+    #tour-sidebar-title {
+      color: #ffffff; font-weight: bold; font-size: 13px; margin-bottom: 8px;
+      padding-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.15);
+    }
+    .tour-stop-link {
+      color: #ffffff; padding: 8px 10px; border-radius: 4px; cursor: pointer;
+      font-size: 13px; margin-bottom: 4px; transition: background 0.15s ease;
+    }
+    .tour-stop-link:hover { background: rgba(1, 159, 196, 0.3); }
+    .tour-stop-link.active { background: #019fc4; font-weight: bold; }
+    .tour-sidebar-error { color: #e0a5a5; font-size: 12px; line-height: 1.4; }
   </style>
   <script src="vendor/marzipano.js"></script>
 </head>
@@ -247,19 +255,20 @@
       <button id="use-view-right-btn" class="edit-tool-btn" type="button" style="display:none;">Use Right View</button>
       <button id="place-hotspot-btn" class="edit-tool-btn" type="button" style="display:none;">Place New Point</button>
       <button id="edit-hotspots-btn" class="edit-tool-btn" type="button" style="display:none;">Move/Delete Points</button>
+      <button id="pin-style-btn" class="edit-tool-btn" type="button" style="display:none;">Pin Style: Dot</button>
       <button id="save-hotspots-btn" class="edit-tool-btn" type="button" style="display:none;">Save Hotspots</button>
     </div>
   </div>
 
   <script>
     const urlParams = new URLSearchParams(window.location.search);
-    let rawSiteId = urlParams.get('site') || urlParams.get('well') || 'drone_shot';
+    let rawSiteId = urlParams.get('site') || urlParams.get('well') || '1_dji_20260828132858_0001_d';
     const siteId = rawSiteId.trim().toLowerCase().replace(/[\s-]+/g, '_');
 
     const tourParam = urlParams.get('tour');
     if (tourParam) renderTourPage(tourParam);
 
-    const isLocalPreview = (location.hostname === '127.0.0.1' || location.hostname === 'localhost');
+    const isLocalPreview = (location.hostname === '127.0.0.1' || location.hostname === 'localhost') && !tourParam;
     var useViewBtn = document.getElementById('use-view-btn');
     if (isLocalPreview) document.getElementById('edit-tools-panel').style.display = 'flex';
 
@@ -385,6 +394,7 @@
     document.getElementById('fullscreen-btn').addEventListener('click', () => toggleFullscreen());
     document.getElementById('reset-btn').addEventListener('click', () => resetViews());
 
+    if (!tourParam) {
     fetch('tiles/' + siteId + '/config.json')
       .then(res => {
         if (res.ok) return res.json();
@@ -392,7 +402,7 @@
       })
       .then(config => {
         const mode = config.mode || 'single';
-        if (config.pin_style === 'label') document.body.classList.add('pin-style-label');
+        if (config.pin_style === 'label') applyPinStyle('label');
 
         if (mode === 'timeseries') {
           isTimeseriesModeGlobal = true;
@@ -622,6 +632,7 @@
       .catch(() => {
         showBanner('No published site found for "' + siteId + '". Check the ?site= parameter or republish this site.');
       });
+    }
 
     function setupCurtainSlider() {
       let isDragging = false;
@@ -772,13 +783,22 @@
     var editingHotspots = false;
     var placingHotspot = false;
     var pendingSlotHotspots = {};
+    var pendingPinStyle = 'dot';
     var editHotspotsBtn = document.getElementById('edit-hotspots-btn');
     var placeHotspotBtn = document.getElementById('place-hotspot-btn');
+    var pinStyleBtn = document.getElementById('pin-style-btn');
     var saveHotspotsBtn = document.getElementById('save-hotspots-btn');
+
+    function applyPinStyle(style) {
+      pendingPinStyle = style;
+      document.body.classList.toggle('pin-style-label', style === 'label');
+      pinStyleBtn.textContent = 'Pin Style: ' + (style === 'label' ? 'Dot + Label' : 'Dot');
+    }
 
     if (isLocalPreview) {
       editHotspotsBtn.style.display = 'inline-block';
       placeHotspotBtn.style.display = 'inline-block';
+      pinStyleBtn.style.display = 'inline-block';
       saveHotspotsBtn.style.display = 'inline-block';
     }
 
@@ -796,12 +816,16 @@
       document.body.style.cursor = placingHotspot ? 'crosshair' : '';
     });
 
+    pinStyleBtn.addEventListener('click', () => {
+      applyPinStyle(pendingPinStyle === 'label' ? 'dot' : 'label');
+    });
+
     saveHotspotsBtn.addEventListener('click', () => {
       var original = saveHotspotsBtn.textContent;
       fetch('/__save_hotspots', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ site_id: siteId, slots: pendingSlotHotspots }),
+        body: JSON.stringify({ site_id: siteId, slots: pendingSlotHotspots, pin_style: pendingPinStyle }),
       }).then(res => {
         saveHotspotsBtn.textContent = res.ok ? 'Saved!' : 'Failed, try again';
         setTimeout(() => { saveHotspotsBtn.textContent = original; }, 1400);
@@ -927,9 +951,72 @@
     // touch a lot of code for little benefit.
 
     function renderTourPage(tourId) {
-      var overlay = document.createElement('div');
-      overlay.id = 'tour-overlay';
-      document.body.appendChild(overlay);
+      document.getElementById('pano-right-wrapper').classList.add('hidden');
+      document.getElementById('label-right').style.display = 'none';
+
+      var sidebar = document.createElement('div');
+      sidebar.id = 'tour-sidebar';
+      document.body.appendChild(sidebar);
+
+      var toggleBtn = document.createElement('button');
+      toggleBtn.id = 'tour-sidebar-toggle';
+      toggleBtn.type = 'button';
+      toggleBtn.innerHTML = '≡';
+      toggleBtn.style.display = 'block';
+      document.body.appendChild(toggleBtn);
+      toggleBtn.addEventListener('click', () => sidebar.classList.toggle('collapsed'));
+
+      var titleEl = document.createElement('div');
+      titleEl.id = 'tour-sidebar-title';
+      titleEl.textContent = 'Loading…';
+      sidebar.appendChild(titleEl);
+
+      var listEl = document.createElement('div');
+      listEl.id = 'tour-sidebar-list';
+      sidebar.appendChild(listEl);
+
+      var configCache = {};
+      var activeLink = null;
+
+      function loadStop(rawId, linkEl, label) {
+        var sid = rawId.trim().toLowerCase().replace(/[\s-]+/g, '_');
+        if (activeLink) activeLink.classList.remove('active');
+        linkEl.classList.add('active');
+        activeLink = linkEl;
+
+        var configPromise = configCache[sid]
+          ? Promise.resolve(configCache[sid])
+          : fetch('tiles/' + sid + '/config.json').then(res => {
+              if (!res.ok) throw new Error('missing-config');
+              return res.json();
+            }).then(cfg => { configCache[sid] = cfg; return cfg; });
+
+        configPromise.then(config => {
+          var isTiled = config.format === 'tiled';
+          defaultViewL = { yaw: config.yaw_1 || 0, pitch: config.pitch_1 || 0, fov: Math.PI / 4 };
+          viewL = new Marzipano.RectilinearView(defaultViewL, limiter);
+
+          var geometry, source;
+          if (isTiled) {
+            geometry = new Marzipano.CubeGeometry(
+                (config.levels_1 && config.levels_1.length) ? config.levels_1 : [{ tileSize: 256, size: 256, fallbackOnly: true }, { tileSize: 512, size: 512 }, { tileSize: 512, size: 1024 }, { tileSize: 512, size: 2048 }]);
+            source = Marzipano.ImageUrlSource.fromString('tiles/' + sid + '/img1/scene/{z}/{f}/{y}/{x}.jpg');
+          } else {
+            geometry = new Marzipano.EquirectGeometry([{ width: 4000 }]);
+            source = Marzipano.ImageUrlSource.fromString('tiles/' + sid + '/img1.jpg');
+          }
+
+          var scene = viewerL.createScene({ source: source, geometry: geometry, view: viewL });
+          renderHotspots(scene, config.hotspots_1, '1', document.getElementById('pano-left'), viewL, viewerL);
+          scene.switchTo();
+          setTimeout(() => { viewerL.updateSize(); }, 100);
+
+          document.getElementById('label-left').innerText = config.label_1 || label;
+          if (config.pin_style === 'label') applyPinStyle('label');
+        }).catch(() => {
+          showBanner('Could not load "' + sid + '" for this tour.');
+        });
+      }
 
       var sanitizedTour = tourId.trim().toLowerCase().replace(/[\s-]+/g, '_');
       fetch('tours/' + sanitizedTour + '.json')
@@ -938,20 +1025,30 @@
           throw new Error('missing-tour');
         })
         .then(manifest => {
-          var html = '<div id="tour-panel">';
-          html += '<h1>' + escapeHtml(manifest.name || tourId) + '</h1>';
-          html += '<div id="tour-list">';
-          (manifest.sites || []).forEach(s => {
-            html += '<a class="tour-site-link" href="?site=' + encodeURIComponent(s.site_id) + '">' +
-                escapeHtml(s.display_name || s.site_id) + '</a>';
+          titleEl.textContent = manifest.name || tourId;
+          var sites = manifest.sites || [];
+          sites.forEach((s, idx) => {
+            var link = document.createElement('div');
+            link.className = 'tour-stop-link';
+            var label = s.display_name || s.site_id;
+            link.textContent = label;
+            link.addEventListener('click', () => loadStop(s.site_id, link, label));
+            listEl.appendChild(link);
+            if (idx === 0) loadStop(s.site_id, link, label);
           });
-          html += '</div></div>';
-          overlay.innerHTML = html;
+          if (!sites.length) {
+            var empty = document.createElement('div');
+            empty.className = 'tour-sidebar-error';
+            empty.textContent = 'This tour has no sites yet.';
+            listEl.appendChild(empty);
+          }
         })
         .catch(() => {
-          overlay.innerHTML = '<div id="tour-panel"><h1>Tour Not Found</h1>' +
-              '<p>No published tour for "' + escapeHtml(tourId) + '". Check the ?tour= parameter ' +
-              'or republish this tour.</p></div>';
+          titleEl.textContent = 'Tour Not Found';
+          var msg = document.createElement('div');
+          msg.className = 'tour-sidebar-error';
+          msg.textContent = 'No published tour for "' + tourId + '". Check the ?tour= parameter or republish this tour.';
+          listEl.appendChild(msg);
         });
     }
   </script>

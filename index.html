@@ -272,14 +272,15 @@
     var useViewBtn = document.getElementById('use-view-btn');
     if (isLocalPreview) document.getElementById('edit-tools-panel').style.display = 'flex';
 
-    function sendViewCapture(yawRad, pitchRad, photoIndex) {
+    function sendViewCapture(yawRad, pitchRad, photoIndex, siteIdOverride) {
+      var targetSiteId = siteIdOverride || siteId;
       var yawDeg = yawRad * 180 / Math.PI;
       var pitchDeg = pitchRad * 180 / Math.PI;
       var original = useViewBtn.textContent;
       fetch('/__save_view', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ yaw: yawDeg, pitch: pitchDeg, photo_index: photoIndex }),
+        body: JSON.stringify({ site_id: targetSiteId, yaw: yawDeg, pitch: pitchDeg, photo_index: photoIndex }),
       }).then(res => {
         useViewBtn.textContent = res.ok ? 'Captured!' : 'Failed, try again';
         setTimeout(() => { useViewBtn.textContent = original; }, 1400);
@@ -954,6 +955,19 @@
       document.getElementById('pano-right-wrapper').classList.add('hidden');
       document.getElementById('label-right').style.display = 'none';
 
+      var activeTourSiteId = null;
+      var rawIsLocal = (location.hostname === '127.0.0.1' || location.hostname === 'localhost');
+      if (rawIsLocal) {
+        document.getElementById('edit-tools-panel').style.display = 'flex';
+        var tourUseViewBtn = document.getElementById('use-view-btn');
+        tourUseViewBtn.style.display = 'inline-block';
+        tourUseViewBtn.addEventListener('click', () => {
+          if (!activeTourSiteId) return;
+          var v = viewL.parameters();
+          sendViewCapture(v.yaw, v.pitch, 0, activeTourSiteId);
+        });
+      }
+
       var sidebar = document.createElement('div');
       sidebar.id = 'tour-sidebar';
       document.body.appendChild(sidebar);
@@ -984,6 +998,7 @@
         if (activeLink) activeLink.classList.remove('active');
         linkEl.classList.add('active');
         activeLink = linkEl;
+        activeTourSiteId = sid;
 
         if (sceneCache[sid]) {
           var cached = sceneCache[sid];

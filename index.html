@@ -262,7 +262,7 @@
 
   <script>
     const urlParams = new URLSearchParams(window.location.search);
-    let rawSiteId = urlParams.get('site') || urlParams.get('well') || '1_dji_20260828132858_0001_d';
+    let rawSiteId = urlParams.get('site') || urlParams.get('well') || 'dji_20260828131959_0001_d';
     const siteId = rawSiteId.trim().toLowerCase().replace(/[\s-]+/g, '_');
 
     const tourParam = urlParams.get('tour');
@@ -976,6 +976,7 @@
       sidebar.appendChild(listEl);
 
       var configCache = {};
+      var sceneCache = {};
       var activeLink = null;
 
       function loadStop(rawId, linkEl, label) {
@@ -983,6 +984,17 @@
         if (activeLink) activeLink.classList.remove('active');
         linkEl.classList.add('active');
         activeLink = linkEl;
+
+        if (sceneCache[sid]) {
+          var cached = sceneCache[sid];
+          viewL = cached.view;
+          defaultViewL = cached.defaultView;
+          cached.scene.switchTo();
+          setTimeout(() => { viewerL.updateSize(); }, 100);
+          document.getElementById('label-left').innerText = cached.label;
+          if (cached.pinStyle === 'label') applyPinStyle('label');
+          return;
+        }
 
         var configPromise = configCache[sid]
           ? Promise.resolve(configCache[sid])
@@ -1011,8 +1023,18 @@
           scene.switchTo();
           setTimeout(() => { viewerL.updateSize(); }, 100);
 
-          document.getElementById('label-left').innerText = config.label_1 || label;
+          var resolvedLabel = config.label_1 || label;
+          document.getElementById('label-left').innerText = resolvedLabel;
           if (config.pin_style === 'label') applyPinStyle('label');
+
+          // Cache the built scene itself, not just its config, so
+          // revisiting this stop later is an instant switchTo() with
+          // its tiles already loaded, instead of rebuilding the scene
+          // and re-fetching every tile from scratch again.
+          sceneCache[sid] = {
+            scene: scene, view: viewL, defaultView: defaultViewL,
+            label: resolvedLabel, pinStyle: config.pin_style,
+          };
         }).catch(() => {
           showBanner('Could not load "' + sid + '" for this tour.');
         });

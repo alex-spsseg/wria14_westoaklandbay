@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Universal 360° Asset Viewer</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body, html { width: 100%; height: 100%; overflow: hidden; background: #0e1b33; font-family: sans-serif; }
+
+    #container { display: flex; width: 100vw; height: 100vh; position: relative; }
+
+    .pano-panel { flex: 1; height: 100%; position: relative; border-right: 2px solid #1b3f95; }
+    .pano-panel:last-child { border-right: none; }
+
+    #pano-right-wrapper { flex: 1; height: 100%; position: relative; }
+    #pano-right-wrapper.hidden { display: none; }
+
+    #container.curtain-mode .pano-panel {
+      position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
+    }
+    #container.curtain-mode #pano-right-wrapper {
+      position: absolute; top: 0; right: 0; left: auto; width: 50vw; height: 100vh;
+      overflow: hidden; z-index: 5; border-left: 3px solid #019fc4;
+    }
+    #container.curtain-mode #pano-right {
+      position: absolute; top: 0; right: 0; left: auto; width: 100vw; height: 100vh;
+    }
+
+    #curtain-slider {
+      display: none;
+      position: absolute; top: 0; bottom: 0; left: 50vw; z-index: 30;
+      width: 4px; background: #019fc4; cursor: ew-resize;
+      box-shadow: 0 0 10px rgba(0,0,0,0.8);
+    }
+    #curtain-slider-handle {
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      width: 36px; height: 36px; background: #019fc4; border: 2px solid #ffffff;
+      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      color: #ffffff; font-weight: bold; font-size: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+      user-select: none; pointer-events: none;
+    }
+
+    #timeseries-strip {
+      display: none;
+      position: absolute; bottom: 0; left: 0; width: 100%; z-index: 40;
+      flex-direction: row; gap: 8px; padding: 12px;
+      background: linear-gradient(to top, rgba(14,27,51,0.92), rgba(14,27,51,0));
+      overflow-x: auto;
+    }
+    .ts-thumb {
+      flex: 0 0 auto; width: 100px; height: 62px; border-radius: 4px; overflow: hidden;
+      cursor: pointer; border: 2px solid rgba(255,255,255,0.25); position: relative;
+      background-size: cover; background-position: center; background-color: #0A1428;
+      transition: border-color 0.15s ease;
+    }
+    .ts-thumb:hover { border-color: #7fa8b8; }
+    .ts-thumb.active { border-color: #019FC4; box-shadow: 0 0 8px rgba(1,159,196,0.7); }
+    .ts-thumb-label {
+      position: absolute; bottom: 0; left: 0; right: 0; font-size: 10px; text-align: center;
+      background: rgba(0,0,0,0.65); color: #fff; padding: 2px 0; white-space: nowrap;
+      overflow: hidden; text-overflow: ellipsis; pointer-events: none;
+    }
+
+    .pano-label {
+      position: absolute; top: 12px; left: 12px; z-index: 10;
+      background: rgba(14, 27, 51, 0.85); color: #ffffff;
+      padding: 6px 12px; font-size: 13px; border-radius: 4px;
+      border: 1px solid rgba(255, 255, 255, 0.15); pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+    #label-right { left: auto; right: 12px; top: 56px; }
+
+    #status-banner {
+      position: absolute; top: 0; left: 0; width: 100%; z-index: 2000;
+      background: rgba(180, 40, 40, 0.92); color: #ffffff; text-align: center;
+      padding: 10px; font-size: 14px; display: none; pointer-events: none;
+    }
+
+    #control-bar {
+      position: absolute; top: 12px; right: 12px; z-index: 1000;
+      display: flex; gap: 8px; pointer-events: auto;
+    }
+
+    .ctrl-btn {
+      background: #1b3f95; color: #ffffff; border: 1px solid #019fc4;
+      padding: 8px 12px; font-size: 12px; font-weight: bold;
+      border-radius: 4px; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+      transition: all 0.2s ease; user-select: none; position: relative; z-index: 1001;
+    }
+    .ctrl-btn:hover { background: #019fc4; color: #0e1b33; }
+    .ctrl-btn:active, .ctrl-btn.active { background: #019fc4; color: #0e1b33; border-color: #ffffff; }
+
+    #edit-tools-panel {
+      position: absolute; top: 60px; right: 12px; z-index: 1000;
+      display: flex; flex-direction: column; gap: 6px; width: 200px;
+      background: rgba(20, 12, 40, 0.9); border: 1px solid #b366ff;
+      border-radius: 8px; padding: 10px; box-shadow: 0 4px 16px rgba(0,0,0,0.6);
+    }
+    #edit-tools-header {
+      font-size: 10px; font-weight: bold; letter-spacing: 0.04em; text-transform: uppercase;
+      color: #d9b3ff; margin-bottom: 2px; padding-bottom: 6px;
+      border-bottom: 1px solid rgba(179, 102, 255, 0.35);
+    }
+    .edit-tool-btn {
+      background: #3a1f66; color: #ffffff; border: 1px solid #b366ff;
+      padding: 8px 10px; font-size: 12px; font-weight: bold;
+      border-radius: 4px; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+      transition: all 0.2s ease; user-select: none; text-align: left;
+    }
+    .edit-tool-btn:hover { background: #b366ff; color: #1a0e33; }
+    .edit-tool-btn.active { background: #b366ff; color: #1a0e33; border-color: #ffffff; }
+
+    body.editing-hotspots .hotspot-pin { width: 32px; height: 32px; }
+
+    .hotspot-pin {
+      width: 26px; height: 26px; background: #019fc4; border: 2px solid #ffffff;
+      border-radius: 50%; cursor: pointer; transform: translate(-50%, -50%);
+      box-shadow: 0 0 10px rgba(0,0,0,0.5); position: relative;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    .hotspot-pin:hover {
+      transform: translate(-50%, -50%) scale(1.18);
+      box-shadow: 0 0 16px rgba(0,0,0,0.7);
+    }
+    .hotspot-pin.hotspot-cat-issue { background: #e05555; }
+    .hotspot-pin.hotspot-cat-measurement { background: #4caf6d; }
+    .hotspot-pin::after {
+      content: 'i'; color: #ffffff; font-weight: bold; font-family: sans-serif;
+      display: flex; align-items: center; justify-content: center; height: 100%; font-size: 14px;
+    }
+    .hotspot-pin.hotspot-cat-issue::after { content: '!'; }
+    .hotspot-pin.hotspot-cat-measurement::after { content: 'M'; font-size: 12px; }
+
+    .hotspot-tooltip {
+      position: absolute; bottom: 34px; left: 50%;
+      background: rgba(14, 27, 51, 0.97); color: #ffffff; padding: 12px 16px 12px 14px;
+      border-radius: 8px; font-size: 12px; min-width: 160px; max-width: 240px;
+      text-align: left; border: 1px solid #019fc4; white-space: normal;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.65);
+      opacity: 0; visibility: hidden; pointer-events: none;
+      transform: translate(-50%, 4px);
+      transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s;
+    }
+    .hotspot-tooltip::before, .hotspot-tooltip::after {
+      content: ''; position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
+      width: 0; height: 0; border: 7px solid transparent;
+    }
+    .hotspot-tooltip::before { border-top-color: #019fc4; margin-top: 1px; }
+    .hotspot-tooltip::after { border-top-color: rgba(14, 27, 51, 0.97); }
+    .hotspot-tooltip a { color: #6fd3ea; word-break: break-all; }
+    .hotspot-tooltip-title { display: block; padding-right: 16px; }
+    .hotspot-tooltip-close {
+      position: absolute; top: 6px; right: 6px; width: 18px; height: 18px;
+      border-radius: 50%; background: rgba(255,255,255,0.12); color: #ffffff;
+      display: flex; align-items: center; justify-content: center; font-size: 13px;
+      cursor: pointer; line-height: 1;
+    }
+    .hotspot-tooltip-close:hover { background: rgba(255,255,255,0.28); }
+
+    /* Alternate pin style: dot + a permanently visible label chip,
+       no click needed to see the title (text/link still open on click). */
+    .pin-style-label .hotspot-pin::before {
+      content: attr(data-title);
+      position: absolute; top: 50%; left: 32px; transform: translateY(-50%);
+      background: rgba(14, 27, 51, 0.92); color: #ffffff; padding: 4px 10px;
+      border-radius: 4px; font-size: 11px; font-weight: bold; white-space: nowrap;
+      border: 1px solid currentColor; pointer-events: none;
+    }
+    .pin-style-label .hotspot-pin.hotspot-cat-issue::before { border-color: #e05555; }
+    .pin-style-label .hotspot-pin.hotspot-cat-measurement::before { border-color: #4caf6d; }
+    .pin-style-label .hotspot-pin.hotspot-cat-note::before { border-color: #019fc4; }
+    body.hotspots-hidden .hotspot-pin { display: none !important; }
+    .hotspot-tooltip.open {
+      opacity: 1; visibility: visible; pointer-events: auto; transform: translate(-50%, 0);
+    }
+
+    .hotspot-form {
+      position: fixed; z-index: 2000; width: 240px;
+      background: #0e1b33; border: 1px solid #019fc4; border-radius: 6px;
+      padding: 12px; box-shadow: 0 6px 20px rgba(0,0,0,0.6);
+      font-family: sans-serif; font-size: 12px; color: #ffffff;
+    }
+    .hotspot-form label { display: block; margin: 8px 0 3px; color: #7fa8b8; }
+    .hotspot-form label:first-child { margin-top: 0; }
+    .hotspot-form input[type="text"], .hotspot-form textarea, .hotspot-form select {
+      width: 100%; box-sizing: border-box; background: #0a1428; color: #ffffff;
+      border: 1px solid #22346b; border-radius: 4px; padding: 5px 6px; font-size: 12px;
+      font-family: inherit; resize: vertical;
+    }
+    .hotspot-form-buttons { display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px; }
+    .hotspot-form-buttons button {
+      background: #1b3f95; color: #ffffff; border: 1px solid #019fc4;
+      padding: 5px 10px; font-size: 12px; border-radius: 4px; cursor: pointer;
+    }
+    .hotspot-form-buttons button.hf-save { background: #019fc4; }
+    .hotspot-form-buttons button.hf-delete { background: #e05555; border-color: #e05555; margin-right: auto; }
+
+    #tour-overlay {
+      position: fixed; inset: 0; z-index: 5000;
+      background: linear-gradient(135deg, #0e1b33, #1b3f95);
+      display: flex; align-items: center; justify-content: center;
+      font-family: sans-serif; color: #ffffff; padding: 24px; box-sizing: border-box;
+    }
+    #tour-panel { max-width: 480px; width: 100%; text-align: center; }
+    #tour-panel h1 { font-size: 22px; margin-bottom: 24px; font-weight: bold; }
+    #tour-panel p { color: #b7c6e0; line-height: 1.5; }
+    #tour-list { display: flex; flex-direction: column; gap: 10px; max-height: 70vh; overflow-y: auto; }
+    .tour-site-link {
+      display: block; background: rgba(255,255,255,0.08); color: #ffffff;
+      text-decoration: none; padding: 14px 18px; border-radius: 8px;
+      border: 1px solid rgba(1,159,196,0.4); font-size: 15px; font-weight: bold;
+      transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+    }
+    .tour-site-link:hover { background: #019fc4; border-color: #ffffff; color: #0e1b33; }
+  </style>
+  <script src="vendor/marzipano.js"></script>
+</head>
+<body>
+
+  <div id="status-banner"></div>
+
+  <div id="container">
+    <div id="pano-left" class="pano-panel"><div class="pano-label" id="label-left">360° View</div></div>
+
+    <div id="pano-right-wrapper">
+      <div id="pano-right" class="pano-panel"></div>
+    </div>
+    <div class="pano-label" id="label-right">Comparison View</div>
+
+    <div id="curtain-slider"><div id="curtain-slider-handle">↔</div></div>
+
+    <div id="timeseries-strip"></div>
+
+    <div id="control-bar">
+      <button id="toggle-btn" class="ctrl-btn" type="button" style="display:none;">Toggle</button>
+      <button id="hotspots-toggle-btn" class="ctrl-btn" type="button" style="display:none;">Hide Hotspots</button>
+      <button id="autorotate-btn" class="ctrl-btn" type="button">Auto-Rotate</button>
+      <button id="fullscreen-btn" class="ctrl-btn" type="button">Full Screen</button>
+      <button id="reset-btn" class="ctrl-btn" type="button">Reset View</button>
+    </div>
+
+    <div id="edit-tools-panel" style="display:none;">
+      <div id="edit-tools-header">Editing Tools (Preview Locally)</div>
+      <button id="use-view-btn" class="edit-tool-btn" type="button" style="display:none;">Use This View</button>
+      <button id="unlock-aim-btn" class="edit-tool-btn" type="button" style="display:none;">Unlock Independent Aim</button>
+      <button id="use-view-left-btn" class="edit-tool-btn" type="button" style="display:none;">Use Left View</button>
+      <button id="use-view-right-btn" class="edit-tool-btn" type="button" style="display:none;">Use Right View</button>
+      <button id="place-hotspot-btn" class="edit-tool-btn" type="button" style="display:none;">Place New Point</button>
+      <button id="edit-hotspots-btn" class="edit-tool-btn" type="button" style="display:none;">Move/Delete Points</button>
+      <button id="save-hotspots-btn" class="edit-tool-btn" type="button" style="display:none;">Save Hotspots</button>
+    </div>
+  </div>
+
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    let rawSiteId = urlParams.get('site') || urlParams.get('well') || 'drone_shot';
+    const siteId = rawSiteId.trim().toLowerCase().replace(/[\s-]+/g, '_');
+
+    const tourParam = urlParams.get('tour');
+    if (tourParam) renderTourPage(tourParam);
+
+    const isLocalPreview = (location.hostname === '127.0.0.1' || location.hostname === 'localhost');
+    var useViewBtn = document.getElementById('use-view-btn');
+    if (isLocalPreview) document.getElementById('edit-tools-panel').style.display = 'flex';
+
+    function sendViewCapture(yawRad, pitchRad, photoIndex) {
+      var yawDeg = yawRad * 180 / Math.PI;
+      var pitchDeg = pitchRad * 180 / Math.PI;
+      var original = useViewBtn.textContent;
+      fetch('/__save_view', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ yaw: yawDeg, pitch: pitchDeg, photo_index: photoIndex }),
+      }).then(res => {
+        useViewBtn.textContent = res.ok ? 'Captured!' : 'Failed, try again';
+        setTimeout(() => { useViewBtn.textContent = original; }, 1400);
+      }).catch(() => {
+        useViewBtn.textContent = 'Preview server not reachable';
+        setTimeout(() => { useViewBtn.textContent = original; }, 1800);
+      });
+    }
+
+    function showBanner(msg) {
+      var b = document.getElementById('status-banner');
+      b.textContent = msg;
+      b.style.display = 'block';
+    }
+
+    var container = document.getElementById('container');
+    var panelR = document.getElementById('pano-right');
+    var wrapperR = document.getElementById('pano-right-wrapper');
+    var slider = document.getElementById('curtain-slider');
+
+    var viewerL = new Marzipano.Viewer(document.getElementById('pano-left'));
+    var viewerR = null;
+    var viewL = null, viewR = null;
+    var defaultViewL = { yaw: 0, pitch: 0, fov: Math.PI / 4 };
+    var defaultViewR = { yaw: 0, pitch: 0, fov: Math.PI / 4 };
+    var limiter = Marzipano.RectilinearView.limit.traditional(4000, 100 * Math.PI / 180);
+
+    var isTimeseriesModeGlobal = false;
+    var tsScenes = [], tsViews = [], tsPhotos = [], tsActiveIdx = 0;
+
+    var autorotate = Marzipano.autorotate({ yawSpeed: 0.03, targetPitch: 0, targetFov: Math.PI / 4 });
+    var isRotating = false;
+
+    function toggleAutorotate(enable) {
+      isRotating = (enable !== undefined) ? enable : !isRotating;
+      var btn = document.getElementById('autorotate-btn');
+      if (isRotating) {
+        viewerL.startMovement(autorotate);
+        if (viewerR) viewerR.startMovement(autorotate);
+        btn.classList.add('active');
+      } else {
+        viewerL.stopMovement();
+        if (viewerR) viewerR.stopMovement();
+        btn.classList.remove('active');
+      }
+    }
+
+    function toggleFullscreen() {
+      var doc = window.document;
+      var docEl = doc.documentElement;
+      var requestFS = docEl.requestFullscreen || docEl.mozRequestFullScreen || docEl.webkitRequestFullScreen || docEl.msRequestFullscreen;
+      var cancelFS = doc.exitFullscreen || doc.mozCancelFullScreen || doc.webkitExitFullscreen || doc.msExitFullscreen;
+
+      if (!doc.fullscreenElement && !doc.mozFullScreenElement && !doc.webkitFullscreenElement && !doc.msFullscreenElement) {
+        if (requestFS) requestFS.call(docEl);
+      } else {
+        if (cancelFS) cancelFS.call(doc);
+      }
+    }
+
+    function easeInOutQuad(t) {
+      return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+    }
+
+    function animateViewTo(view, target, duration) {
+      duration = duration || 400;
+      var start = view.parameters();
+
+      // shortest path around the circle, so yaw never spins the long way around
+      var yawDiff = (target.yaw - start.yaw) % (2 * Math.PI);
+      if (yawDiff > Math.PI) yawDiff -= 2 * Math.PI;
+      if (yawDiff < -Math.PI) yawDiff += 2 * Math.PI;
+
+      var startTime = null;
+      function step(ts) {
+        if (!startTime) startTime = ts;
+        var t = Math.min((ts - startTime) / duration, 1);
+        var e = easeInOutQuad(t);
+        view.setParameters({
+          yaw: start.yaw + yawDiff * e,
+          pitch: start.pitch + (target.pitch - start.pitch) * e,
+          fov: start.fov + ((target.fov != null ? target.fov : start.fov) - start.fov) * e,
+        });
+        if (t < 1) requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+    }
+
+    function resetViews() {
+      toggleAutorotate(false);
+      if (isTimeseriesModeGlobal && tsViews.length) {
+        var p = tsPhotos[tsActiveIdx] || {};
+        animateViewTo(tsViews[tsActiveIdx], { yaw: p.yaw || 0, pitch: p.pitch || 0, fov: Math.PI / 4 });
+      } else {
+        if (viewL) animateViewTo(viewL, defaultViewL);
+        if (viewR) animateViewTo(viewR, defaultViewR);
+      }
+    }
+
+    function selectTimeseries(idx) {
+      if (!tsScenes.length || idx === tsActiveIdx) return;
+      tsViews[idx].setParameters(tsViews[tsActiveIdx].parameters());
+      tsActiveIdx = idx;
+      tsScenes[idx].switchTo();
+      if (isRotating) viewerL.startMovement(autorotate);
+      document.getElementById('label-left').innerText = (tsPhotos[idx] && tsPhotos[idx].label) || ('Photo ' + (idx + 1));
+      var strip = document.getElementById('timeseries-strip');
+      Array.from(strip.children).forEach((child, i) => child.classList.toggle('active', i === idx));
+    }
+
+    document.getElementById('autorotate-btn').addEventListener('click', () => toggleAutorotate());
+    document.getElementById('fullscreen-btn').addEventListener('click', () => toggleFullscreen());
+    document.getElementById('reset-btn').addEventListener('click', () => resetViews());
+
+    fetch('tiles/' + siteId + '/config.json')
+      .then(res => {
+        if (res.ok) return res.json();
+        throw new Error('missing-config');
+      })
+      .then(config => {
+        const mode = config.mode || 'single';
+        if (config.pin_style === 'label') document.body.classList.add('pin-style-label');
+
+        if (mode === 'timeseries') {
+          isTimeseriesModeGlobal = true;
+          wrapperR.classList.add('hidden');
+          document.getElementById('label-right').style.display = 'none';
+
+          const isTiledTs = config.format === 'tiled';
+          const defaultLevelsTs = [{ tileSize: 256, size: 256, fallbackOnly: true }, { tileSize: 512, size: 512 }, { tileSize: 512, size: 1024 }, { tileSize: 512, size: 2048 }];
+          tsPhotos = config.photos || [];
+          var strip = document.getElementById('timeseries-strip');
+          strip.style.display = 'flex';
+
+          tsPhotos.forEach((p, idx) => {
+            var view = new Marzipano.RectilinearView({ yaw: p.yaw || 0, pitch: p.pitch || 0, fov: Math.PI / 4 }, limiter);
+            var geometry, source, thumbUrl;
+            if (isTiledTs) {
+              geometry = new Marzipano.CubeGeometry((p.levels && p.levels.length) ? p.levels : defaultLevelsTs);
+              source = Marzipano.ImageUrlSource.fromString('tiles/' + siteId + '/img' + (idx + 1) + '/scene/{z}/{f}/{y}/{x}.jpg');
+              thumbUrl = 'tiles/' + siteId + '/img' + (idx + 1) + '/scene/1/f/0/0.jpg';
+            } else {
+              geometry = new Marzipano.EquirectGeometry([{ width: 4000 }]);
+              source = Marzipano.ImageUrlSource.fromString('tiles/' + siteId + '/img' + (idx + 1) + '.jpg');
+              thumbUrl = 'tiles/' + siteId + '/img' + (idx + 1) + '.jpg';
+            }
+            var scene = viewerL.createScene({ source: source, geometry: geometry, view: view });
+            renderHotspots(scene, p.hotspots, String(idx), document.getElementById('pano-left'), view, viewerL);
+            pendingSlotHotspots[String(idx)] = (p.hotspots || []).slice();
+            tsScenes.push(scene);
+            tsViews.push(view);
+
+            var el = document.createElement('div');
+            el.className = 'ts-thumb' + (idx === 0 ? ' active' : '');
+            el.style.backgroundImage = "url('" + thumbUrl + "')";
+            var lbl = document.createElement('div');
+            lbl.className = 'ts-thumb-label';
+            lbl.textContent = p.label || ('Photo ' + (idx + 1));
+            el.appendChild(lbl);
+            el.addEventListener('click', () => selectTimeseries(idx));
+            strip.appendChild(el);
+          });
+
+          if (tsScenes.length) {
+            tsScenes[0].switchTo();
+            document.getElementById('label-left').innerText = (tsPhotos[0] && tsPhotos[0].label) || 'Photo 1';
+          }
+
+          useViewBtn.addEventListener('click', () => {
+            if (!tsViews.length) return;
+            var v = tsViews[tsActiveIdx].parameters();
+            sendViewCapture(v.yaw, v.pitch, tsActiveIdx);
+          });
+
+          document.getElementById('pano-left').addEventListener('click', (e) => {
+            if (!placingHotspot || !tsScenes.length) return;
+            placeHotspotAt(document.getElementById('pano-left'), tsViews[tsActiveIdx],
+                tsScenes[tsActiveIdx], String(tsActiveIdx), e.clientX, e.clientY, viewerL);
+          });
+
+          setTimeout(() => { viewerL.updateSize(); }, 100);
+          window.addEventListener('resize', () => { viewerL.updateSize(); });
+
+          if (config.autorotate) toggleAutorotate(true);
+          return;
+        }
+
+        const isSingleMode = mode === 'single';
+        const isCurtainMode = mode === 'curtain';
+        const isToggleMode = mode === 'toggle';
+        const isTiled = config.format === 'tiled';
+
+        if (isSingleMode || isToggleMode) {
+          wrapperR.classList.add('hidden');
+          document.getElementById('label-right').style.display = 'none';
+        } else if (isCurtainMode) {
+          container.classList.add('curtain-mode');
+          slider.style.display = 'block';
+          viewerR = new Marzipano.Viewer(panelR);
+          setupCurtainSlider();
+        } else {
+          viewerR = new Marzipano.Viewer(panelR);
+        }
+
+        defaultViewL = { yaw: config.yaw_1 || 0, pitch: config.pitch_1 || 0, fov: Math.PI / 4 };
+        defaultViewR = { yaw: config.yaw_2 || 0, pitch: config.pitch_2 || 0, fov: Math.PI / 4 };
+
+        viewL = new Marzipano.RectilinearView(defaultViewL, limiter);
+        viewR = isSingleMode ? null : new Marzipano.RectilinearView(defaultViewR, limiter);
+
+        var geometryL, geometryR, sourceL, sourceR;
+        var defaultLevels = [{ tileSize: 256, size: 256, fallbackOnly: true }, { tileSize: 512, size: 512 }, { tileSize: 512, size: 1024 }, { tileSize: 512, size: 2048 }];
+
+        if (isTiled) {
+          geometryL = new Marzipano.CubeGeometry(
+              (config.levels_1 && config.levels_1.length) ? config.levels_1 : defaultLevels);
+          sourceL = Marzipano.ImageUrlSource.fromString('tiles/' + siteId + '/img1/scene/{z}/{f}/{y}/{x}.jpg');
+          if (!isSingleMode) {
+            geometryR = new Marzipano.CubeGeometry(
+                (config.levels_2 && config.levels_2.length) ? config.levels_2 : defaultLevels);
+            sourceR = Marzipano.ImageUrlSource.fromString('tiles/' + siteId + '/img2/scene/{z}/{f}/{y}/{x}.jpg');
+          }
+        } else {
+          geometryL = new Marzipano.EquirectGeometry([{ width: 4000 }]);
+          geometryR = geometryL;
+          sourceL = Marzipano.ImageUrlSource.fromString('tiles/' + siteId + '/img1.jpg');
+          if (!isSingleMode) {
+            sourceR = Marzipano.ImageUrlSource.fromString('tiles/' + siteId + '/img2.jpg');
+          }
+        }
+
+        var sceneL = viewerL.createScene({ source: sourceL, geometry: geometryL, view: viewL });
+        renderHotspots(sceneL, config.hotspots_1, '1', document.getElementById('pano-left'), viewL, viewerL);
+        pendingSlotHotspots['1'] = (config.hotspots_1 || []).slice();
+
+        var sceneB = null;
+        if (isToggleMode) {
+          sceneB = viewerL.createScene({ source: sourceR, geometry: geometryR, view: viewR });
+          renderHotspots(sceneB, config.hotspots_2, '2', document.getElementById('pano-left'), viewR, viewerL);
+          pendingSlotHotspots['2'] = (config.hotspots_2 || []).slice();
+        }
+
+        sceneL.switchTo();
+
+        var aimLocked = true;
+
+        if (!isSingleMode && !isToggleMode) {
+          var sceneR = viewerR.createScene({ source: sourceR, geometry: geometryR, view: viewR });
+          sceneR.switchTo();
+          renderHotspots(sceneR, config.hotspots_2, '2', document.getElementById('pano-right'), viewR, viewerR);
+          pendingSlotHotspots['2'] = (config.hotspots_2 || []).slice();
+
+          var isSyncing = false;
+          function syncViews(src, tgt) {
+            if (isSyncing || !aimLocked) return;
+            isSyncing = true;
+            tgt.setParameters(src.parameters());
+            isSyncing = false;
+          }
+          viewL.addEventListener('change', () => syncViews(viewL, viewR));
+          viewR.addEventListener('change', () => syncViews(viewR, viewL));
+        }
+
+        if (isToggleMode) {
+          var toggleBtn = document.getElementById('toggle-btn');
+          toggleBtn.style.display = 'inline-block';
+          var showingA = true;
+          var lbl1 = config.label_1 || 'Photo 1';
+          var lbl2 = config.label_2 || 'Photo 2';
+          toggleBtn.textContent = 'Show: ' + lbl2;
+          toggleBtn.addEventListener('click', () => {
+            var fromView = showingA ? viewL : viewR;
+            var toView = showingA ? viewR : viewL;
+            toView.setParameters(fromView.parameters());
+            showingA = !showingA;
+            (showingA ? sceneL : sceneB).switchTo();
+            if (isRotating) viewerL.startMovement(autorotate);
+            document.getElementById('label-left').innerText = showingA ? lbl1 : lbl2;
+            toggleBtn.textContent = 'Show: ' + (showingA ? lbl2 : lbl1);
+          });
+          if (isLocalPreview) useViewBtn.style.display = 'inline-block';
+          useViewBtn.addEventListener('click', () => {
+            var v = (showingA ? viewL : viewR).parameters();
+            sendViewCapture(v.yaw, v.pitch, showingA ? 0 : 1);
+          });
+          document.getElementById('pano-left').addEventListener('click', (e) => {
+            if (!placingHotspot) return;
+            var curView = showingA ? viewL : viewR;
+            var curScene = showingA ? sceneL : sceneB;
+            placeHotspotAt(document.getElementById('pano-left'), curView, curScene,
+                showingA ? '1' : '2', e.clientX, e.clientY, viewerL);
+          });
+        } else if (isSingleMode) {
+          if (isLocalPreview) useViewBtn.style.display = 'inline-block';
+          useViewBtn.addEventListener('click', () => {
+            var v = viewL.parameters();
+            sendViewCapture(v.yaw, v.pitch, 0);
+          });
+          document.getElementById('pano-left').addEventListener('click', (e) => {
+            if (!placingHotspot) return;
+            placeHotspotAt(document.getElementById('pano-left'), viewL, sceneL, '1', e.clientX, e.clientY, viewerL);
+          });
+        } else {
+          var unlockBtn = document.getElementById('unlock-aim-btn');
+          var useLeftBtn = document.getElementById('use-view-left-btn');
+          var useRightBtn = document.getElementById('use-view-right-btn');
+          if (isLocalPreview) {
+            unlockBtn.style.display = 'inline-block';
+            useLeftBtn.style.display = 'inline-block';
+            useRightBtn.style.display = 'inline-block';
+          }
+          unlockBtn.addEventListener('click', () => {
+            aimLocked = !aimLocked;
+            unlockBtn.textContent = aimLocked ? 'Unlock Independent Aim' : 'Lock Views Together';
+            unlockBtn.classList.toggle('active', !aimLocked);
+          });
+          useLeftBtn.addEventListener('click', () => {
+            var v = viewL.parameters();
+            sendViewCapture(v.yaw, v.pitch, 0);
+          });
+          useRightBtn.addEventListener('click', () => {
+            var v = viewR.parameters();
+            sendViewCapture(v.yaw, v.pitch, 1);
+          });
+          document.getElementById('pano-left').addEventListener('click', (e) => {
+            if (!placingHotspot) return;
+            placeHotspotAt(document.getElementById('pano-left'), viewL, sceneL, '1', e.clientX, e.clientY, viewerL);
+          });
+          document.getElementById('pano-right').addEventListener('click', (e) => {
+            if (!placingHotspot) return;
+            placeHotspotAt(document.getElementById('pano-right'), viewR, sceneR, '2', e.clientX, e.clientY, viewerR);
+          });
+        }
+
+        setTimeout(() => {
+          viewerL.updateSize();
+          if (viewerR) viewerR.updateSize();
+        }, 100);
+        window.addEventListener('resize', () => {
+          viewerL.updateSize();
+          if (viewerR) viewerR.updateSize();
+        });
+
+        if (config.label_1) document.getElementById('label-left').innerText = config.label_1;
+        if (config.label_2 && !isSingleMode) document.getElementById('label-right').innerText = config.label_2;
+
+        if (config.autorotate) toggleAutorotate(true);
+      })
+      .catch(() => {
+        showBanner('No published site found for "' + siteId + '". Check the ?site= parameter or republish this site.');
+      });
+
+    function setupCurtainSlider() {
+      let isDragging = false;
+      var labelLeftEl = document.getElementById('label-left');
+      var labelRightEl = document.getElementById('label-right');
+
+      function updateWipe(x) {
+        let pct = (x / window.innerWidth) * 100;
+        pct = Math.max(0, Math.min(100, pct));
+        wrapperR.style.width = (100 - pct) + 'vw';
+        slider.style.left = pct + 'vw';
+        labelLeftEl.style.opacity = pct < 25 ? '0' : '1';
+        labelRightEl.style.opacity = pct > 75 ? '0' : '1';
+      }
+
+      slider.addEventListener('mousedown', () => isDragging = true);
+      window.addEventListener('mouseup', () => isDragging = false);
+      window.addEventListener('mousemove', (e) => { if (isDragging) updateWipe(e.clientX); });
+
+      slider.addEventListener('touchstart', () => isDragging = true);
+      window.addEventListener('touchend', () => isDragging = false);
+      window.addEventListener('touchmove', (e) => { if (isDragging && e.touches[0]) updateWipe(e.touches[0].clientX); });
+    }
+
+    function escapeHtml(s) {
+      var d = document.createElement('div');
+      d.textContent = s == null ? '' : s;
+      return d.innerHTML;
+    }
+
+    function buildHotspotPin(spot) {
+      var el = document.createElement('div');
+      el.className = 'hotspot-pin hotspot-cat-' + (spot.category || 'note');
+      el.setAttribute('data-title', spot.title || '');
+
+      var tip = document.createElement('div');
+      tip.className = 'hotspot-tooltip';
+
+      var closeBtn = document.createElement('div');
+      closeBtn.className = 'hotspot-tooltip-close';
+      closeBtn.textContent = '×';
+      closeBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        tip.classList.remove('open');
+      });
+      tip.appendChild(closeBtn);
+
+      var body = document.createElement('div');
+      updateHotspotTooltipBody(body, spot);
+      tip.appendChild(body);
+
+      el.appendChild(tip);
+      return { el: el, tip: tip, body: body };
+    }
+
+    function updateHotspotTooltipBody(body, spot) {
+      var html = '<strong class="hotspot-tooltip-title">' + escapeHtml(spot.title) + '</strong>';
+      if (spot.text) html += '<br>' + escapeHtml(spot.text);
+      if (spot.link) html += '<br><a href="' + escapeHtml(spot.link) + '" target="_blank" rel="noopener">' + escapeHtml(spot.link) + '</a>';
+      body.innerHTML = html;
+    }
+
+    function wireHotspotInteractions(pin, spot, ctx) {
+      // ctx = { hotspotObj, scene, slotId, panelEl, view, viewerRef }
+      var dragging = false;
+      var moved = false;
+      var dragStartX = 0, dragStartY = 0;
+      var DRAG_THRESHOLD = 4; // px of real movement before it counts as a drag, not a click
+
+      pin.el.addEventListener('mousedown', (e) => {
+        if (!editingHotspots || e.button !== 0) return;
+        e.stopPropagation();
+        e.preventDefault();
+        dragging = true;
+        moved = false;
+        dragStartX = e.clientX;
+        dragStartY = e.clientY;
+        // Marzipano's own pan-to-look control competes for this same mouse
+        // gesture regardless of stopPropagation, so explicitly suspend it
+        // for the duration of the drag (Marzipano's own documented pattern
+        // for this exact conflict).
+        if (ctx.viewerRef) ctx.viewerRef.controls().disable();
+      });
+
+      pin.el.addEventListener('contextmenu', (e) => {
+        if (editingHotspots) e.preventDefault();
+      });
+
+      window.addEventListener('mousemove', (e) => {
+        if (!dragging) return;
+        if (!moved) {
+          var dx = e.clientX - dragStartX;
+          var dy = e.clientY - dragStartY;
+          if (Math.hypot(dx, dy) < DRAG_THRESHOLD) return;
+          moved = true;
+        }
+        var rect = ctx.panelEl.getBoundingClientRect();
+        var coords = ctx.view.screenToCoordinates({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+        spot.yaw = coords.yaw;
+        spot.pitch = coords.pitch;
+        ctx.hotspotObj.setPosition({ yaw: coords.yaw, pitch: coords.pitch });
+      });
+
+      window.addEventListener('mouseup', () => {
+        if (dragging && ctx.viewerRef) ctx.viewerRef.controls().enable();
+        dragging = false;
+      });
+
+      pin.el.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (moved) { moved = false; return; }
+        if (editingHotspots) {
+          showEditHotspotForm(e.clientX, e.clientY, spot, ctx, pin);
+        } else {
+          var wasOpen = pin.tip.classList.contains('open');
+          document.querySelectorAll('.hotspot-tooltip.open').forEach(t => t.classList.remove('open'));
+          if (!wasOpen) pin.tip.classList.add('open');
+        }
+      });
+    }
+
+    document.addEventListener('click', () => {
+      document.querySelectorAll('.hotspot-tooltip.open').forEach(t => t.classList.remove('open'));
+    });
+
+    var hotspotsToggleBtn = document.getElementById('hotspots-toggle-btn');
+    var hotspotsVisible = true;
+    hotspotsToggleBtn.addEventListener('click', () => {
+      hotspotsVisible = !hotspotsVisible;
+      document.body.classList.toggle('hotspots-hidden', !hotspotsVisible);
+      hotspotsToggleBtn.textContent = hotspotsVisible ? 'Hide Hotspots' : 'Show Hotspots';
+    });
+
+    function renderHotspots(scene, hotspots, slotId, panelEl, view, viewerRef) {
+      if (!hotspots || !Array.isArray(hotspots) || !hotspots.length) return;
+      hotspotsToggleBtn.style.display = 'inline-block';
+      hotspots.forEach(spot => {
+        var pin = buildHotspotPin(spot);
+        var hotspotObj = scene.hotspotContainer().createHotspot(pin.el, { yaw: spot.yaw, pitch: spot.pitch });
+        wireHotspotInteractions(pin, spot, {
+          hotspotObj: hotspotObj, scene: scene, slotId: slotId, panelEl: panelEl, view: view, viewerRef: viewerRef,
+        });
+      });
+    }
+
+    // -- hotspot placement (Preview Locally only) --------------------------
+
+    var editingHotspots = false;
+    var placingHotspot = false;
+    var pendingSlotHotspots = {};
+    var editHotspotsBtn = document.getElementById('edit-hotspots-btn');
+    var placeHotspotBtn = document.getElementById('place-hotspot-btn');
+    var saveHotspotsBtn = document.getElementById('save-hotspots-btn');
+
+    if (isLocalPreview) {
+      editHotspotsBtn.style.display = 'inline-block';
+      placeHotspotBtn.style.display = 'inline-block';
+      saveHotspotsBtn.style.display = 'inline-block';
+    }
+
+    editHotspotsBtn.addEventListener('click', () => {
+      editingHotspots = !editingHotspots;
+      editHotspotsBtn.textContent = editingHotspots ? 'Stop Move/Delete' : 'Move/Delete Points';
+      editHotspotsBtn.classList.toggle('active', editingHotspots);
+      document.body.classList.toggle('editing-hotspots', editingHotspots);
+    });
+
+    placeHotspotBtn.addEventListener('click', () => {
+      placingHotspot = !placingHotspot;
+      placeHotspotBtn.textContent = placingHotspot ? 'Stop Placing' : 'Place New Point';
+      placeHotspotBtn.classList.toggle('active', placingHotspot);
+      document.body.style.cursor = placingHotspot ? 'crosshair' : '';
+    });
+
+    saveHotspotsBtn.addEventListener('click', () => {
+      var original = saveHotspotsBtn.textContent;
+      fetch('/__save_hotspots', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ site_id: siteId, slots: pendingSlotHotspots }),
+      }).then(res => {
+        saveHotspotsBtn.textContent = res.ok ? 'Saved!' : 'Failed, try again';
+        setTimeout(() => { saveHotspotsBtn.textContent = original; }, 1400);
+      }).catch(() => {
+        saveHotspotsBtn.textContent = 'Preview server not reachable';
+        setTimeout(() => { saveHotspotsBtn.textContent = original; }, 1800);
+      });
+    });
+
+    function closeOpenHotspotForms() {
+      document.querySelectorAll('.hotspot-form').forEach(f => f.remove());
+    }
+
+    function showHotspotForm(x, y, onSave) {
+      closeOpenHotspotForms();
+      var form = document.createElement('div');
+      form.className = 'hotspot-form';
+      form.style.left = Math.max(8, Math.min(x, window.innerWidth - 256)) + 'px';
+      form.style.top = Math.max(8, Math.min(y, window.innerHeight - 230)) + 'px';
+      form.innerHTML =
+        '<label>Title</label><input type="text" class="hf-title">' +
+        '<label>Text</label><textarea class="hf-text" rows="2"></textarea>' +
+        '<label>Link (optional)</label><input type="text" class="hf-link">' +
+        '<label>Category</label>' +
+        '<select class="hf-cat">' +
+        '<option value="note">Note</option>' +
+        '<option value="issue">Issue</option>' +
+        '<option value="measurement">Measurement</option>' +
+        '</select>' +
+        '<div class="hotspot-form-buttons">' +
+        '<button type="button" class="hf-cancel">Cancel</button>' +
+        '<button type="button" class="hf-save">Save Pin</button>' +
+        '</div>';
+      document.body.appendChild(form);
+
+      function close() { form.remove(); }
+      form.querySelector('.hf-cancel').addEventListener('click', close);
+      form.querySelector('.hf-save').addEventListener('click', () => {
+        var spot = {
+          title: form.querySelector('.hf-title').value.trim(),
+          text: form.querySelector('.hf-text').value.trim(),
+          link: form.querySelector('.hf-link').value.trim(),
+          category: form.querySelector('.hf-cat').value,
+        };
+        close();
+        onSave(spot);
+      });
+      form.querySelector('.hf-title').focus();
+    }
+
+    function showEditHotspotForm(x, y, spot, ctx, pin) {
+      closeOpenHotspotForms();
+      var form = document.createElement('div');
+      form.className = 'hotspot-form';
+      form.style.left = Math.max(8, Math.min(x, window.innerWidth - 256)) + 'px';
+      form.style.top = Math.max(8, Math.min(y, window.innerHeight - 260)) + 'px';
+      form.innerHTML =
+        '<label>Title</label><input type="text" class="hf-title">' +
+        '<label>Text</label><textarea class="hf-text" rows="2"></textarea>' +
+        '<label>Link (optional)</label><input type="text" class="hf-link">' +
+        '<label>Category</label>' +
+        '<select class="hf-cat">' +
+        '<option value="note">Note</option>' +
+        '<option value="issue">Issue</option>' +
+        '<option value="measurement">Measurement</option>' +
+        '</select>' +
+        '<div class="hotspot-form-buttons">' +
+        '<button type="button" class="hf-delete">Delete</button>' +
+        '<button type="button" class="hf-cancel">Cancel</button>' +
+        '<button type="button" class="hf-save">Save</button>' +
+        '</div>';
+      document.body.appendChild(form);
+      form.querySelector('.hf-title').value = spot.title || '';
+      form.querySelector('.hf-text').value = spot.text || '';
+      form.querySelector('.hf-link').value = spot.link || '';
+      form.querySelector('.hf-cat').value = spot.category || 'note';
+
+      function close() { form.remove(); }
+      form.querySelector('.hf-cancel').addEventListener('click', close);
+      form.querySelector('.hf-save').addEventListener('click', () => {
+        spot.title = form.querySelector('.hf-title').value.trim();
+        spot.text = form.querySelector('.hf-text').value.trim();
+        spot.link = form.querySelector('.hf-link').value.trim();
+        spot.category = form.querySelector('.hf-cat').value;
+        pin.el.setAttribute('data-title', spot.title);
+        pin.el.className = 'hotspot-pin hotspot-cat-' + spot.category;
+        updateHotspotTooltipBody(pin.body, spot);
+        close();
+      });
+      form.querySelector('.hf-delete').addEventListener('click', () => {
+        if (!confirm('Delete this hotspot?')) return;
+        ctx.scene.hotspotContainer().destroyHotspot(ctx.hotspotObj);
+        var arr = pendingSlotHotspots[ctx.slotId];
+        if (arr) {
+          var idx = arr.indexOf(spot);
+          if (idx !== -1) arr.splice(idx, 1);
+        }
+        close();
+      });
+      form.querySelector('.hf-title').focus();
+    }
+
+    function placeHotspotAt(panelEl, view, scene, slotId, clientX, clientY, viewerRef) {
+      var rect = panelEl.getBoundingClientRect();
+      var coords = view.screenToCoordinates({ x: clientX - rect.left, y: clientY - rect.top });
+      showHotspotForm(clientX, clientY, (spotInfo) => {
+        var spot = Object.assign({ yaw: coords.yaw, pitch: coords.pitch }, spotInfo);
+        if (!pendingSlotHotspots[slotId]) pendingSlotHotspots[slotId] = [];
+        pendingSlotHotspots[slotId].push(spot);
+        var pin = buildHotspotPin(spot);
+        var hotspotObj = scene.hotspotContainer().createHotspot(pin.el, { yaw: spot.yaw, pitch: spot.pitch });
+        wireHotspotInteractions(pin, spot, {
+          hotspotObj: hotspotObj, scene: scene, slotId: slotId, panelEl: panelEl, view: view, viewerRef: viewerRef,
+        });
+      });
+    }
+
+    // -- site tour landing page (?tour=<id>) --------------------------------
+    // Fully separate from the normal pano viewer: covers the whole screen
+    // with an opaque overlay and never touches Marzipano at all. The pano
+    // viewer below still initializes in the background (harmless, just
+    // wasted work) since restructuring that flow to skip it entirely would
+    // touch a lot of code for little benefit.
+
+    function renderTourPage(tourId) {
+      var overlay = document.createElement('div');
+      overlay.id = 'tour-overlay';
+      document.body.appendChild(overlay);
+
+      var sanitizedTour = tourId.trim().toLowerCase().replace(/[\s-]+/g, '_');
+      fetch('tours/' + sanitizedTour + '.json')
+        .then(res => {
+          if (res.ok) return res.json();
+          throw new Error('missing-tour');
+        })
+        .then(manifest => {
+          var html = '<div id="tour-panel">';
+          html += '<h1>' + escapeHtml(manifest.name || tourId) + '</h1>';
+          html += '<div id="tour-list">';
+          (manifest.sites || []).forEach(s => {
+            html += '<a class="tour-site-link" href="?site=' + encodeURIComponent(s.site_id) + '">' +
+                escapeHtml(s.display_name || s.site_id) + '</a>';
+          });
+          html += '</div></div>';
+          overlay.innerHTML = html;
+        })
+        .catch(() => {
+          overlay.innerHTML = '<div id="tour-panel"><h1>Tour Not Found</h1>' +
+              '<p>No published tour for "' + escapeHtml(tourId) + '". Check the ?tour= parameter ' +
+              'or republish this tour.</p></div>';
+        });
+    }
+  </script>
+
+</body>
+</html>

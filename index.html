@@ -159,19 +159,30 @@
     }
     .hotspot-tooltip-close:hover { background: rgba(255,255,255,0.28); }
 
-    /* Alternate pin style: dot + a permanently visible label chip,
-       no click needed to see the title (text/link still open on click). */
-    .pin-style-label .hotspot-pin::before {
+    /* Per-pin label display, chosen per-hotspot in its own edit form
+       rather than site-wide: each pin can independently show just a
+       dot, a dot with an always-visible label chip, or a dot whose
+       label chip only appears on hover. */
+    .hotspot-pin.hotspot-label-always::before,
+    .hotspot-pin.hotspot-label-hover::before {
       content: attr(data-title);
       position: absolute; top: 50%; left: 32px; transform: translateY(-50%);
       background: rgba(14, 27, 51, 0.92); color: #ffffff; padding: 4px 10px;
       border-radius: 4px; font-size: 11px; font-weight: bold; white-space: nowrap;
       border: 1px solid currentColor; pointer-events: none;
     }
-    .pin-style-label .hotspot-pin.hotspot-cat-issue::before { border-color: #e05555; }
-    .pin-style-label .hotspot-pin.hotspot-cat-measurement::before { border-color: #4caf6d; }
-    .pin-style-label .hotspot-pin.hotspot-cat-note::before { border-color: #019fc4; }
-    .pin-style-label .hotspot-pin.hotspot-cat-link::before { border-color: #b366ff; }
+    .hotspot-pin.hotspot-label-hover::before {
+      opacity: 0; transition: opacity 0.15s ease;
+    }
+    .hotspot-pin.hotspot-label-hover:hover::before { opacity: 1; }
+    .hotspot-pin.hotspot-cat-issue.hotspot-label-always::before,
+    .hotspot-pin.hotspot-cat-issue.hotspot-label-hover::before { border-color: #e05555; }
+    .hotspot-pin.hotspot-cat-measurement.hotspot-label-always::before,
+    .hotspot-pin.hotspot-cat-measurement.hotspot-label-hover::before { border-color: #4caf6d; }
+    .hotspot-pin.hotspot-cat-note.hotspot-label-always::before,
+    .hotspot-pin.hotspot-cat-note.hotspot-label-hover::before { border-color: #019fc4; }
+    .hotspot-pin.hotspot-cat-link.hotspot-label-always::before,
+    .hotspot-pin.hotspot-cat-link.hotspot-label-hover::before { border-color: #b366ff; }
     body.hotspots-hidden .hotspot-pin { display: none !important; }
     .hotspot-tooltip.open {
       opacity: 1; visibility: visible; pointer-events: auto; transform: translate(-50%, 0);
@@ -259,7 +270,6 @@
       <button id="use-view-right-btn" class="edit-tool-btn" type="button" style="display:none;">Use Right View</button>
       <button id="place-hotspot-btn" class="edit-tool-btn" type="button" style="display:none;">Place New Point</button>
       <button id="edit-hotspots-btn" class="edit-tool-btn" type="button" style="display:none;">Move/Delete Points</button>
-      <button id="pin-style-btn" class="edit-tool-btn" type="button" style="display:none;">Pin Style: Dot</button>
       <button id="save-hotspots-btn" class="edit-tool-btn" type="button" style="display:none;">Save Hotspots</button>
     </div>
   </div>
@@ -420,7 +430,7 @@
       })
       .then(config => {
         const mode = config.mode || 'single';
-        if (config.pin_style === 'label') applyPinStyle('label');
+        siteDefaultPinStyle = config.pin_style === 'label' ? 'label' : 'dot';
 
         if (mode === 'timeseries') {
           isTimeseriesModeGlobal = true;
@@ -681,9 +691,21 @@
       return d.innerHTML;
     }
 
+    function pinStyleClass(spot) {
+      // A pin's own explicit style wins. Pins saved before this feature
+      // existed have no spot.pin_style at all -- for those, fall back to
+      // the site's old site-wide default (siteDefaultPinStyle, read once
+      // from config.pin_style) so already-published sites keep looking
+      // the way they did rather than silently reverting to plain dots.
+      var effective = spot.pin_style || (siteDefaultPinStyle === 'label' ? 'label_always' : 'dot');
+      if (effective === 'label_always') return ' hotspot-label-always';
+      if (effective === 'label_hover') return ' hotspot-label-hover';
+      return '';
+    }
+
     function buildHotspotPin(spot) {
       var el = document.createElement('div');
-      el.className = 'hotspot-pin hotspot-cat-' + (spot.category || 'note');
+      el.className = 'hotspot-pin hotspot-cat-' + (spot.category || 'note') + pinStyleClass(spot);
       el.setAttribute('data-title', spot.title || '');
 
       var tip = document.createElement('div');
@@ -817,22 +839,16 @@
     var editingHotspots = false;
     var placingHotspot = false;
     var pendingSlotHotspots = {};
-    var pendingPinStyle = 'dot';
+    var siteDefaultPinStyle = 'dot'; // legacy site-wide fallback, read from
+                                      // config.pin_style, only used for pins
+                                      // saved before per-pin style existed
     var editHotspotsBtn = document.getElementById('edit-hotspots-btn');
     var placeHotspotBtn = document.getElementById('place-hotspot-btn');
-    var pinStyleBtn = document.getElementById('pin-style-btn');
     var saveHotspotsBtn = document.getElementById('save-hotspots-btn');
-
-    function applyPinStyle(style) {
-      pendingPinStyle = style;
-      document.body.classList.toggle('pin-style-label', style === 'label');
-      pinStyleBtn.textContent = 'Pin Style: ' + (style === 'label' ? 'Dot + Label' : 'Dot');
-    }
 
     if (isLocalPreview) {
       editHotspotsBtn.style.display = 'inline-block';
       placeHotspotBtn.style.display = 'inline-block';
-      pinStyleBtn.style.display = 'inline-block';
       saveHotspotsBtn.style.display = 'inline-block';
     }
 
@@ -850,10 +866,6 @@
       document.body.style.cursor = placingHotspot ? 'crosshair' : '';
     });
 
-    pinStyleBtn.addEventListener('click', () => {
-      applyPinStyle(pendingPinStyle === 'label' ? 'dot' : 'label');
-    });
-
     saveHotspotsBtn.addEventListener('click', () => {
       var original = saveHotspotsBtn.textContent;
       var payloadSiteId, payloadSlots;
@@ -868,7 +880,7 @@
       fetch('/__save_hotspots', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ site_id: payloadSiteId, slots: payloadSlots, pin_style: pendingPinStyle }),
+        body: JSON.stringify({ site_id: payloadSiteId, slots: payloadSlots }),
       }).then(res => {
         saveHotspotsBtn.textContent = res.ok ? 'Saved!' : 'Failed, try again';
         setTimeout(() => { saveHotspotsBtn.textContent = original; }, 1400);
@@ -913,6 +925,12 @@
         '<div class="hf-target-row" style="display:none;">' +
         '<label>Target Site ID</label>' + targetFieldMarkup() +
         '</div>' +
+        '<label>Pin Style</label>' +
+        '<select class="hf-pinstyle">' +
+        '<option value="dot">Dot</option>' +
+        '<option value="label_always">Dot + Label (always shown)</option>' +
+        '<option value="label_hover">Dot + Label (on hover)</option>' +
+        '</select>' +
         '<div class="hotspot-form-buttons">' +
         '<button type="button" class="hf-cancel">Cancel</button>' +
         '<button type="button" class="hf-save">Save Pin</button>' +
@@ -935,6 +953,7 @@
           text: form.querySelector('.hf-text').value.trim(),
           link: form.querySelector('.hf-link').value.trim(),
           category: category,
+          pin_style: form.querySelector('.hf-pinstyle').value,
         };
         if (category === 'link') {
           spot.target = form.querySelector('.hf-target').value.trim()
@@ -966,6 +985,12 @@
         '<div class="hf-target-row" style="display:none;">' +
         '<label>Target Site ID</label>' + targetFieldMarkup() +
         '</div>' +
+        '<label>Pin Style</label>' +
+        '<select class="hf-pinstyle">' +
+        '<option value="dot">Dot</option>' +
+        '<option value="label_always">Dot + Label (always shown)</option>' +
+        '<option value="label_hover">Dot + Label (on hover)</option>' +
+        '</select>' +
         '<div class="hotspot-form-buttons">' +
         '<button type="button" class="hf-delete">Delete</button>' +
         '<button type="button" class="hf-cancel">Cancel</button>' +
@@ -977,6 +1002,7 @@
       form.querySelector('.hf-link').value = spot.link || '';
       form.querySelector('.hf-cat').value = spot.category || 'note';
       form.querySelector('.hf-target').value = spot.target || '';
+      form.querySelector('.hf-pinstyle').value = spot.pin_style || 'dot';
 
       var catSelect = form.querySelector('.hf-cat');
       var targetRow = form.querySelector('.hf-target-row');
@@ -994,6 +1020,7 @@
         spot.text = form.querySelector('.hf-text').value.trim();
         spot.link = form.querySelector('.hf-link').value.trim();
         spot.category = category;
+        spot.pin_style = form.querySelector('.hf-pinstyle').value;
         if (category === 'link') {
           spot.target = form.querySelector('.hf-target').value.trim()
               .toLowerCase().replace(/[\s-]+/g, '_');
@@ -1001,7 +1028,7 @@
           delete spot.target;
         }
         pin.el.setAttribute('data-title', spot.title);
-        pin.el.className = 'hotspot-pin hotspot-cat-' + spot.category;
+        pin.el.className = 'hotspot-pin hotspot-cat-' + spot.category + pinStyleClass(spot);
         updateHotspotTooltipBody(pin.body, spot);
         close();
       });
@@ -1058,11 +1085,9 @@
 
         editHotspotsBtn = document.getElementById('edit-hotspots-btn');
         placeHotspotBtn = document.getElementById('place-hotspot-btn');
-        pinStyleBtn = document.getElementById('pin-style-btn');
         saveHotspotsBtn = document.getElementById('save-hotspots-btn');
         editHotspotsBtn.style.display = 'inline-block';
         placeHotspotBtn.style.display = 'inline-block';
-        pinStyleBtn.style.display = 'inline-block';
         saveHotspotsBtn.style.display = 'inline-block';
 
         // Placing a new hotspot needs its own click listener on the pano
@@ -1127,7 +1152,7 @@
           cached.scene.switchTo();
           setTimeout(() => { viewerL.updateSize(); }, 100);
           document.getElementById('label-left').innerText = cached.label;
-          if (cached.pinStyle === 'label') applyPinStyle('label');
+          siteDefaultPinStyle = cached.pinStyle === 'label' ? 'label' : 'dot';
           return;
         }
 
@@ -1165,7 +1190,7 @@
 
           var resolvedLabel = config.label_1 || fallbackLabel;
           document.getElementById('label-left').innerText = resolvedLabel;
-          if (config.pin_style === 'label') applyPinStyle('label');
+          siteDefaultPinStyle = config.pin_style === 'label' ? 'label' : 'dot';
 
           // Cache the built scene itself, not just its config, so
           // revisiting this stop later is an instant switchTo() with

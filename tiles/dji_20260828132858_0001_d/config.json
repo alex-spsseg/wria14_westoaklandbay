@@ -8,7 +8,44 @@
   "label_1": "DJI_20260828132858_0001_D (2026/08/28)",
   "label_2": "",
   "autorotate": false,
-  "hotspots_1": [],
+  "hotspots_1": [
+    {
+      "yaw": 0.716842788004616,
+      "pitch": -0.09282445308393328,
+      "title": "West Lobe",
+      "text": "",
+      "link": "",
+      "category": "link",
+      "target": "dji_20260828133337_0001_d"
+    },
+    {
+      "yaw": 0.19332277582447333,
+      "pitch": 0.05957801619343961,
+      "title": "ELJs",
+      "text": "",
+      "link": "",
+      "category": "link",
+      "target": "dji_20260828133132_0001_d"
+    },
+    {
+      "yaw": 1.3978580214211949,
+      "pitch": -0.0920850277365659,
+      "title": "North Lobe",
+      "text": "",
+      "link": "",
+      "category": "link",
+      "target": "dji_20260828133959_0001_d"
+    },
+    {
+      "yaw": 0.8377706314345499,
+      "pitch": 0.09185199802128174,
+      "title": "Newly Constructed Berm",
+      "text": "",
+      "link": "",
+      "category": "link",
+      "target": "img_20260828_121536_00_969"
+    }
+  ],
   "hotspots_2": [],
   "levels_1": [],
   "levels_2": [],

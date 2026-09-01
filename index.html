@@ -124,12 +124,14 @@
     }
     .hotspot-pin.hotspot-cat-issue { background: #e05555; }
     .hotspot-pin.hotspot-cat-measurement { background: #4caf6d; }
+    .hotspot-pin.hotspot-cat-link { background: #b366ff; }
     .hotspot-pin::after {
       content: 'i'; color: #ffffff; font-weight: bold; font-family: sans-serif;
       display: flex; align-items: center; justify-content: center; height: 100%; font-size: 14px;
     }
     .hotspot-pin.hotspot-cat-issue::after { content: '!'; }
     .hotspot-pin.hotspot-cat-measurement::after { content: 'M'; font-size: 12px; }
+    .hotspot-pin.hotspot-cat-link::after { content: '\2197'; font-size: 15px; }
 
     .hotspot-tooltip {
       position: absolute; bottom: 34px; left: 50%;
@@ -169,6 +171,7 @@
     .pin-style-label .hotspot-pin.hotspot-cat-issue::before { border-color: #e05555; }
     .pin-style-label .hotspot-pin.hotspot-cat-measurement::before { border-color: #4caf6d; }
     .pin-style-label .hotspot-pin.hotspot-cat-note::before { border-color: #019fc4; }
+    .pin-style-label .hotspot-pin.hotspot-cat-link::before { border-color: #b366ff; }
     body.hotspots-hidden .hotspot-pin { display: none !important; }
     .hotspot-tooltip.open {
       opacity: 1; visibility: visible; pointer-events: auto; transform: translate(-50%, 0);
@@ -182,6 +185,7 @@
     }
     .hotspot-form label { display: block; margin: 8px 0 3px; color: #7fa8b8; }
     .hotspot-form label:first-child { margin-top: 0; }
+    .hf-target-row label { margin-top: 8px !important; }
     .hotspot-form input[type="text"], .hotspot-form textarea, .hotspot-form select {
       width: 100%; box-sizing: border-box; background: #0a1428; color: #ffffff;
       border: 1px solid #22346b; border-radius: 4px; padding: 5px 6px; font-size: 12px;
@@ -263,9 +267,22 @@
   <script>
     const urlParams = new URLSearchParams(window.location.search);
     let rawSiteId = urlParams.get('site') || urlParams.get('well') || 'dji_20260828132858_0001_d';
-    const siteId = rawSiteId.trim().toLowerCase().replace(/[\s-]+/g, '_');
+    const siteId = rawSiteId.trim().toLowerCase().replace(/[\\s-]+/g, '_');
 
     const tourParam = urlParams.get('tour');
+    var tourLoadStopFn = null; // set inside renderTourPage; lets a "link" hotspot
+                                // jump to another stop in the current tour, in place,
+                                // the same way the sidebar does.
+    var tourSiteOptions = null; // [{site_id, display_name}] once the tour manifest
+                                 // loads, so the "link" hotspot form can offer a
+                                 // dropdown of real stops instead of free text you
+                                 // have to get exactly right (site ids and their
+                                 // display labels can differ completely once a
+                                 // stop's been renamed in Site Tour Manager)
+    var activeTourSiteId = null; // which stop is currently showing, for Use This
+                                  // View / hotspot editing / Save Hotspots to target
+    var activeTourScene = null;  // that stop's live Marzipano scene, for placing
+                                  // new hotspots onto it
     if (tourParam) renderTourPage(tourParam);
 
     const isLocalPreview = (location.hostname === '127.0.0.1' || location.hostname === 'localhost') && !tourParam;
@@ -674,7 +691,7 @@
 
       var closeBtn = document.createElement('div');
       closeBtn.className = 'hotspot-tooltip-close';
-      closeBtn.textContent = '×';
+      closeBtn.textContent = '\u00d7';
       closeBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         tip.classList.remove('open');
@@ -747,6 +764,13 @@
         if (moved) { moved = false; return; }
         if (editingHotspots) {
           showEditHotspotForm(e.clientX, e.clientY, spot, ctx, pin);
+        } else if (spot.category === 'link' && spot.target) {
+          if (tourParam && tourLoadStopFn) {
+            tourLoadStopFn(spot.target);
+          } else {
+            window.location.href = '?site=' + encodeURIComponent(
+                spot.target.trim().toLowerCase().replace(/[\s-]+/g, '_'));
+          }
         } else {
           var wasOpen = pin.tip.classList.contains('open');
           document.querySelectorAll('.hotspot-tooltip.open').forEach(t => t.classList.remove('open'));
@@ -770,6 +794,15 @@
     function renderHotspots(scene, hotspots, slotId, panelEl, view, viewerRef) {
       if (!hotspots || !Array.isArray(hotspots) || !hotspots.length) return;
       hotspotsToggleBtn.style.display = 'inline-block';
+      // Seed pendingSlotHotspots with the hotspots actually being
+      // rendered (same object references, not copies), so that
+      // editing, dragging, or deleting one of THESE existing pins is
+      // reflected in what Save Hotspots sends. Before this, only
+      // brand-new pins ever made it into pendingSlotHotspots, so
+      // saving after only editing/deleting existing ones silently did
+      // nothing, and saving after placing even one new pin wiped out
+      // every pre-existing hotspot for that slot.
+      if (!pendingSlotHotspots[slotId]) pendingSlotHotspots[slotId] = hotspots.slice();
       hotspots.forEach(spot => {
         var pin = buildHotspotPin(spot);
         var hotspotObj = scene.hotspotContainer().createHotspot(pin.el, { yaw: spot.yaw, pitch: spot.pitch });
@@ -823,10 +856,19 @@
 
     saveHotspotsBtn.addEventListener('click', () => {
       var original = saveHotspotsBtn.textContent;
+      var payloadSiteId, payloadSlots;
+      if (tourParam) {
+        if (!activeTourSiteId) return;
+        payloadSiteId = activeTourSiteId;
+        payloadSlots = { '1': pendingSlotHotspots[activeTourSiteId] || [] };
+      } else {
+        payloadSiteId = siteId;
+        payloadSlots = pendingSlotHotspots;
+      }
       fetch('/__save_hotspots', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ site_id: siteId, slots: pendingSlotHotspots, pin_style: pendingPinStyle }),
+        body: JSON.stringify({ site_id: payloadSiteId, slots: payloadSlots, pin_style: pendingPinStyle }),
       }).then(res => {
         saveHotspotsBtn.textContent = res.ok ? 'Saved!' : 'Failed, try again';
         setTimeout(() => { saveHotspotsBtn.textContent = original; }, 1400);
@@ -838,6 +880,17 @@
 
     function closeOpenHotspotForms() {
       document.querySelectorAll('.hotspot-form').forEach(f => f.remove());
+    }
+
+    function targetFieldMarkup() {
+      if (tourParam && tourSiteOptions && tourSiteOptions.length) {
+        var opts = tourSiteOptions.map(s =>
+          '<option value="' + escapeHtml(s.site_id) + '">' +
+          escapeHtml(s.display_name || s.site_id) + '</option>'
+        ).join('');
+        return '<select class="hf-target"><option value="">(choose a stop)</option>' + opts + '</select>';
+      }
+      return '<input type="text" class="hf-target" placeholder="e.g. west_lobe_south_view">';
     }
 
     function showHotspotForm(x, y, onSave) {
@@ -855,22 +908,38 @@
         '<option value="note">Note</option>' +
         '<option value="issue">Issue</option>' +
         '<option value="measurement">Measurement</option>' +
+        '<option value="link">Link to Another Photo</option>' +
         '</select>' +
+        '<div class="hf-target-row" style="display:none;">' +
+        '<label>Target Site ID</label>' + targetFieldMarkup() +
+        '</div>' +
         '<div class="hotspot-form-buttons">' +
         '<button type="button" class="hf-cancel">Cancel</button>' +
         '<button type="button" class="hf-save">Save Pin</button>' +
         '</div>';
       document.body.appendChild(form);
 
+      var catSelect = form.querySelector('.hf-cat');
+      var targetRow = form.querySelector('.hf-target-row');
+      function syncTargetVisibility() {
+        targetRow.style.display = catSelect.value === 'link' ? 'block' : 'none';
+      }
+      catSelect.addEventListener('change', syncTargetVisibility);
+
       function close() { form.remove(); }
       form.querySelector('.hf-cancel').addEventListener('click', close);
       form.querySelector('.hf-save').addEventListener('click', () => {
+        var category = catSelect.value;
         var spot = {
           title: form.querySelector('.hf-title').value.trim(),
           text: form.querySelector('.hf-text').value.trim(),
           link: form.querySelector('.hf-link').value.trim(),
-          category: form.querySelector('.hf-cat').value,
+          category: category,
         };
+        if (category === 'link') {
+          spot.target = form.querySelector('.hf-target').value.trim()
+              .toLowerCase().replace(/[\s-]+/g, '_');
+        }
         close();
         onSave(spot);
       });
@@ -892,7 +961,11 @@
         '<option value="note">Note</option>' +
         '<option value="issue">Issue</option>' +
         '<option value="measurement">Measurement</option>' +
+        '<option value="link">Link to Another Photo</option>' +
         '</select>' +
+        '<div class="hf-target-row" style="display:none;">' +
+        '<label>Target Site ID</label>' + targetFieldMarkup() +
+        '</div>' +
         '<div class="hotspot-form-buttons">' +
         '<button type="button" class="hf-delete">Delete</button>' +
         '<button type="button" class="hf-cancel">Cancel</button>' +
@@ -903,14 +976,30 @@
       form.querySelector('.hf-text').value = spot.text || '';
       form.querySelector('.hf-link').value = spot.link || '';
       form.querySelector('.hf-cat').value = spot.category || 'note';
+      form.querySelector('.hf-target').value = spot.target || '';
+
+      var catSelect = form.querySelector('.hf-cat');
+      var targetRow = form.querySelector('.hf-target-row');
+      function syncTargetVisibility() {
+        targetRow.style.display = catSelect.value === 'link' ? 'block' : 'none';
+      }
+      catSelect.addEventListener('change', syncTargetVisibility);
+      syncTargetVisibility();
 
       function close() { form.remove(); }
       form.querySelector('.hf-cancel').addEventListener('click', close);
       form.querySelector('.hf-save').addEventListener('click', () => {
+        var category = catSelect.value;
         spot.title = form.querySelector('.hf-title').value.trim();
         spot.text = form.querySelector('.hf-text').value.trim();
         spot.link = form.querySelector('.hf-link').value.trim();
-        spot.category = form.querySelector('.hf-cat').value;
+        spot.category = category;
+        if (category === 'link') {
+          spot.target = form.querySelector('.hf-target').value.trim()
+              .toLowerCase().replace(/[\s-]+/g, '_');
+        } else {
+          delete spot.target;
+        }
         pin.el.setAttribute('data-title', spot.title);
         pin.el.className = 'hotspot-pin hotspot-cat-' + spot.category;
         updateHotspotTooltipBody(pin.body, spot);
@@ -955,16 +1044,37 @@
       document.getElementById('pano-right-wrapper').classList.add('hidden');
       document.getElementById('label-right').style.display = 'none';
 
-      var activeTourSiteId = null;
       var rawIsLocal = (location.hostname === '127.0.0.1' || location.hostname === 'localhost');
       if (rawIsLocal) {
         document.getElementById('edit-tools-panel').style.display = 'flex';
+
         var tourUseViewBtn = document.getElementById('use-view-btn');
         tourUseViewBtn.style.display = 'inline-block';
         tourUseViewBtn.addEventListener('click', () => {
           if (!activeTourSiteId) return;
           var v = viewL.parameters();
           sendViewCapture(v.yaw, v.pitch, 0, activeTourSiteId);
+        });
+
+        editHotspotsBtn = document.getElementById('edit-hotspots-btn');
+        placeHotspotBtn = document.getElementById('place-hotspot-btn');
+        pinStyleBtn = document.getElementById('pin-style-btn');
+        saveHotspotsBtn = document.getElementById('save-hotspots-btn');
+        editHotspotsBtn.style.display = 'inline-block';
+        placeHotspotBtn.style.display = 'inline-block';
+        pinStyleBtn.style.display = 'inline-block';
+        saveHotspotsBtn.style.display = 'inline-block';
+
+        // Placing a new hotspot needs its own click listener on the pano
+        // panel, same as the non-tour single/compare/curtain/toggle flow
+        // has, but scoped to whichever stop is currently active since
+        // that changes as you move through the tour.
+        document.getElementById('pano-left').addEventListener('click', (e) => {
+          if (!placingHotspot || !activeTourSiteId || !activeTourScene) return;
+          placeHotspotAt(
+              document.getElementById('pano-left'), viewL, activeTourScene,
+              activeTourSiteId, e.clientX, e.clientY, viewerL,
+          );
         });
       }
 
@@ -975,14 +1085,14 @@
       var toggleBtn = document.createElement('button');
       toggleBtn.id = 'tour-sidebar-toggle';
       toggleBtn.type = 'button';
-      toggleBtn.innerHTML = '≡';
+      toggleBtn.innerHTML = '\u2261';
       toggleBtn.style.display = 'block';
       document.body.appendChild(toggleBtn);
       toggleBtn.addEventListener('click', () => sidebar.classList.toggle('collapsed'));
 
       var titleEl = document.createElement('div');
       titleEl.id = 'tour-sidebar-title';
-      titleEl.textContent = 'Loading…';
+      titleEl.textContent = 'Loading\u2026';
       sidebar.appendChild(titleEl);
 
       var listEl = document.createElement('div');
@@ -991,19 +1101,29 @@
 
       var configCache = {};
       var sceneCache = {};
+      var siteLinkElements = {}; // site_id -> its sidebar link element, if it has one
       var activeLink = null;
 
-      function loadStop(rawId, linkEl, label) {
+      function loadStop(rawId) {
         var sid = rawId.trim().toLowerCase().replace(/[\s-]+/g, '_');
+        var linkEl = siteLinkElements[sid];
         if (activeLink) activeLink.classList.remove('active');
-        linkEl.classList.add('active');
-        activeLink = linkEl;
+        if (linkEl) {
+          linkEl.classList.add('active');
+          activeLink = linkEl;
+        } else {
+          // A "link" hotspot can point anywhere, not just at another
+          // stop already in this tour's own sidebar list.
+          activeLink = null;
+        }
+        var fallbackLabel = linkEl ? linkEl.textContent : sid;
         activeTourSiteId = sid;
 
         if (sceneCache[sid]) {
           var cached = sceneCache[sid];
           viewL = cached.view;
           defaultViewL = cached.defaultView;
+          activeTourScene = cached.scene;
           cached.scene.switchTo();
           setTimeout(() => { viewerL.updateSize(); }, 100);
           document.getElementById('label-left').innerText = cached.label;
@@ -1034,11 +1154,16 @@
           }
 
           var scene = viewerL.createScene({ source: source, geometry: geometry, view: viewL });
-          renderHotspots(scene, config.hotspots_1, '1', document.getElementById('pano-left'), viewL, viewerL);
+          activeTourScene = scene;
+          // Keyed by site id, not a fixed '1' -- each stop's hotspots
+          // need to land in their own pendingSlotHotspots entry, or
+          // editing one stop's pins would bleed into whichever other
+          // stop happened to share that key.
+          renderHotspots(scene, config.hotspots_1, sid, document.getElementById('pano-left'), viewL, viewerL);
           scene.switchTo();
           setTimeout(() => { viewerL.updateSize(); }, 100);
 
-          var resolvedLabel = config.label_1 || label;
+          var resolvedLabel = config.label_1 || fallbackLabel;
           document.getElementById('label-left').innerText = resolvedLabel;
           if (config.pin_style === 'label') applyPinStyle('label');
 
@@ -1054,6 +1179,7 @@
           showBanner('Could not load "' + sid + '" for this tour.');
         });
       }
+      tourLoadStopFn = loadStop;
 
       var sanitizedTour = tourId.trim().toLowerCase().replace(/[\s-]+/g, '_');
       fetch('tours/' + sanitizedTour + '.json')
@@ -1064,14 +1190,17 @@
         .then(manifest => {
           titleEl.textContent = manifest.name || tourId;
           var sites = manifest.sites || [];
+          tourSiteOptions = sites;
           sites.forEach((s, idx) => {
             var link = document.createElement('div');
             link.className = 'tour-stop-link';
             var label = s.display_name || s.site_id;
             link.textContent = label;
-            link.addEventListener('click', () => loadStop(s.site_id, link, label));
+            var sidKey = s.site_id.trim().toLowerCase().replace(/[\s-]+/g, '_');
+            siteLinkElements[sidKey] = link;
+            link.addEventListener('click', () => loadStop(s.site_id));
             listEl.appendChild(link);
-            if (idx === 0) loadStop(s.site_id, link, label);
+            if (idx === 0) loadStop(s.site_id);
           });
           if (!sites.length) {
             var empty = document.createElement('div');

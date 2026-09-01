@@ -16,7 +16,8 @@
       "text": "",
       "link": "",
       "category": "link",
-      "target": "dji_20260828133337_0001_d"
+      "target": "dji_20260828133337_0001_d",
+      "pin_style": "label_hover"
     },
     {
       "yaw": 0.19332277582447333,
@@ -25,7 +26,8 @@
       "text": "",
       "link": "",
       "category": "link",
-      "target": "dji_20260828133132_0001_d"
+      "target": "dji_20260828133132_0001_d",
+      "pin_style": "label_hover"
     },
     {
       "yaw": 1.3978580214211949,
@@ -34,7 +36,8 @@
       "text": "",
       "link": "",
       "category": "link",
-      "target": "dji_20260828133959_0001_d"
+      "target": "dji_20260828133959_0001_d",
+      "pin_style": "label_hover"
     },
     {
       "yaw": 0.8377706314345499,
@@ -43,7 +46,18 @@
       "text": "",
       "link": "",
       "category": "link",
-      "target": "img_20260828_121536_00_969"
+      "target": "img_20260828_121536_00_969",
+      "pin_style": "label_hover"
+    },
+    {
+      "yaw": 1.825775031660375,
+      "pitch": -0.08424271702164177,
+      "title": "Yacht Club",
+      "text": "",
+      "link": "",
+      "category": "link",
+      "pin_style": "label_hover",
+      "target": "dji_20260828134146_0001_d"
     }
   ],
   "hotspots_2": [],

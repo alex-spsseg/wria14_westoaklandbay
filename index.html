@@ -432,6 +432,10 @@
         const mode = config.mode || 'single';
         siteDefaultPinStyle = config.pin_style === 'label' ? 'label' : 'dot';
 
+        var pageTitle = config.label_1 ||
+            (config.photos && config.photos[0] && config.photos[0].label) || rawSiteId;
+        document.title = pageTitle;
+
         if (mode === 'timeseries') {
           isTimeseriesModeGlobal = true;
           wrapperR.classList.add('hidden');
@@ -1127,6 +1131,8 @@
       var configCache = {};
       var sceneCache = {};
       var siteLinkElements = {}; // site_id -> its sidebar link element, if it has one
+      var tourNameForTitle = tourId; // updated once the manifest loads, used to keep
+                                      // the browser tab title showing "Tour \u2014 Stop"
       var activeLink = null;
 
       function loadStop(rawId) {
@@ -1152,6 +1158,7 @@
           cached.scene.switchTo();
           setTimeout(() => { viewerL.updateSize(); }, 100);
           document.getElementById('label-left').innerText = cached.label;
+          document.title = tourNameForTitle + ' \u2014 ' + cached.label;
           siteDefaultPinStyle = cached.pinStyle === 'label' ? 'label' : 'dot';
           return;
         }
@@ -1190,6 +1197,7 @@
 
           var resolvedLabel = config.label_1 || fallbackLabel;
           document.getElementById('label-left').innerText = resolvedLabel;
+          document.title = tourNameForTitle + ' \u2014 ' + resolvedLabel;
           siteDefaultPinStyle = config.pin_style === 'label' ? 'label' : 'dot';
 
           // Cache the built scene itself, not just its config, so
@@ -1214,6 +1222,8 @@
         })
         .then(manifest => {
           titleEl.textContent = manifest.name || tourId;
+          document.title = manifest.name || tourId;
+          tourNameForTitle = manifest.name || tourId;
           var sites = manifest.sites || [];
           tourSiteOptions = sites;
           sites.forEach((s, idx) => {
@@ -1236,6 +1246,7 @@
         })
         .catch(() => {
           titleEl.textContent = 'Tour Not Found';
+          document.title = 'Tour Not Found';
           var msg = document.createElement('div');
           msg.className = 'tour-sidebar-error';
           msg.textContent = 'No published tour for "' + tourId + '". Check the ?tour= parameter or republish this tour.';

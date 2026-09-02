@@ -318,7 +318,7 @@
 </head>
 <body>
 
-  <div id="build-timestamp">Built 2026-09-02 13:03:13</div>
+  <div id="build-timestamp">Built 2026-09-02 13:34:40</div>
 
   <div id="status-banner"></div>
 
@@ -361,7 +361,7 @@
 
   <script>
     const urlParams = new URLSearchParams(window.location.search);
-    let rawSiteId = urlParams.get('site') || urlParams.get('well') || 'dji_20260828132858_0001_d';
+    let rawSiteId = urlParams.get('site') || urlParams.get('well') || 'map_test_4';
     const siteId = rawSiteId.trim().toLowerCase().replace(/[\s-]+/g, '_');
 
     const tourParam = urlParams.get('tour');
@@ -983,7 +983,7 @@
     var pendingMapData = null;
 
     function buildBaseLayer(basemapType, basemapUrl) {
-      if (basemapType === 'esri_tile' && basemapUrl) {
+      if ((basemapType === 'esri_tile' || basemapType === 'xyz_tile') && basemapUrl) {
         return L.tileLayer(basemapUrl, { maxZoom: 22, attribution: 'Imagery: SPSSEG' });
       }
       if (basemapType === 'esri_image' && basemapUrl && window.L && L.esri && L.esri.imageMapLayer) {

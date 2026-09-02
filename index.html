@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
@@ -310,6 +311,36 @@
     .tour-stop-link:hover { background: rgba(1, 159, 196, 0.3); }
     .tour-stop-link.active { background: #019fc4; font-weight: bold; }
     .tour-sidebar-error { color: #e0a5a5; font-size: 12px; line-height: 1.4; }
+
+    /* -- Mobile -- without the viewport meta tag above, none of this
+    matters: the browser would just render the desktop layout shrunk
+    down and pinch-zoom would fight with Marzipano's own pinch-to-zoom
+    gesture on the panorama itself. With it, phones need a few things
+    sized differently than a mouse-driven desktop layout: bigger tap
+    targets (fingers are far less precise than a cursor), a sidebar
+    that doesn't eat half the screen, and a minimap small enough to
+    not block the panorama underneath it. */
+    @media (max-width: 700px) {
+      #control-bar {
+        flex-wrap: wrap; justify-content: flex-end; gap: 6px; max-width: calc(100vw - 24px);
+      }
+      .ctrl-btn { padding: 10px 12px; font-size: 13px; }
+
+      #tour-sidebar-toggle { width: 44px; height: 44px; font-size: 20px; }
+      #tour-sidebar {
+        top: 64px; left: 8px; right: 8px; width: auto; max-width: none; max-height: 60vh;
+      }
+      #tour-sidebar.collapsed { transform: translateY(-20px); }
+      .tour-stop-link { padding: 12px 10px; font-size: 14px; }
+
+      #site-map-panel { width: 42vw; height: 32vw; min-height: 130px; max-height: 190px; }
+
+      .hotspot-pin { width: 32px; height: 32px; }
+      body.editing-hotspots .hotspot-pin { width: 38px; height: 38px; }
+
+      .pano-label { font-size: 12px; padding: 5px 10px; max-width: 70vw; }
+      #label-right { top: 52px; }
+    }
   </style>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -318,7 +349,7 @@
 </head>
 <body>
 
-  <div id="build-timestamp">Built 2026-09-02 13:34:40</div>
+  <div id="build-timestamp">Built 2026-09-02 15:25:26</div>
 
   <div id="status-banner"></div>
 
@@ -361,7 +392,7 @@
 
   <script>
     const urlParams = new URLSearchParams(window.location.search);
-    let rawSiteId = urlParams.get('site') || urlParams.get('well') || 'map_test_4';
+    let rawSiteId = urlParams.get('site') || urlParams.get('well') || 'dji_20260828132858_0001_d';
     const siteId = rawSiteId.trim().toLowerCase().replace(/[\s-]+/g, '_');
 
     const tourParam = urlParams.get('tour');

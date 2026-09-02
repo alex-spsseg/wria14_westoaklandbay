@@ -85,6 +85,14 @@
       pointer-events: none; user-select: none;
     }
 
+    #site-map-panel {
+      position: absolute; bottom: 12px; right: 12px; z-index: 1500;
+      width: 300px; height: 220px; border: 1px solid #019fc4; border-radius: 8px;
+      overflow: hidden; box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+    }
+    #site-map { width: 100%; height: 100%; }
+    .site-map-popup-link { color: #019fc4; font-weight: bold; cursor: pointer; }
+
     #control-bar {
       position: absolute; top: 12px; right: 12px; z-index: 1000;
       display: flex; gap: 8px; pointer-events: auto;
@@ -303,11 +311,14 @@
     .tour-stop-link.active { background: #019fc4; font-weight: bold; }
     .tour-sidebar-error { color: #e0a5a5; font-size: 12px; line-height: 1.4; }
   </style>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/esri-leaflet@3.0.12/dist/esri-leaflet.js"></script>
   <script src="vendor/marzipano.js"></script>
 </head>
 <body>
 
-  <div id="build-timestamp">Built 2026-09-02 10:29:45</div>
+  <div id="build-timestamp">Built 2026-09-02 12:52:20</div>
 
   <div id="status-banner"></div>
 
@@ -326,9 +337,14 @@
     <div id="control-bar">
       <button id="toggle-btn" class="ctrl-btn" type="button" style="display:none;">Toggle</button>
       <button id="hotspots-toggle-btn" class="ctrl-btn" type="button" style="display:none;">Hide Hotspots</button>
+      <button id="map-toggle-btn" class="ctrl-btn" type="button" style="display:none;">Show Map</button>
       <button id="autorotate-btn" class="ctrl-btn" type="button">Auto-Rotate</button>
       <button id="fullscreen-btn" class="ctrl-btn" type="button">Full Screen</button>
       <button id="reset-btn" class="ctrl-btn" type="button">Reset View</button>
+    </div>
+
+    <div id="site-map-panel" style="display:none;">
+      <div id="site-map"></div>
     </div>
 
     <div id="edit-tools-panel" style="display:none;">
@@ -346,7 +362,7 @@
   <script>
     const urlParams = new URLSearchParams(window.location.search);
     let rawSiteId = urlParams.get('site') || urlParams.get('well') || 'dji_20260828132858_0001_d';
-    const siteId = rawSiteId.trim().toLowerCase().replace(/[\\s-]+/g, '_');
+    const siteId = rawSiteId.trim().toLowerCase().replace(/[\s-]+/g, '_');
 
     const tourParam = urlParams.get('tour');
     var tourLoadStopFn = null; // set inside renderTourPage; lets a "link" hotspot
@@ -504,6 +520,14 @@
         var pageTitle = config.label_1 ||
             (config.photos && config.photos[0] && config.photos[0].label) || rawSiteId;
         document.title = pageTitle;
+
+        if (config.lat != null && config.lng != null) {
+          pendingMapData = {
+            type: 'single', lat: config.lat, lng: config.lng, label: pageTitle,
+            basemapType: config.basemap_type || 'osm', basemapUrl: config.basemap_url || '',
+          };
+          mapToggleBtn.style.display = 'inline-block';
+        }
 
         if (mode === 'timeseries') {
           isTimeseriesModeGlobal = true;
@@ -945,6 +969,79 @@
       hotspotsVisible = !hotspotsVisible;
       document.body.classList.toggle('hotspots-hidden', !hotspotsVisible);
       hotspotsToggleBtn.textContent = hotspotsVisible ? 'Hide Hotspots' : 'Show Hotspots';
+    });
+
+    // -- site location map (Show Map button, appears only when at least
+    // one site has GPS data, usually from drone photo EXIF) -----------
+    var mapToggleBtn = document.getElementById('map-toggle-btn');
+    var siteMapPanel = document.getElementById('site-map-panel');
+    var siteMap = null;
+    // type 'single': { type, lat, lng, label, basemapType, basemapUrl }
+    // type 'tour': { type, sites, basemapType, basemapUrl } -- the tour's
+    // own basemap choice, set at tour publish time, independent of any
+    // individual site's basemap.
+    var pendingMapData = null;
+
+    function buildBaseLayer(basemapType, basemapUrl) {
+      if (basemapType === 'esri_tile' && basemapUrl) {
+        return L.tileLayer(basemapUrl, { maxZoom: 22, attribution: 'Imagery: SPSSEG' });
+      }
+      if (basemapType === 'esri_image' && basemapUrl && window.L && L.esri && L.esri.imageMapLayer) {
+        return L.esri.imageMapLayer({ url: basemapUrl, attribution: 'Imagery: SPSSEG' });
+      }
+      return L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a>',
+      });
+    }
+
+    function ensureMapInitialized() {
+      if (siteMap || typeof L === 'undefined') return;
+      siteMap = L.map('site-map', { attributionControl: true }).setView([0, 0], 2);
+      var basemapType = pendingMapData ? pendingMapData.basemapType : 'osm';
+      var basemapUrl = pendingMapData ? pendingMapData.basemapUrl : '';
+      buildBaseLayer(basemapType, basemapUrl).addTo(siteMap);
+    }
+
+    function renderMapData() {
+      ensureMapInitialized();
+      if (!siteMap || !pendingMapData) return;
+      siteMap.eachLayer(layer => { if (layer instanceof L.Marker) siteMap.removeLayer(layer); });
+
+      if (pendingMapData.type === 'single') {
+        var m = L.marker([pendingMapData.lat, pendingMapData.lng]).addTo(siteMap);
+        if (pendingMapData.label) m.bindPopup(escapeHtml(pendingMapData.label));
+        siteMap.setView([pendingMapData.lat, pendingMapData.lng], 15);
+      } else if (pendingMapData.type === 'tour') {
+        var bounds = [];
+        pendingMapData.sites.forEach(s => {
+          var m = L.marker([s.lat, s.lng]).addTo(siteMap);
+          m.bindPopup(escapeHtml(s.display_name || s.site_id));
+          m.on('click', () => {
+            if (tourLoadStopFn) tourLoadStopFn(s.site_id);
+          });
+          bounds.push([s.lat, s.lng]);
+        });
+        if (bounds.length > 1) siteMap.fitBounds(bounds, { padding: [24, 24] });
+        else if (bounds.length === 1) siteMap.setView(bounds[0], 15);
+      }
+      // Leaflet sizes itself off its container's dimensions at creation
+      // time; the panel is display:none until first shown, so it has
+      // to be told to re-measure once it's actually visible, or tiles
+      // render into a collapsed 0x0 area.
+      setTimeout(() => { if (siteMap) siteMap.invalidateSize(); }, 60);
+    }
+
+    mapToggleBtn.addEventListener('click', () => {
+      var isHidden = siteMapPanel.style.display === 'none' || !siteMapPanel.style.display;
+      if (isHidden) {
+        siteMapPanel.style.display = 'block';
+        mapToggleBtn.textContent = 'Hide Map';
+        renderMapData();
+      } else {
+        siteMapPanel.style.display = 'none';
+        mapToggleBtn.textContent = 'Show Map';
+      }
     });
 
     function renderHotspots(scene, hotspots, slotId, panelEl, view, viewerRef) {
@@ -1470,6 +1567,16 @@
           tourNameForTitle = manifest.name || tourId;
           var sites = manifest.sites || [];
           tourSiteOptions = sites;
+
+          var sitesWithGps = sites.filter(s => s.lat != null && s.lng != null);
+          if (sitesWithGps.length) {
+            pendingMapData = {
+              type: 'tour', sites: sitesWithGps,
+              basemapType: manifest.basemap_type || 'osm', basemapUrl: manifest.basemap_url || '',
+            };
+            mapToggleBtn.style.display = 'inline-block';
+          }
+
           sites.forEach((s, idx) => {
             var link = document.createElement('div');
             link.className = 'tour-stop-link';

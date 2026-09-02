@@ -3,43 +3,65 @@
   "sites": [
     {
       "site_id": "dji_20260828132858_0001_d",
-      "display_name": "South Lobe (Aerial)"
+      "display_name": "South Lobe (Aerial)",
+      "lat": 47.20993586111111,
+      "lng": -123.08778863888888
     },
     {
       "site_id": "dji_20260828133132_0001_d",
-      "display_name": "ELJs on Goldsborough Creek"
+      "display_name": "ELJs on Goldsborough Creek",
+      "lat": 47.210025333333334,
+      "lng": -123.09168608333333
     },
     {
       "site_id": "dji_20260828133337_0001_d",
-      "display_name": "West Lobe - East View (Aerial)"
+      "display_name": "West Lobe - East View (Aerial)",
+      "lat": 47.211101472222225,
+      "lng": -123.0905781111111
     },
     {
       "site_id": "img_20260828_121536_00_969",
-      "display_name": "West Lobe - North View (Ground)"
+      "display_name": "West Lobe - North View (Ground)",
+      "lat": null,
+      "lng": null
     },
     {
       "site_id": "img_20260828_122223_00_970",
-      "display_name": "Growth on Bessies (Ground)"
+      "display_name": "Growth on Bessies (Ground)",
+      "lat": null,
+      "lng": null
     },
     {
       "site_id": "img_20260828_120243_00_968",
-      "display_name": "West Lobe - South View (Ground)"
+      "display_name": "West Lobe - South View (Ground)",
+      "lat": null,
+      "lng": null
     },
     {
       "site_id": "dji_20260828133527_0001_d",
-      "display_name": "West Lobe - High Berm (Aerial)"
+      "display_name": "West Lobe - High Berm (Aerial)",
+      "lat": 47.211263055555555,
+      "lng": -123.09187869444445
     },
     {
       "site_id": "dji_20260828133753_0001_d",
-      "display_name": "Shelton Creek (Aerial)"
+      "display_name": "Shelton Creek (Aerial)",
+      "lat": 47.212814111111115,
+      "lng": -123.09098558333334
     },
     {
       "site_id": "dji_20260828133959_0001_d",
-      "display_name": "North Lobe (Aerial)"
+      "display_name": "North Lobe (Aerial)",
+      "lat": 47.21337883333334,
+      "lng": -123.08925963888889
     },
     {
       "site_id": "dji_20260828134146_0001_d",
-      "display_name": "Yacht Club (Aerial)"
+      "display_name": "Yacht Club (Aerial)",
+      "lat": 47.21331952777778,
+      "lng": -123.08764775
     }
-  ]
+  ],
+  "basemap_type": "esri_tile",
+  "basemap_url": "https://tiles.arcgis.com/tiles/buuvDFFARQiOEbVZ/arcgis/rest/services/WOB_Ortho_20250530/MapServer/tile/{z}/{y}/{x}"
 }

@@ -151,6 +151,10 @@
     .hotspot-tooltip::after { border-top-color: rgba(14, 27, 51, 0.97); }
     .hotspot-tooltip a { color: #6fd3ea; word-break: break-all; }
     .hotspot-tooltip-title { display: block; padding-right: 16px; }
+    .hotspot-tooltip-img {
+      display: block; max-width: 100%; max-height: 160px; border-radius: 4px;
+      margin: 6px 0; object-fit: cover;
+    }
     .hotspot-tooltip-close {
       position: absolute; top: 6px; right: 6px; width: 18px; height: 18px;
       border-radius: 50%; background: rgba(255,255,255,0.12); color: #ffffff;
@@ -734,6 +738,7 @@
 
     function updateHotspotTooltipBody(body, spot) {
       var html = '<strong class="hotspot-tooltip-title">' + escapeHtml(spot.title) + '</strong>';
+      if (spot.image) html += '<br><img class="hotspot-tooltip-img" src="' + escapeHtml(spot.image) + '" alt="">';
       if (spot.text) html += '<br>' + escapeHtml(spot.text);
       if (spot.link) html += '<br><a href="' + escapeHtml(spot.link) + '" target="_blank" rel="noopener">' + escapeHtml(spot.link) + '</a>';
       body.innerHTML = html;
@@ -898,6 +903,47 @@
       document.querySelectorAll('.hotspot-form').forEach(f => f.remove());
     }
 
+    function downscaleImageFile(file, maxDim, quality) {
+      // Resize client-side before upload so a full-res drone photo
+      // doesn't end up bloating a tooltip -- caps the longest edge and
+      // re-encodes as JPEG regardless of source format.
+      return new Promise((resolve, reject) => {
+        var reader = new FileReader();
+        reader.onerror = () => reject(new Error('read-failed'));
+        reader.onload = () => {
+          var img = new Image();
+          img.onerror = () => reject(new Error('decode-failed'));
+          img.onload = () => {
+            var scale = Math.min(1, maxDim / Math.max(img.width, img.height));
+            var w = Math.max(1, Math.round(img.width * scale));
+            var h = Math.max(1, Math.round(img.height * scale));
+            var canvas = document.createElement('canvas');
+            canvas.width = w;
+            canvas.height = h;
+            canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+            resolve(canvas.toDataURL('image/jpeg', quality));
+          };
+          img.src = reader.result;
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function uploadHotspotImage(file) {
+      var targetSiteId = tourParam ? activeTourSiteId : siteId;
+      if (!targetSiteId) return Promise.reject(new Error('no-active-site'));
+      return downscaleImageFile(file, 1200, 0.82).then(dataUrl => {
+        return fetch('/__upload_hotspot_image', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ site_id: targetSiteId, filename: file.name, data_base64: dataUrl }),
+        }).then(res => {
+          if (!res.ok) throw new Error('upload-failed');
+          return res.json();
+        }).then(json => json.path);
+      });
+    }
+
     function targetFieldMarkup() {
       if (tourParam && tourSiteOptions && tourSiteOptions.length) {
         var opts = tourSiteOptions.map(s =>
@@ -919,6 +965,7 @@
         '<label>Title</label><input type="text" class="hf-title">' +
         '<label>Text</label><textarea class="hf-text" rows="2"></textarea>' +
         '<label>Link (optional)</label><input type="text" class="hf-link">' +
+        '<label>Image (optional)</label><input type="file" class="hf-image" accept="image/*">' +
         '<label>Category</label>' +
         '<select class="hf-cat">' +
         '<option value="note">Note</option>' +
@@ -951,6 +998,7 @@
       function close() { form.remove(); }
       form.querySelector('.hf-cancel').addEventListener('click', close);
       form.querySelector('.hf-save').addEventListener('click', () => {
+        var saveBtn = form.querySelector('.hf-save');
         var category = catSelect.value;
         var spot = {
           title: form.querySelector('.hf-title').value.trim(),
@@ -963,8 +1011,23 @@
           spot.target = form.querySelector('.hf-target').value.trim()
               .toLowerCase().replace(/[\s-]+/g, '_');
         }
-        close();
-        onSave(spot);
+        var imageFile = form.querySelector('.hf-image').files[0];
+        if (imageFile) {
+          saveBtn.disabled = true;
+          saveBtn.textContent = 'Uploading\u2026';
+          uploadHotspotImage(imageFile).then(path => {
+            spot.image = path;
+            close();
+            onSave(spot);
+          }).catch(() => {
+            saveBtn.disabled = false;
+            saveBtn.textContent = 'Save Pin';
+            alert('Image upload failed. Try again, or save without an image.');
+          });
+        } else {
+          close();
+          onSave(spot);
+        }
       });
       form.querySelector('.hf-title').focus();
     }
@@ -979,6 +1042,12 @@
         '<label>Title</label><input type="text" class="hf-title">' +
         '<label>Text</label><textarea class="hf-text" rows="2"></textarea>' +
         '<label>Link (optional)</label><input type="text" class="hf-link">' +
+        '<label>Image (optional)</label><input type="file" class="hf-image" accept="image/*">' +
+        '<div class="hf-image-current" style="display:none;">' +
+        '<img class="hf-image-preview" style="max-width:100%;max-height:100px;border-radius:4px;margin-top:6px;display:block;">' +
+        '<label style="display:flex;align-items:center;gap:6px;margin-top:4px;font-weight:normal;">' +
+        '<input type="checkbox" class="hf-image-remove" style="width:auto;margin:0;"> Remove current image</label>' +
+        '</div>' +
         '<label>Category</label>' +
         '<select class="hf-cat">' +
         '<option value="note">Note</option>' +
@@ -1007,6 +1076,10 @@
       form.querySelector('.hf-cat').value = spot.category || 'note';
       form.querySelector('.hf-target').value = spot.target || '';
       form.querySelector('.hf-pinstyle').value = spot.pin_style || 'dot';
+      if (spot.image) {
+        form.querySelector('.hf-image-current').style.display = 'block';
+        form.querySelector('.hf-image-preview').src = spot.image;
+      }
 
       var catSelect = form.querySelector('.hf-cat');
       var targetRow = form.querySelector('.hf-target-row');
@@ -1019,6 +1092,7 @@
       function close() { form.remove(); }
       form.querySelector('.hf-cancel').addEventListener('click', close);
       form.querySelector('.hf-save').addEventListener('click', () => {
+        var saveBtn = form.querySelector('.hf-save');
         var category = catSelect.value;
         spot.title = form.querySelector('.hf-title').value.trim();
         spot.text = form.querySelector('.hf-text').value.trim();
@@ -1031,10 +1105,31 @@
         } else {
           delete spot.target;
         }
-        pin.el.setAttribute('data-title', spot.title);
-        pin.el.className = 'hotspot-pin hotspot-cat-' + spot.category + pinStyleClass(spot);
-        updateHotspotTooltipBody(pin.body, spot);
-        close();
+
+        function finish() {
+          pin.el.setAttribute('data-title', spot.title);
+          pin.el.className = 'hotspot-pin hotspot-cat-' + spot.category + pinStyleClass(spot);
+          updateHotspotTooltipBody(pin.body, spot);
+          close();
+        }
+
+        var removeImageBox = form.querySelector('.hf-image-remove');
+        var imageFile = form.querySelector('.hf-image').files[0];
+        if (imageFile) {
+          saveBtn.disabled = true;
+          saveBtn.textContent = 'Uploading\u2026';
+          uploadHotspotImage(imageFile).then(path => {
+            spot.image = path;
+            finish();
+          }).catch(() => {
+            saveBtn.disabled = false;
+            saveBtn.textContent = 'Save';
+            alert('Image upload failed. Other fields were not saved either -- try again.');
+          });
+        } else {
+          if (removeImageBox && removeImageBox.checked) delete spot.image;
+          finish();
+        }
       });
       form.querySelector('.hf-delete').addEventListener('click', () => {
         if (!confirm('Delete this hotspot?')) return;

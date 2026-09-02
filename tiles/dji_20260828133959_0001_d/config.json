@@ -8,7 +8,28 @@
   "label_1": "DJI_20260828133959_0001_D (2026/08/28)",
   "label_2": "",
   "autorotate": false,
-  "hotspots_1": [],
+  "hotspots_1": [
+    {
+      "yaw": -2.6417337312355755,
+      "pitch": 0.6426353208675959,
+      "title": "View from under the Platform",
+      "text": "",
+      "link": "",
+      "category": "measurement",
+      "pin_style": "label_hover",
+      "image": "tiles/dji_20260828133959_0001_d/hotspot_images/1788368455616.jpg"
+    },
+    {
+      "yaw": 1.2139107379187273,
+      "pitch": -0.09908712209277226,
+      "title": "South Lobe",
+      "text": "",
+      "link": "",
+      "category": "link",
+      "pin_style": "label_hover",
+      "target": "dji_20260828132858_0001_d"
+    }
+  ],
   "hotspots_2": [],
   "levels_1": [],
   "levels_2": [],

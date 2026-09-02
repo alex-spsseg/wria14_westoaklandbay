@@ -2,6 +2,9 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <title>Universal 360° Asset Viewer</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -76,6 +79,12 @@
       padding: 10px; font-size: 14px; display: none; pointer-events: none;
     }
 
+    #build-timestamp {
+      position: absolute; bottom: 6px; left: 8px; z-index: 500;
+      color: rgba(255, 255, 255, 0.35); font-size: 10px; font-family: monospace;
+      pointer-events: none; user-select: none;
+    }
+
     #control-bar {
       position: absolute; top: 12px; right: 12px; z-index: 1000;
       display: flex; gap: 8px; pointer-events: auto;
@@ -125,6 +134,7 @@
     .hotspot-pin.hotspot-cat-issue { background: #e05555; }
     .hotspot-pin.hotspot-cat-measurement { background: #4caf6d; }
     .hotspot-pin.hotspot-cat-link { background: #b366ff; }
+    .hotspot-pin.hotspot-cat-photo { background: #e0a030; }
     .hotspot-pin::after {
       content: 'i'; color: #ffffff; font-weight: bold; font-family: sans-serif;
       display: flex; align-items: center; justify-content: center; height: 100%; font-size: 14px;
@@ -132,6 +142,12 @@
     .hotspot-pin.hotspot-cat-issue::after { content: '!'; }
     .hotspot-pin.hotspot-cat-measurement::after { content: 'M'; font-size: 12px; }
     .hotspot-pin.hotspot-cat-link::after { content: '\2197'; font-size: 15px; }
+    .hotspot-pin.hotspot-cat-photo::after {
+      content: '';
+      width: 100%; height: 100%;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M9 3L7.17 5H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2h-3.17L15 3H9zm3 15c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z'/%3E%3C/svg%3E");
+      background-size: 55%; background-repeat: no-repeat; background-position: center;
+    }
 
     .hotspot-tooltip {
       position: absolute; bottom: 34px; left: 50%;
@@ -153,7 +169,43 @@
     .hotspot-tooltip-title { display: block; padding-right: 16px; }
     .hotspot-tooltip-img {
       display: block; max-width: 100%; max-height: 160px; border-radius: 4px;
-      margin: 6px 0; object-fit: cover;
+      margin: 6px 0; object-fit: cover; cursor: zoom-in;
+      transition: opacity 0.1s ease;
+    }
+    .hotspot-tooltip-img:hover { opacity: 0.85; }
+    .hotspot-tooltip-gallery { position: relative; display: block; }
+    .hotspot-tooltip-img-count {
+      position: absolute; bottom: 12px; right: 4px; pointer-events: none;
+      background: rgba(0, 0, 0, 0.75); color: #ffffff; font-size: 10px; font-weight: bold;
+      padding: 2px 6px; border-radius: 10px;
+    }
+    .image-lightbox-overlay {
+      position: fixed; inset: 0; z-index: 6000;
+      background: rgba(0, 0, 0, 0.88); cursor: zoom-out;
+      display: flex; align-items: center; justify-content: center;
+      padding: 40px; box-sizing: border-box;
+    }
+    .image-lightbox-img {
+      max-width: 100%; max-height: 100%; border-radius: 4px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+    }
+    .image-lightbox-close {
+      position: absolute; top: 16px; right: 22px; color: #ffffff; font-size: 30px;
+      font-family: sans-serif; line-height: 1; cursor: pointer;
+    }
+    .image-lightbox-prev, .image-lightbox-next {
+      position: absolute; top: 50%; transform: translateY(-50%);
+      color: #ffffff; font-size: 42px; font-family: sans-serif; line-height: 1;
+      cursor: pointer; padding: 10px 16px; user-select: none;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.6);
+    }
+    .image-lightbox-prev { left: 6px; }
+    .image-lightbox-next { right: 6px; }
+    .image-lightbox-prev:hover, .image-lightbox-next:hover { color: #6fd3ea; }
+    .image-lightbox-counter {
+      position: absolute; bottom: 18px; left: 50%; transform: translateX(-50%);
+      color: #ffffff; font-size: 12px; font-family: sans-serif;
+      background: rgba(0, 0, 0, 0.5); padding: 4px 12px; border-radius: 12px;
     }
     .hotspot-tooltip-close {
       position: absolute; top: 6px; right: 6px; width: 18px; height: 18px;
@@ -187,6 +239,8 @@
     .hotspot-pin.hotspot-cat-note.hotspot-label-hover::before { border-color: #019fc4; }
     .hotspot-pin.hotspot-cat-link.hotspot-label-always::before,
     .hotspot-pin.hotspot-cat-link.hotspot-label-hover::before { border-color: #b366ff; }
+    .hotspot-pin.hotspot-cat-photo.hotspot-label-always::before,
+    .hotspot-pin.hotspot-cat-photo.hotspot-label-hover::before { border-color: #e0a030; }
     body.hotspots-hidden .hotspot-pin { display: none !important; }
     .hotspot-tooltip.open {
       opacity: 1; visibility: visible; pointer-events: auto; transform: translate(-50%, 0);
@@ -199,6 +253,15 @@
       font-family: sans-serif; font-size: 12px; color: #ffffff;
     }
     .hotspot-form label { display: block; margin: 8px 0 3px; color: #7fa8b8; }
+    .hf-image-list { display: flex; flex-wrap: wrap; gap: 8px; margin: 4px 0; }
+    .hf-image-item { position: relative; width: 48px; height: 48px; }
+    .hf-image-item img { width: 100%; height: 100%; object-fit: cover; border-radius: 4px; display: block; }
+    .hf-image-item-remove {
+      position: absolute; top: -6px; right: -6px; width: 18px; height: 18px;
+      background: #e05555; color: #ffffff; border-radius: 50%; display: flex;
+      align-items: center; justify-content: center; font-size: 12px; line-height: 1;
+      cursor: pointer; border: 2px solid #0e1b33;
+    }
     .hotspot-form label:first-child { margin-top: 0; }
     .hf-target-row label { margin-top: 8px !important; }
     .hotspot-form input[type="text"], .hotspot-form textarea, .hotspot-form select {
@@ -243,6 +306,8 @@
   <script src="vendor/marzipano.js"></script>
 </head>
 <body>
+
+  <div id="build-timestamp">Built 2026-09-02 10:29:45</div>
 
   <div id="status-banner"></div>
 
@@ -699,13 +764,48 @@
       return d.innerHTML;
     }
 
+    function openImageLightbox(images, startIndex) {
+      var idx = startIndex || 0;
+      var overlay = document.createElement('div');
+      overlay.className = 'image-lightbox-overlay';
+
+      function render() {
+        var nav = '';
+        if (images.length > 1) {
+          nav =
+              '<div class="image-lightbox-prev">\u2039</div>' +
+              '<div class="image-lightbox-next">\u203a</div>' +
+              '<div class="image-lightbox-counter">' + (idx + 1) + ' / ' + images.length + '</div>';
+        }
+        overlay.innerHTML =
+            '<img class="image-lightbox-img" src="' + escapeHtml(images[idx]) + '">' +
+            nav +
+            '<div class="image-lightbox-close">\u00d7</div>';
+        if (images.length > 1) {
+          overlay.querySelector('.image-lightbox-prev').addEventListener('click', (e) => {
+            e.stopPropagation();
+            idx = (idx - 1 + images.length) % images.length;
+            render();
+          });
+          overlay.querySelector('.image-lightbox-next').addEventListener('click', (e) => {
+            e.stopPropagation();
+            idx = (idx + 1) % images.length;
+            render();
+          });
+        }
+      }
+      render();
+      overlay.addEventListener('click', () => overlay.remove());
+      document.body.appendChild(overlay);
+    }
+
     function pinStyleClass(spot) {
       // A pin's own explicit style wins. Pins saved before this feature
       // existed have no spot.pin_style at all -- for those, fall back to
       // the site's old site-wide default (siteDefaultPinStyle, read once
-      // from config.pin_style) so already-published sites keep looking
-      // the way they did rather than silently reverting to plain dots.
-      var effective = spot.pin_style || (siteDefaultPinStyle === 'label' ? 'label_always' : 'dot');
+      // from config.pin_style) if it was explicitly "label", otherwise
+      // the overall default is now "hover" rather than a plain dot.
+      var effective = spot.pin_style || (siteDefaultPinStyle === 'label' ? 'label_always' : 'label_hover');
       if (effective === 'label_always') return ' hotspot-label-always';
       if (effective === 'label_hover') return ' hotspot-label-hover';
       return '';
@@ -736,9 +836,27 @@
       return { el: el, tip: tip, body: body };
     }
 
+    function spotImages(spot) {
+      // spot.images (array) is the current shape; spot.image (single,
+      // from before multi-image existed) still works, read-only, so old
+      // saved hotspots keep displaying correctly without needing migration.
+      if (spot.images && spot.images.length) return spot.images;
+      if (spot.image) return [spot.image];
+      return [];
+    }
+
     function updateHotspotTooltipBody(body, spot) {
       var html = '<strong class="hotspot-tooltip-title">' + escapeHtml(spot.title) + '</strong>';
-      if (spot.image) html += '<br><img class="hotspot-tooltip-img" src="' + escapeHtml(spot.image) + '" alt="">';
+      var images = spotImages(spot);
+      if (images.length) {
+        html += '<br><div class="hotspot-tooltip-gallery" data-images=\'' +
+            JSON.stringify(images).replace(/'/g, '&#39;') + '\'>' +
+            '<img class="hotspot-tooltip-img" src="' + escapeHtml(images[0]) + '" data-index="0" alt="">';
+        if (images.length > 1) {
+          html += '<span class="hotspot-tooltip-img-count">+' + (images.length - 1) + '</span>';
+        }
+        html += '</div>';
+      }
       if (spot.text) html += '<br>' + escapeHtml(spot.text);
       if (spot.link) html += '<br><a href="' + escapeHtml(spot.link) + '" target="_blank" rel="noopener">' + escapeHtml(spot.link) + '</a>';
       body.innerHTML = html;
@@ -793,6 +911,13 @@
       pin.el.addEventListener('click', (e) => {
         e.stopPropagation();
         if (moved) { moved = false; return; }
+        if (e.target.classList.contains('hotspot-tooltip-img')) {
+          var galleryEl = e.target.closest('.hotspot-tooltip-gallery');
+          var images = galleryEl ? JSON.parse(galleryEl.getAttribute('data-images')) : [e.target.src];
+          var startIdx = parseInt(e.target.getAttribute('data-index') || '0', 10);
+          openImageLightbox(images, startIdx);
+          return;
+        }
         if (editingHotspots) {
           showEditHotspotForm(e.clientX, e.clientY, spot, ctx, pin);
         } else if (spot.category === 'link' && spot.target) {
@@ -944,6 +1069,16 @@
       });
     }
 
+    function uploadHotspotImages(fileList) {
+      // Uploads sequentially (not in parallel) so one slow/failed upload
+      // doesn't race the local preview server with several at once.
+      var files = Array.prototype.slice.call(fileList);
+      var paths = [];
+      return files.reduce((chain, file) => {
+        return chain.then(() => uploadHotspotImage(file)).then(path => { paths.push(path); });
+      }, Promise.resolve()).then(() => paths);
+    }
+
     function targetFieldMarkup() {
       if (tourParam && tourSiteOptions && tourSiteOptions.length) {
         var opts = tourSiteOptions.map(s =>
@@ -965,22 +1100,23 @@
         '<label>Title</label><input type="text" class="hf-title">' +
         '<label>Text</label><textarea class="hf-text" rows="2"></textarea>' +
         '<label>Link (optional)</label><input type="text" class="hf-link">' +
-        '<label>Image (optional)</label><input type="file" class="hf-image" accept="image/*">' +
+        '<label>Image(s) (optional)</label><input type="file" class="hf-image" accept="image/*" multiple>' +
         '<label>Category</label>' +
         '<select class="hf-cat">' +
         '<option value="note">Note</option>' +
         '<option value="issue">Issue</option>' +
         '<option value="measurement">Measurement</option>' +
         '<option value="link">Link to Another Photo</option>' +
+        '<option value="photo">Photo</option>' +
         '</select>' +
         '<div class="hf-target-row" style="display:none;">' +
         '<label>Target Site ID</label>' + targetFieldMarkup() +
         '</div>' +
         '<label>Pin Style</label>' +
         '<select class="hf-pinstyle">' +
+        '<option value="label_hover">Dot + Label (on hover)</option>' +
         '<option value="dot">Dot</option>' +
         '<option value="label_always">Dot + Label (always shown)</option>' +
-        '<option value="label_hover">Dot + Label (on hover)</option>' +
         '</select>' +
         '<div class="hotspot-form-buttons">' +
         '<button type="button" class="hf-cancel">Cancel</button>' +
@@ -1011,12 +1147,12 @@
           spot.target = form.querySelector('.hf-target').value.trim()
               .toLowerCase().replace(/[\s-]+/g, '_');
         }
-        var imageFile = form.querySelector('.hf-image').files[0];
-        if (imageFile) {
+        var imageFiles = form.querySelector('.hf-image').files;
+        if (imageFiles.length) {
           saveBtn.disabled = true;
           saveBtn.textContent = 'Uploading\u2026';
-          uploadHotspotImage(imageFile).then(path => {
-            spot.image = path;
+          uploadHotspotImages(imageFiles).then(paths => {
+            spot.images = paths;
             close();
             onSave(spot);
           }).catch(() => {
@@ -1042,27 +1178,25 @@
         '<label>Title</label><input type="text" class="hf-title">' +
         '<label>Text</label><textarea class="hf-text" rows="2"></textarea>' +
         '<label>Link (optional)</label><input type="text" class="hf-link">' +
-        '<label>Image (optional)</label><input type="file" class="hf-image" accept="image/*">' +
-        '<div class="hf-image-current" style="display:none;">' +
-        '<img class="hf-image-preview" style="max-width:100%;max-height:100px;border-radius:4px;margin-top:6px;display:block;">' +
-        '<label style="display:flex;align-items:center;gap:6px;margin-top:4px;font-weight:normal;">' +
-        '<input type="checkbox" class="hf-image-remove" style="width:auto;margin:0;"> Remove current image</label>' +
-        '</div>' +
+        '<label>Image(s) (optional)</label>' +
+        '<div class="hf-image-list"></div>' +
+        '<input type="file" class="hf-image" accept="image/*" multiple>' +
         '<label>Category</label>' +
         '<select class="hf-cat">' +
         '<option value="note">Note</option>' +
         '<option value="issue">Issue</option>' +
         '<option value="measurement">Measurement</option>' +
         '<option value="link">Link to Another Photo</option>' +
+        '<option value="photo">Photo</option>' +
         '</select>' +
         '<div class="hf-target-row" style="display:none;">' +
         '<label>Target Site ID</label>' + targetFieldMarkup() +
         '</div>' +
         '<label>Pin Style</label>' +
         '<select class="hf-pinstyle">' +
+        '<option value="label_hover">Dot + Label (on hover)</option>' +
         '<option value="dot">Dot</option>' +
         '<option value="label_always">Dot + Label (always shown)</option>' +
-        '<option value="label_hover">Dot + Label (on hover)</option>' +
         '</select>' +
         '<div class="hotspot-form-buttons">' +
         '<button type="button" class="hf-delete">Delete</button>' +
@@ -1075,11 +1209,25 @@
       form.querySelector('.hf-link').value = spot.link || '';
       form.querySelector('.hf-cat').value = spot.category || 'note';
       form.querySelector('.hf-target').value = spot.target || '';
-      form.querySelector('.hf-pinstyle').value = spot.pin_style || 'dot';
-      if (spot.image) {
-        form.querySelector('.hf-image-current').style.display = 'block';
-        form.querySelector('.hf-image-preview').src = spot.image;
+      form.querySelector('.hf-pinstyle').value = spot.pin_style || 'label_hover';
+      var currentImages = spotImages(spot).slice(); // local working copy; only committed on Save
+      var imageListEl = form.querySelector('.hf-image-list');
+      function renderImageList() {
+        imageListEl.innerHTML = '';
+        currentImages.forEach((path, idx) => {
+          var item = document.createElement('div');
+          item.className = 'hf-image-item';
+          item.innerHTML =
+              '<img src="' + escapeHtml(path) + '">' +
+              '<div class="hf-image-item-remove">\u00d7</div>';
+          item.querySelector('.hf-image-item-remove').addEventListener('click', () => {
+            currentImages.splice(idx, 1);
+            renderImageList();
+          });
+          imageListEl.appendChild(item);
+        });
       }
+      renderImageList();
 
       var catSelect = form.querySelector('.hf-cat');
       var targetRow = form.querySelector('.hf-target-row');
@@ -1113,13 +1261,13 @@
           close();
         }
 
-        var removeImageBox = form.querySelector('.hf-image-remove');
-        var imageFile = form.querySelector('.hf-image').files[0];
-        if (imageFile) {
+        var imageFiles = form.querySelector('.hf-image').files;
+        if (imageFiles.length) {
           saveBtn.disabled = true;
           saveBtn.textContent = 'Uploading\u2026';
-          uploadHotspotImage(imageFile).then(path => {
-            spot.image = path;
+          uploadHotspotImages(imageFiles).then(newPaths => {
+            spot.images = currentImages.concat(newPaths);
+            delete spot.image;
             finish();
           }).catch(() => {
             saveBtn.disabled = false;
@@ -1127,7 +1275,8 @@
             alert('Image upload failed. Other fields were not saved either -- try again.');
           });
         } else {
-          if (removeImageBox && removeImageBox.checked) delete spot.image;
+          spot.images = currentImages;
+          delete spot.image;
           finish();
         }
       });

@@ -15,9 +15,13 @@
       "title": "View from under the Platform",
       "text": "",
       "link": "",
-      "category": "measurement",
+      "category": "photo",
       "pin_style": "label_hover",
-      "image": "tiles/dji_20260828133959_0001_d/hotspot_images/1788368455616.jpg"
+      "images": [
+        "tiles/dji_20260828133959_0001_d/hotspot_images/1788368455616.jpg",
+        "tiles/dji_20260828133959_0001_d/hotspot_images/1788369811889.jpg",
+        "tiles/dji_20260828133959_0001_d/hotspot_images/1788369811995.jpg"
+      ]
     },
     {
       "yaw": 1.2139107379187273,

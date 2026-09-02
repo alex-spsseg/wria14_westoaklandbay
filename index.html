@@ -318,7 +318,7 @@
 </head>
 <body>
 
-  <div id="build-timestamp">Built 2026-09-02 12:52:20</div>
+  <div id="build-timestamp">Built 2026-09-02 13:03:13</div>
 
   <div id="status-banner"></div>
 
@@ -995,6 +995,36 @@
       });
     }
 
+    // Tour markers keyed by site id, so the currently displayed stop's
+    // pin can be re-styled without rebuilding the whole map when the
+    // person switches stops while the map panel is open.
+    var tourMarkersBySite = {};
+
+    function buildMarkerIcon(active) {
+      var size = active ? 30 : 22;
+      var color = active ? '#019fc4' : '#3f5a78';
+      return L.divIcon({
+        className: 'tour-map-marker' + (active ? ' active' : ''),
+        html: '<svg width="' + size + '" height="' + Math.round(size * 1.33) + '" viewBox="0 0 24 32" ' +
+              'xmlns="http://www.w3.org/2000/svg">' +
+              '<path d="M12 0C5.4 0 0 5.4 0 12c0 9 12 20 12 20s12-11 12-20c0-6.6-5.4-12-12-12z" ' +
+              'fill="' + color + '" stroke="#fff" stroke-width="1.5"/>' +
+              '<circle cx="12" cy="12" r="4.5" fill="#fff"/></svg>',
+        iconSize: [size, Math.round(size * 1.33)],
+        iconAnchor: [size / 2, Math.round(size * 1.33)],
+        popupAnchor: [0, -Math.round(size * 1.1)],
+      });
+    }
+
+    function updateActiveMapMarker() {
+      Object.keys(tourMarkersBySite).forEach(sid => {
+        var m = tourMarkersBySite[sid];
+        var active = sid === activeTourSiteId;
+        m.setIcon(buildMarkerIcon(active));
+        if (active) m.setZIndexOffset(1000);
+      });
+    }
+
     function ensureMapInitialized() {
       if (siteMap || typeof L === 'undefined') return;
       siteMap = L.map('site-map', { attributionControl: true }).setView([0, 0], 2);
@@ -1007,6 +1037,7 @@
       ensureMapInitialized();
       if (!siteMap || !pendingMapData) return;
       siteMap.eachLayer(layer => { if (layer instanceof L.Marker) siteMap.removeLayer(layer); });
+      tourMarkersBySite = {};
 
       if (pendingMapData.type === 'single') {
         var m = L.marker([pendingMapData.lat, pendingMapData.lng]).addTo(siteMap);
@@ -1015,11 +1046,14 @@
       } else if (pendingMapData.type === 'tour') {
         var bounds = [];
         pendingMapData.sites.forEach(s => {
-          var m = L.marker([s.lat, s.lng]).addTo(siteMap);
+          var isActive = s.site_id === activeTourSiteId;
+          var m = L.marker([s.lat, s.lng], { icon: buildMarkerIcon(isActive) }).addTo(siteMap);
           m.bindPopup(escapeHtml(s.display_name || s.site_id));
+          if (isActive) m.setZIndexOffset(1000);
           m.on('click', () => {
             if (tourLoadStopFn) tourLoadStopFn(s.site_id);
           });
+          tourMarkersBySite[s.site_id] = m;
           bounds.push([s.lat, s.lng]);
         });
         if (bounds.length > 1) siteMap.fitBounds(bounds, { padding: [24, 24] });
@@ -1490,6 +1524,7 @@
         }
         var fallbackLabel = linkEl ? linkEl.textContent : sid;
         activeTourSiteId = sid;
+        updateActiveMapMarker();
 
         if (sceneCache[sid]) {
           var cached = sceneCache[sid];

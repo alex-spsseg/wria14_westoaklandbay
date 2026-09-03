@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title>WRIA 14 — Westoaklandbay — Tours</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      min-height: 100vh; color: #e8eef7;
+      font-family: -apple-system, Segoe UI, Roboto, sans-serif;
+      padding: 32px 24px 60px;
+      /* Drop a photo named tours-background.jpg in the repo root
+      (next to this file) to use it here -- the gradient on top keeps
+      the header and cards legible over whatever the photo looks like.
+      Falls back to the plain dark background if that file doesn't
+      exist, browsers just skip a missing background-image silently. */
+      background:
+          linear-gradient(180deg, rgba(9, 17, 36, 0.88) 0%, rgba(9, 17, 36, 0.72) 40%, rgba(9, 17, 36, 0.92) 100%),
+          url('tours-background.jpg') center center / cover no-repeat fixed,
+          #0e1b33;
+    }
+    header { max-width: 1000px; margin: 0 auto 28px; }
+    h1 { font-size: 24px; font-weight: 700; color: #ffffff; }
+    header p { margin-top: 6px; color: #9fb2cc; font-size: 14px; }
+
+    #grid {
+      max-width: 1000px; margin: 0 auto;
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 16px;
+    }
+    .tour-card {
+      display: block; text-decoration: none; color: inherit;
+      background: #132447; border: 1px solid #1b3f95; border-radius: 10px;
+      padding: 18px; transition: border-color 0.15s, transform 0.15s;
+    }
+    .tour-card:hover { border-color: #019fc4; transform: translateY(-2px); }
+    .tour-card h2 { font-size: 16px; font-weight: 600; color: #ffffff; margin-bottom: 6px; }
+    .tour-card .meta { font-size: 12px; color: #9fb2cc; }
+
+    #empty, #error {
+      max-width: 1000px; margin: 40px auto 0; color: #9fb2cc; font-size: 14px; text-align: center;
+    }
+    #error { color: #e0a5a5; }
+
+    /* background-attachment: fixed is unreliable/laggy on iOS Safari,
+    so scroll the background with the page on small screens instead --
+    the page is short enough there that it barely matters visually. */
+    @media (max-width: 700px) {
+      body { background-attachment: scroll, scroll; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>WRIA 14 — Westoaklandbay</h1>
+    <p>360° site tours</p>
+  </header>
+  <div id="grid"></div>
+  <div id="empty" style="display:none;">No tours published yet.</div>
+  <div id="error" style="display:none;">Could not load the tour list.</div>
+
+  <script>
+    function escapeHtml(s) {
+      var d = document.createElement('div');
+      d.textContent = s == null ? '' : String(s);
+      return d.innerHTML;
+    }
+
+    fetch('tours/_index.json', { cache: 'no-store' })
+      .then(res => { if (!res.ok) throw new Error('missing-index'); return res.json(); })
+      .then(tours => {
+        if (!Array.isArray(tours) || !tours.length) {
+          document.getElementById('empty').style.display = 'block';
+          return;
+        }
+        var grid = document.getElementById('grid');
+        tours.forEach(t => {
+          var a = document.createElement('a');
+          a.className = 'tour-card';
+          a.href = 'index.html?tour=' + encodeURIComponent(t.tour_id);
+          var siteCount = t.site_count != null ? t.site_count : 0;
+          var updated = t.updated ? new Date(t.updated).toLocaleDateString() : '';
+          a.innerHTML =
+            '<h2>' + escapeHtml(t.name || t.tour_id) + '</h2>' +
+            '<div class="meta">' + siteCount + ' stop' + (siteCount === 1 ? '' : 's') +
+            (updated ? ' &middot; updated ' + escapeHtml(updated) : '') + '</div>';
+          grid.appendChild(a);
+        });
+      })
+      .catch(() => {
+        document.getElementById('error').style.display = 'block';
+      });
+  </script>
+</body>
+</html>

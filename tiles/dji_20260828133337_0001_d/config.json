@@ -10,7 +10,98 @@
   "label_1": "DJI_20260828133337_0001_D (2026/08/28)",
   "label_2": "",
   "autorotate": false,
-  "hotspots_1": [],
+  "hotspots_1": [
+    {
+      "yaw": -2.043673801873755,
+      "pitch": -0.14254680195278624,
+      "title": "West Lobe - High Berm",
+      "text": "",
+      "link": "",
+      "category": "link",
+      "pin_style": "label_hover",
+      "target": "dji_20260828133527_0001_d"
+    },
+    {
+      "yaw": 3.077993226956071,
+      "pitch": 0.08815736602260316,
+      "title": "ELJs",
+      "text": "",
+      "link": "",
+      "category": "link",
+      "pin_style": "label_hover",
+      "target": "dji_20260828133132_0001_d"
+    },
+    {
+      "yaw": 1.5027304410416056,
+      "pitch": -0.08272904377735912,
+      "title": "South Lobe",
+      "text": "",
+      "link": "",
+      "category": "link",
+      "pin_style": "label_hover",
+      "target": "dji_20260828132858_0001_d"
+    },
+    {
+      "yaw": -3.0223292609978945,
+      "pitch": 0.3837786517534685,
+      "title": "West Lobe - South",
+      "text": "",
+      "link": "",
+      "category": "link",
+      "pin_style": "label_hover",
+      "target": "img_20260828_120243_00_968"
+    },
+    {
+      "yaw": -1.874221536671154,
+      "pitch": 0.37404345771886227,
+      "title": "BESEs",
+      "text": "",
+      "link": "",
+      "category": "link",
+      "pin_style": "label_hover",
+      "target": "img_20260828_122223_00_970"
+    },
+    {
+      "yaw": -1.1564224502510925,
+      "pitch": 0.37278229653866646,
+      "title": "West Lobe - North",
+      "text": "",
+      "link": "",
+      "category": "link",
+      "pin_style": "label_hover",
+      "target": ""
+    },
+    {
+      "yaw": 0.11777837039432981,
+      "pitch": -0.06283288002483545,
+      "title": "Yacht Club",
+      "text": "",
+      "link": "",
+      "category": "link",
+      "pin_style": "label_hover",
+      "target": "dji_20260828134146_0001_d"
+    },
+    {
+      "yaw": -0.19450876285005947,
+      "pitch": -0.09944740680812814,
+      "title": "North Lobe",
+      "text": "",
+      "link": "",
+      "category": "link",
+      "pin_style": "label_hover",
+      "target": "dji_20260828133959_0001_d"
+    },
+    {
+      "yaw": -0.9447064693935587,
+      "pitch": -0.08121096805608019,
+      "title": "Shelton Creek",
+      "text": "",
+      "link": "",
+      "category": "link",
+      "pin_style": "label_hover",
+      "target": "dji_20260828133753_0001_d"
+    }
+  ],
   "hotspots_2": [],
   "levels_1": [],
   "levels_2": [],

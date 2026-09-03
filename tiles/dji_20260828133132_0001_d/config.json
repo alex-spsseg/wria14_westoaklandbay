@@ -50,6 +50,16 @@
       "category": "link",
       "pin_style": "label_hover",
       "target": "dji_20260828132858_0001_d"
+    },
+    {
+      "yaw": 1.1475938020531071,
+      "pitch": -0.2737889102619242,
+      "title": "West Lobe - High Berm",
+      "text": "",
+      "link": "",
+      "category": "link",
+      "pin_style": "label_hover",
+      "target": "dji_20260828133527_0001_d"
     }
   ],
   "hotspots_2": [],

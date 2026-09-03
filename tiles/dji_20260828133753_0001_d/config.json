@@ -70,6 +70,16 @@
       "category": "link",
       "pin_style": "label_hover",
       "target": "dji_20260828133527_0001_d"
+    },
+    {
+      "yaw": -2.376974029709114,
+      "pitch": 0.27263771027871186,
+      "title": "West Lobe - South",
+      "text": "",
+      "link": "",
+      "category": "link",
+      "pin_style": "label_hover",
+      "target": "dji_20260828133753_0001_d"
     }
   ],
   "hotspots_2": [],

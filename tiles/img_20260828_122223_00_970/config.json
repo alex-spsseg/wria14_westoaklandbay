@@ -1,8 +1,8 @@
 {
   "mode": "single",
   "format": "raw",
-  "yaw_1": 0.3995545019645306,
-  "pitch_1": 0.9304530769068737,
+  "yaw_1": 0.5768511346558168,
+  "pitch_1": 0.886190294463745,
   "yaw_2": 0.0,
   "pitch_2": 0.0,
   "lat": null,
@@ -10,7 +10,78 @@
   "label_1": "IMG_20260828_122223_00_970 (2026/08/28)",
   "label_2": "",
   "autorotate": false,
-  "hotspots_1": [],
+  "hotspots_1": [
+    {
+      "yaw": -3.1122650175608353,
+      "pitch": -0.59668617499592,
+      "title": "West Lobe - East View",
+      "text": "",
+      "link": "",
+      "category": "link",
+      "pin_style": "label_hover",
+      "target": "dji_20260828133337_0001_d"
+    },
+    {
+      "yaw": -2.91390943735448,
+      "pitch": -0.1935130031939991,
+      "title": "South Lobe",
+      "text": "",
+      "link": "",
+      "category": "link",
+      "pin_style": "label_hover",
+      "target": "dji_20260828132858_0001_d"
+    },
+    {
+      "yaw": -0.9681282472638095,
+      "pitch": -0.681723407882787,
+      "title": "West Lobe - High Berm",
+      "text": "",
+      "link": "",
+      "category": "link",
+      "pin_style": "label_hover",
+      "target": "dji_20260828133527_0001_d"
+    },
+    {
+      "yaw": -1.927442019060578,
+      "pitch": -0.10763539505558484,
+      "title": "ELJs",
+      "text": "",
+      "link": "",
+      "category": "link",
+      "pin_style": "label_hover",
+      "target": "dji_20260828133132_0001_d"
+    },
+    {
+      "yaw": 1.4024956084700868,
+      "pitch": -0.2888637592398773,
+      "title": "Shelton Creek",
+      "text": "",
+      "link": "",
+      "category": "link",
+      "pin_style": "label_hover",
+      "target": "dji_20260828133753_0001_d"
+    },
+    {
+      "yaw": 1.9584171786839377,
+      "pitch": -0.3117674927296701,
+      "title": "North Lobe",
+      "text": "",
+      "link": "",
+      "category": "link",
+      "pin_style": "label_hover",
+      "target": "dji_20260828133959_0001_d"
+    },
+    {
+      "yaw": 2.213452145599783,
+      "pitch": -0.2341417387616893,
+      "title": "Yacht Club",
+      "text": "",
+      "link": "",
+      "category": "link",
+      "pin_style": "label_hover",
+      "target": "dji_20260828134146_0001_d"
+    }
+  ],
   "hotspots_2": [],
   "levels_1": [],
   "levels_2": [],

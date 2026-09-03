@@ -109,11 +109,30 @@
 
     #site-map-panel {
       position: absolute; bottom: 12px; right: 12px; z-index: 1500;
-      width: 300px; height: 220px; border: 1px solid #019fc4; border-radius: 8px;
+      width: 300px; height: 220px; min-width: 200px; min-height: 150px;
+      max-width: 90vw; max-height: 80vh;
+      border: 1px solid #019fc4; border-radius: 8px;
       overflow: hidden; box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
     }
     #site-map { width: 100%; height: 100%; }
     .site-map-popup-link { color: #019fc4; font-weight: bold; cursor: pointer; }
+
+    #site-map-resize-handle {
+      position: absolute; z-index: 1600; top: 0; left: 0;
+      width: 16px; height: 16px; cursor: nwse-resize;
+      background: linear-gradient(135deg, #019fc4 0 40%, transparent 40% 100%);
+      border-top-left-radius: 8px;
+    }
+
+    #site-map-fit-btn, #site-map-basemap-btn {
+      position: absolute; z-index: 1600; top: 8px;
+      width: 30px; height: 30px; border-radius: 4px; border: 2px solid rgba(0,0,0,0.2);
+      background: #fff; color: #333; font-size: 15px; line-height: 1;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+    }
+    #site-map-fit-btn { right: 8px; }
+    #site-map-basemap-btn { right: 44px; font-size: 16px; display: none; }
+    #site-map-fit-btn:hover, #site-map-basemap-btn:hover { background: #f4f4f4; }
 
     #control-bar {
       position: absolute; top: 12px; right: 12px; z-index: 1000;
@@ -377,11 +396,14 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://unpkg.com/esri-leaflet@3.0.12/dist/esri-leaflet.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+  <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
   <script src="vendor/marzipano.js"></script>
 </head>
 <body>
 
-  <div id="build-timestamp">Built 2026-09-03 12:45:24</div>
+  <div id="build-timestamp">Built 2026-09-03 16:02:22</div>
 
   <div id="status-banner"></div>
 
@@ -416,6 +438,9 @@
 
     <div id="site-map-panel" style="display:none;">
       <div id="site-map"></div>
+      <div id="site-map-resize-handle" title="Drag to resize"></div>
+      <button id="site-map-fit-btn" type="button" title="Zoom to fit all points">&#10021;</button>
+      <button id="site-map-basemap-btn" type="button" title="Toggle basemap">&#128506;</button>
     </div>
 
     <div id="edit-tools-panel" style="display:none;">
@@ -1176,6 +1201,11 @@
     // pin can be re-styled without rebuilding the whole map when the
     // person switches stops while the map panel is open.
     var tourMarkersBySite = {};
+    // Clustering only matters once there are several markers close
+    // together (tours), not a single site's own pin -- and only if the
+    // plugin actually loaded (it's an extra CDN script, same graceful
+    // degradation as the esri-leaflet basemap support already has).
+    var markerClusterGroup = null;
 
     function buildMarkerIcon(active) {
       var size = active ? 30 : 22;
@@ -1200,41 +1230,145 @@
         m.setIcon(buildMarkerIcon(active));
         if (active) m.setZIndexOffset(1000);
       });
+      // Cluster icons are separate from the child markers' own icons,
+      // and don't always repaint on their own after a child's icon
+      // changes -- this nudges Leaflet.markercluster to recompute them.
+      if (markerClusterGroup && markerClusterGroup.refreshClusters) markerClusterGroup.refreshClusters();
+
+      // Only pan if the map panel is already open -- this shouldn't
+      // force it open on every sidebar click for someone who doesn't
+      // have it showing, just keep the selected stop in view for
+      // someone who does.
+      var activeMarker = tourMarkersBySite[activeTourSiteId];
+      if (siteMap && activeMarker && siteMapPanel.style.display !== 'none') {
+        siteMap.panTo(activeMarker.getLatLng());
+      }
     }
+
+    // -- basemap toggle (only shown when a tour/site actually has a
+    // non-OSM basemap configured -- nothing to toggle to otherwise) --
+    var osmLayer = null, customLayer = null, usingCustomBasemap = false;
+    var basemapToggleBtn = document.getElementById('site-map-basemap-btn');
+    basemapToggleBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (!siteMap || !customLayer) return;
+      if (usingCustomBasemap) {
+        siteMap.removeLayer(customLayer);
+        siteMap.addLayer(osmLayer);
+      } else {
+        siteMap.removeLayer(osmLayer);
+        siteMap.addLayer(customLayer);
+      }
+      usingCustomBasemap = !usingCustomBasemap;
+      basemapToggleBtn.title = usingCustomBasemap ? 'Switch to OpenStreetMap' : 'Switch to site imagery';
+    });
 
     function ensureMapInitialized() {
       if (siteMap || typeof L === 'undefined') return;
       siteMap = L.map('site-map', { attributionControl: true }).setView([0, 0], 2);
       var basemapType = pendingMapData ? pendingMapData.basemapType : 'osm';
       var basemapUrl = pendingMapData ? pendingMapData.basemapUrl : '';
-      buildBaseLayer(basemapType, basemapUrl).addTo(siteMap);
+      osmLayer = buildBaseLayer('osm', '');
+      if (basemapType !== 'osm' && basemapUrl) {
+        customLayer = buildBaseLayer(basemapType, basemapUrl);
+        customLayer.addTo(siteMap);
+        usingCustomBasemap = true;
+        basemapToggleBtn.style.display = 'flex';
+        basemapToggleBtn.title = 'Switch to OpenStreetMap';
+      } else {
+        osmLayer.addTo(siteMap);
+      }
+      // Resizing the panel (see the CSS `resize: both`) changes
+      // #site-map's dimensions, but Leaflet only measures its
+      // container once at creation -- without this, tiles stay
+      // wrong-sized/cut off after a drag-resize instead of filling
+      // the new area.
+      if (window.ResizeObserver) {
+        new ResizeObserver(() => siteMap.invalidateSize()).observe(siteMapPanel);
+      }
     }
+
+    var lastMapFit = null;
+    document.getElementById('site-map-fit-btn').addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (lastMapFit) lastMapFit();
+    });
+
+    // Dragging the top-left handle: the panel is anchored from
+    // bottom/right (see CSS), so growing its width/height naturally
+    // expands it toward the top-left with no repositioning needed --
+    // dragging the handle left/up just needs to translate into a
+    // bigger width/height, clamped to the same min/max the old native
+    // `resize: both` used to enforce on its own.
+    (function () {
+      var handle = document.getElementById('site-map-resize-handle');
+      var dragging = false, startX = 0, startY = 0, startW = 0, startH = 0;
+
+      function begin(x, y) {
+        dragging = true;
+        startX = x; startY = y;
+        startW = siteMapPanel.offsetWidth;
+        startH = siteMapPanel.offsetHeight;
+      }
+      function move(x, y) {
+        if (!dragging) return;
+        var minW = 200, minH = 150;
+        var maxW = window.innerWidth * 0.9, maxH = window.innerHeight * 0.8;
+        var newW = Math.min(maxW, Math.max(minW, startW + (startX - x)));
+        var newH = Math.min(maxH, Math.max(minH, startH + (startY - y)));
+        siteMapPanel.style.width = newW + 'px';
+        siteMapPanel.style.height = newH + 'px';
+      }
+      function end() { dragging = false; }
+
+      handle.addEventListener('mousedown', (e) => { e.stopPropagation(); begin(e.clientX, e.clientY); });
+      window.addEventListener('mousemove', (e) => move(e.clientX, e.clientY));
+      window.addEventListener('mouseup', end);
+
+      handle.addEventListener('touchstart', (e) => {
+        e.stopPropagation();
+        if (e.touches[0]) begin(e.touches[0].clientX, e.touches[0].clientY);
+      });
+      window.addEventListener('touchmove', (e) => { if (e.touches[0]) move(e.touches[0].clientX, e.touches[0].clientY); });
+      window.addEventListener('touchend', end);
+    })();
 
     function renderMapData() {
       ensureMapInitialized();
       if (!siteMap || !pendingMapData) return;
       siteMap.eachLayer(layer => { if (layer instanceof L.Marker) siteMap.removeLayer(layer); });
+      if (markerClusterGroup) { siteMap.removeLayer(markerClusterGroup); markerClusterGroup = null; }
       tourMarkersBySite = {};
 
       if (pendingMapData.type === 'single') {
         var m = L.marker([pendingMapData.lat, pendingMapData.lng]).addTo(siteMap);
         if (pendingMapData.label) m.bindPopup(escapeHtml(pendingMapData.label));
         siteMap.setView([pendingMapData.lat, pendingMapData.lng], 15);
+        lastMapFit = () => siteMap.setView([pendingMapData.lat, pendingMapData.lng], 15);
       } else if (pendingMapData.type === 'tour') {
         var bounds = [];
+        var useCluster = typeof L.markerClusterGroup === 'function';
+        if (useCluster) markerClusterGroup = L.markerClusterGroup({ maxClusterRadius: 40 });
         pendingMapData.sites.forEach(s => {
           var isActive = s.site_id === activeTourSiteId;
-          var m = L.marker([s.lat, s.lng], { icon: buildMarkerIcon(isActive) }).addTo(siteMap);
+          var m = L.marker([s.lat, s.lng], { icon: buildMarkerIcon(isActive) });
           m.bindPopup(escapeHtml(s.display_name || s.site_id));
           if (isActive) m.setZIndexOffset(1000);
           m.on('click', () => {
             if (tourLoadStopFn) tourLoadStopFn(s.site_id);
           });
+          if (useCluster) markerClusterGroup.addLayer(m); else m.addTo(siteMap);
           tourMarkersBySite[s.site_id] = m;
           bounds.push([s.lat, s.lng]);
         });
-        if (bounds.length > 1) siteMap.fitBounds(bounds, { padding: [24, 24] });
-        else if (bounds.length === 1) siteMap.setView(bounds[0], 15);
+        if (useCluster) markerClusterGroup.addTo(siteMap);
+        if (bounds.length > 1) {
+          siteMap.fitBounds(bounds, { padding: [24, 24] });
+          lastMapFit = () => siteMap.fitBounds(bounds, { padding: [24, 24] });
+        } else if (bounds.length === 1) {
+          siteMap.setView(bounds[0], 15);
+          lastMapFit = () => siteMap.setView(bounds[0], 15);
+        }
       }
       // Leaflet sizes itself off its container's dimensions at creation
       // time; the panel is display:none until first shown, so it has

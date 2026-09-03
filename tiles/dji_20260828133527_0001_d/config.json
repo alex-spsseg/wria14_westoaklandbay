@@ -1,8 +1,8 @@
 {
   "mode": "single",
   "format": "raw",
-  "yaw_1": 2.6967992253938196,
-  "pitch_1": 0.4553991518001243,
+  "yaw_1": 2.8490154218716186,
+  "pitch_1": 0.3879437652702134,
   "yaw_2": 0.0,
   "pitch_2": 0.0,
   "lat": 47.211263055555555,
@@ -10,7 +10,99 @@
   "label_1": "DJI_20260828133527_0001_D (2026/08/28)",
   "label_2": "",
   "autorotate": false,
-  "hotspots_1": [],
+  "hotspots_1": [
+    {
+      "yaw": 2.6844526279278416,
+      "pitch": 0.9978469920847388,
+      "title": "BESEs",
+      "text": "",
+      "link": "",
+      "category": "link",
+      "pin_style": "label_hover",
+      "target": "img_20260828_122223_00_970"
+    },
+    {
+      "yaw": 1.6552388716962065,
+      "pitch": -0.06703471710962461,
+      "title": "Shelton Creek",
+      "text": "",
+      "link": "",
+      "category": "link",
+      "pin_style": "label_hover",
+      "target": "dji_20260828133753_0001_d"
+    },
+    {
+      "yaw": 2.112552668396316,
+      "pitch": -0.06651062400217,
+      "title": "North Lobe",
+      "text": "",
+      "link": "",
+      "category": "link",
+      "pin_style": "label_hover",
+      "target": "dji_20260828133959_0001_d"
+    },
+    {
+      "yaw": 2.379252323628851,
+      "pitch": -0.05396661591241525,
+      "title": "Yacht Club",
+      "text": "",
+      "link": "",
+      "category": "link",
+      "pin_style": "label_hover",
+      "target": "dji_20260828134146_0001_d"
+    },
+    {
+      "yaw": -2.9029578793709234,
+      "pitch": -0.057110525627798836,
+      "title": "South Lobe",
+      "text": "",
+      "link": "",
+      "category": "link",
+      "pin_style": "label_hover",
+      "target": "dji_20260828132858_0001_d"
+    },
+    {
+      "yaw": -2.079578032847726,
+      "pitch": 0.064414143538702,
+      "title": "ELJs",
+      "text": "",
+      "link": "",
+      "category": "link",
+      "pin_style": "label_hover",
+      "target": "dji_20260828133132_0001_d",
+      "images": []
+    },
+    {
+      "yaw": 3.1402461425232673,
+      "pitch": -0.14563532220630293,
+      "title": "West Lobe - East",
+      "text": "",
+      "link": "",
+      "category": "link",
+      "pin_style": "label_hover",
+      "target": "dji_20260828133337_0001_d"
+    },
+    {
+      "yaw": 2.220597648398126,
+      "pitch": 0.39731761657298925,
+      "title": "West Lobe - North",
+      "text": "",
+      "link": "",
+      "category": "link",
+      "pin_style": "label_hover",
+      "target": "img_20260828_121536_00_969"
+    },
+    {
+      "yaw": -2.1441926552981556,
+      "pitch": 0.3331830139405696,
+      "title": "West Lobe - South",
+      "text": "",
+      "link": "",
+      "category": "link",
+      "pin_style": "label_hover",
+      "target": "img_20260828_120243_00_968"
+    }
+  ],
   "hotspots_2": [],
   "levels_1": [],
   "levels_2": [],

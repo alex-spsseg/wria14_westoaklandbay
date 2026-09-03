@@ -1,8 +1,8 @@
 {
   "mode": "single",
   "format": "raw",
-  "yaw_1": 2.8777315264110546,
-  "pitch_1": 0.3902681003183943,
+  "yaw_1": 2.7946749806341185,
+  "pitch_1": 0.27217179261045565,
   "yaw_2": 0.0,
   "pitch_2": 0.0,
   "lat": 47.21331952777778,
@@ -10,7 +10,68 @@
   "label_1": "DJI_20260828134146_0001_D (2026/08/28)",
   "label_2": "",
   "autorotate": false,
-  "hotspots_1": [],
+  "hotspots_1": [
+    {
+      "yaw": 1.5564829847124129,
+      "pitch": -0.1203358652117199,
+      "title": "South Lobe",
+      "text": "",
+      "link": "",
+      "category": "link",
+      "pin_style": "label_hover",
+      "target": "dji_20260828132858_0001_d"
+    },
+    {
+      "yaw": 2.286621536084727,
+      "pitch": -0.1637290856860929,
+      "title": "West Lobe - East View",
+      "text": "",
+      "link": "",
+      "category": "link",
+      "pin_style": "label_hover",
+      "target": "dji_20260828133337_0001_d"
+    },
+    {
+      "yaw": 3.0239180236816656,
+      "pitch": -0.17089227859409917,
+      "title": "Shelton Creek",
+      "text": "",
+      "link": "",
+      "category": "link",
+      "pin_style": "label_hover",
+      "target": "dji_20260828133753_0001_d"
+    },
+    {
+      "yaw": 2.822654380425023,
+      "pitch": -0.2553174452516114,
+      "title": "North Lobe",
+      "text": "",
+      "link": "",
+      "category": "link",
+      "pin_style": "label_hover",
+      "target": "dji_20260828133959_0001_d"
+    },
+    {
+      "yaw": 2.242616667763155,
+      "pitch": -0.011382475401866543,
+      "title": "ELJs",
+      "text": "",
+      "link": "",
+      "category": "link",
+      "pin_style": "label_hover",
+      "target": "dji_20260828133132_0001_d"
+    },
+    {
+      "yaw": 2.4799035412566575,
+      "pitch": -0.15292785182109014,
+      "title": "West Lobe - High Berm",
+      "text": "",
+      "link": "",
+      "category": "link",
+      "pin_style": "label_hover",
+      "target": "dji_20260828133527_0001_d"
+    }
+  ],
   "hotspots_2": [],
   "levels_1": [],
   "levels_2": [],

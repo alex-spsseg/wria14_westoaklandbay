@@ -8,7 +8,68 @@
   "label_1": "IMG_20260828_121536_00_969 (2026/08/28)",
   "label_2": "",
   "autorotate": false,
-  "hotspots_1": [],
+  "hotspots_1": [
+    {
+      "yaw": 1.9107446997487667,
+      "pitch": -0.3232997071031676,
+      "title": "South Lobe",
+      "text": "",
+      "link": "",
+      "category": "link",
+      "pin_style": "label_hover",
+      "target": "dji_20260828132858_0001_d"
+    },
+    {
+      "yaw": 2.305399367347624,
+      "pitch": -0.6574684426113855,
+      "title": "West Lobe - East View",
+      "text": "",
+      "link": "",
+      "category": "link",
+      "pin_style": "label_hover",
+      "target": "dji_20260828133337_0001_d"
+    },
+    {
+      "yaw": 2.9875756159149276,
+      "pitch": -0.13918980810747428,
+      "title": "ELJs",
+      "text": "",
+      "link": "",
+      "category": "link",
+      "pin_style": "label_hover",
+      "target": "dji_20260828133132_0001_d"
+    },
+    {
+      "yaw": 2.8249301022812645,
+      "pitch": 4.0084096168513383e-05,
+      "title": "West Lobe - South View",
+      "text": "",
+      "link": "",
+      "category": "link",
+      "pin_style": "label_hover",
+      "target": "img_20260828_121536_00_969"
+    },
+    {
+      "yaw": 0.229171493951128,
+      "pitch": -0.26355033031370567,
+      "title": "North Lobe",
+      "text": "",
+      "link": "",
+      "category": "link",
+      "pin_style": "label_hover",
+      "target": "dji_20260828133959_0001_d"
+    },
+    {
+      "yaw": -2.4393009039057745,
+      "pitch": -0.5558969687723838,
+      "title": "West Lobe - High Berm",
+      "text": "",
+      "link": "",
+      "category": "link",
+      "pin_style": "label_hover",
+      "target": "dji_20260828133527_0001_d"
+    }
+  ],
   "hotspots_2": [],
   "levels_1": [],
   "levels_2": [],

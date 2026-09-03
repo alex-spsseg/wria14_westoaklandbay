@@ -10,7 +10,68 @@
   "label_1": "DJI_20260828133753_0001_D (2026/08/28)",
   "label_2": "",
   "autorotate": false,
-  "hotspots_1": [],
+  "hotspots_1": [
+    {
+      "yaw": 1.8374288274985338,
+      "pitch": -0.07201900180851695,
+      "title": "Yacht Club",
+      "text": "",
+      "link": "",
+      "category": "link",
+      "pin_style": "label_hover",
+      "target": "dji_20260828134146_0001_d"
+    },
+    {
+      "yaw": 1.9524477998010914,
+      "pitch": -0.163163410176292,
+      "title": "North Lobe",
+      "text": "",
+      "link": "",
+      "category": "link",
+      "pin_style": "label_hover",
+      "target": "dji_20260828133959_0001_d"
+    },
+    {
+      "yaw": 2.955671296660798,
+      "pitch": -0.09864661192948354,
+      "title": "South Lobe",
+      "text": "",
+      "link": "",
+      "category": "link",
+      "pin_style": "label_hover",
+      "target": "dji_20260828132858_0001_d"
+    },
+    {
+      "yaw": -2.6729783942190863,
+      "pitch": -0.1627949805011326,
+      "title": "West Lobe - East View",
+      "text": "",
+      "link": "",
+      "category": "link",
+      "pin_style": "label_hover",
+      "target": "dji_20260828133337_0001_d"
+    },
+    {
+      "yaw": -2.3815180591464085,
+      "pitch": 0.021991649027395255,
+      "title": "ELJs",
+      "text": "",
+      "link": "",
+      "category": "link",
+      "pin_style": "label_hover",
+      "target": "dji_20260828133132_0001_d"
+    },
+    {
+      "yaw": -2.0288814905325356,
+      "pitch": -0.14681001005628502,
+      "title": "West Lobe - High Berm",
+      "text": "",
+      "link": "",
+      "category": "link",
+      "pin_style": "label_hover",
+      "target": "dji_20260828133527_0001_d"
+    }
+  ],
   "hotspots_2": [],
   "levels_1": [],
   "levels_2": [],

@@ -34,6 +34,36 @@
       "category": "link",
       "pin_style": "label_hover",
       "target": "dji_20260828132858_0001_d"
+    },
+    {
+      "yaw": 1.959188551739735,
+      "pitch": -0.10475761312284071,
+      "title": "West Lobe - East View",
+      "text": "",
+      "link": "",
+      "category": "link",
+      "pin_style": "label_hover",
+      "target": "dji_20260828133337_0001_d"
+    },
+    {
+      "yaw": 2.9169337291920607,
+      "pitch": -0.1281667433799356,
+      "title": "Shelton Creek",
+      "text": "",
+      "link": "",
+      "category": "link",
+      "pin_style": "label_hover",
+      "target": "dji_20260828133753_0001_d"
+    },
+    {
+      "yaw": -0.1608513246890535,
+      "pitch": -0.072285008068949,
+      "title": "Yacht Club",
+      "text": "",
+      "link": "",
+      "category": "link",
+      "pin_style": "label_hover",
+      "target": "dji_20260828134146_0001_d"
     }
   ],
   "hotspots_2": [],

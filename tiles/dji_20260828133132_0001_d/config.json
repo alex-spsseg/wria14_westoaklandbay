@@ -10,7 +10,48 @@
   "label_1": "DJI_20260828133132_0001_D (2026/08/28)",
   "label_2": "",
   "autorotate": false,
-  "hotspots_1": [],
+  "hotspots_1": [
+    {
+      "yaw": 2.1612598336367235,
+      "pitch": -0.1765749242318826,
+      "title": "West Lobe - East View",
+      "text": "",
+      "link": "",
+      "category": "link",
+      "pin_style": "label_hover",
+      "target": "dji_20260828133337_0001_d"
+    },
+    {
+      "yaw": 1.593043307338358,
+      "pitch": 0.4437261541444162,
+      "title": "West Lobe - South View",
+      "text": "",
+      "link": "",
+      "category": "link",
+      "pin_style": "label_hover",
+      "target": "img_20260828_120243_00_968"
+    },
+    {
+      "yaw": 1.7257071488063849,
+      "pitch": 0.052829220940019184,
+      "title": "West Lobe - North View",
+      "text": "",
+      "link": "",
+      "category": "link",
+      "pin_style": "label_hover",
+      "target": "img_20260828_121536_00_969"
+    },
+    {
+      "yaw": -3.0744936331530113,
+      "pitch": -0.09708063978025194,
+      "title": "South Lobe",
+      "text": "",
+      "link": "",
+      "category": "link",
+      "pin_style": "label_hover",
+      "target": "dji_20260828132858_0001_d"
+    }
+  ],
   "hotspots_2": [],
   "levels_1": [],
   "levels_2": [],

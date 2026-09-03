@@ -4,32 +4,110 @@
     {
       "site_id": "dji_20251030092219_0012_d",
       "display_name": "South Lobe (Aerial)",
-      "lat": null,
-      "lng": null
+      "lat": 47.21015633333334,
+      "lng": -123.08736319444444
+    },
+    {
+      "site_id": "img_20251030_083838_00_290",
+      "display_name": "South Lobe - East End",
+      "lat": 47.209833333333336,
+      "lng": -123.08727777777777
+    },
+    {
+      "site_id": "img_20251030_084816_00_299",
+      "display_name": "South Lobe - Road End",
+      "lat": 47.209722222222226,
+      "lng": -123.09055555555555
+    },
+    {
+      "site_id": "img_20251030_083136_00_283",
+      "display_name": "Goldsborough Creek near South Lobe",
+      "lat": 47.21058333333334,
+      "lng": -123.08958333333332
     },
     {
       "site_id": "dji_20251030092521_0016_d",
-      "display_name": "ELJs by Goldsborough",
-      "lat": null,
-      "lng": null
+      "display_name": "ELJs (Aerial)",
+      "lat": 47.209999583333335,
+      "lng": -123.09169874999999
     },
     {
       "site_id": "dji_20251030092822_0022_d",
       "display_name": "West Lobe - East (Aerial)",
-      "lat": null,
-      "lng": null
+      "lat": 47.21103463888889,
+      "lng": -123.09092369444444
+    },
+    {
+      "site_id": "img_20251030_085608_00_310",
+      "display_name": "West Lobe - East BESEs",
+      "lat": 47.211083333333335,
+      "lng": -123.09072222222221
+    },
+    {
+      "site_id": "img_20251030_090255_00_319",
+      "display_name": "West Lobe - West BESEs",
+      "lat": 47.21105555555556,
+      "lng": -123.09105555555556
     },
     {
       "site_id": "dji_20251030092929_0023_d",
       "display_name": "West Lobe - High Berm (Aerial)",
-      "lat": null,
-      "lng": null
+      "lat": 47.21107725,
+      "lng": -123.09204227777778
+    },
+    {
+      "site_id": "img_20251030_090726_00_322",
+      "display_name": "Log Pond View",
+      "lat": 47.21311111111111,
+      "lng": -123.092
+    },
+    {
+      "site_id": "img_20251030_090935_00_324",
+      "display_name": "Shelton Creek Berm",
+      "lat": 47.21325,
+      "lng": -123.09127777777778
     },
     {
       "site_id": "dji_20251030093208_0027_d",
       "display_name": "Shelton Creek (Aerial)",
-      "lat": null,
-      "lng": null
+      "lat": 47.21311633333334,
+      "lng": -123.09025591666666
+    },
+    {
+      "site_id": "img_20251030_082428_00_275",
+      "display_name": "Pilings",
+      "lat": 47.21344444444445,
+      "lng": -123.09069444444444
+    },
+    {
+      "site_id": "img_20251030_082457_00_276",
+      "display_name": "Pilings / Bulkhead",
+      "lat": 47.21347222222222,
+      "lng": -123.09033333333333
+    },
+    {
+      "site_id": "img_20251030_082544_00_277",
+      "display_name": "Bulkhead",
+      "lat": 47.21333333333334,
+      "lng": -123.09008333333333
+    },
+    {
+      "site_id": "img_20251030_082123_00_273",
+      "display_name": "Collapsed Wall",
+      "lat": 47.2135,
+      "lng": -123.08969444444443
+    },
+    {
+      "site_id": "img_20251030_081701_00_271",
+      "display_name": "Culvert Outfall",
+      "lat": 47.21366666666667,
+      "lng": -123.08938888888889
+    },
+    {
+      "site_id": "img_20251030_082825_00_280",
+      "display_name": "Shelton Creek Mouth",
+      "lat": 47.21202777777778,
+      "lng": -123.08997222222222
     }
   ],
   "basemap_type": "esri_tile",

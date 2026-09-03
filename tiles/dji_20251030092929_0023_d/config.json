@@ -1,20 +1,20 @@
 {
   "mode": "single",
   "format": "raw",
-  "yaw_1": 2.034775905954925,
-  "pitch_1": 0.25428525864468376,
+  "yaw_1": 1.3522058479749826,
+  "pitch_1": 0.2866985161817208,
   "yaw_2": 0.0,
   "pitch_2": 0.0,
-  "lat": null,
-  "lng": null,
+  "lat": 47.21107725,
+  "lng": -123.09204227777778,
   "label_1": "DJI_20251030092929_0023_D (2025/10/30)",
   "label_2": "",
-  "autorotate": false,
+  "autorotate": true,
   "hotspots_1": [],
   "hotspots_2": [],
   "levels_1": [],
   "levels_2": [],
   "pin_style": "dot",
-  "basemap_type": "osm",
-  "basemap_url": ""
+  "basemap_type": "esri_tile",
+  "basemap_url": "https://tiles.arcgis.com/tiles/buuvDFFARQiOEbVZ/arcgis/rest/services/WOB_Ortho_20250530/MapServer/tile/{z}/{y}/{x}"
 }

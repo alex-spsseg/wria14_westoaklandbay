@@ -381,7 +381,7 @@
 </head>
 <body>
 
-  <div id="build-timestamp">Built 2026-09-03 11:09:48</div>
+  <div id="build-timestamp">Built 2026-09-03 11:24:20</div>
 
   <div id="status-banner"></div>
 
@@ -647,7 +647,7 @@
               thumbUrl = 'tiles/' + siteId + '/img' + (idx + 1) + '/scene/1/f/0/0.jpg';
               tsRawUrls.push(null);
             } else {
-              geometry = new Marzipano.EquirectGeometry([{ width: rawEquirectWidth() }]);
+              geometry = new Marzipano.EquirectGeometry([{ width: rawEquirectWidth(p.mobile) }]);
               var tsFullUrl = 'tiles/' + siteId + '/img' + (idx + 1) + '.jpg';
               var tsImgUrl = rawImageUrl(tsFullUrl, p.mobile);
               source = Marzipano.ImageUrlSource.fromString(tsImgUrl);
@@ -739,7 +739,7 @@
           // no single big payload to wait on, so no blocking spinner.
           document.getElementById('pano-loading-left').classList.add('hidden');
         } else {
-          geometryL = new Marzipano.EquirectGeometry([{ width: rawEquirectWidth() }]);
+          geometryL = new Marzipano.EquirectGeometry([{ width: rawEquirectWidth(config.mobile_1) }]);
           geometryR = geometryL;
           var img1Url = rawImageUrl('tiles/' + siteId + '/img1.jpg', config.mobile_1);
           sourceL = Marzipano.ImageUrlSource.fromString(img1Url);
@@ -917,14 +917,15 @@
       return coarse || window.innerWidth <= 700;
     }
 
-    // The mobile-size file is now generated at the same 4000px cap
-    // as this geometry value, so there's no longer a resolution gap
-    // to branch on here -- rawImageUrl below is what actually picks
-    // the smaller *file* on mobile (still a real decode/GPU saving
-    // versus the true full-resolution original, which is well above
-    // 4000px), this constant just needs to match whichever file ends
-    // up being requested.
-    function rawEquirectWidth() {
+    // The mobile-size file's actual pixel width comes straight from
+    // config.json (see make_mobile_variant / write_config), so this
+    // geometry value is always accurate to whichever file actually
+    // got requested, instead of guessing a fixed number that may not
+    // match. Desktop still falls back to a flat 4000 approximation of
+    // the true original's size, which was already the case before
+    // mobile variants existed and hasn't caused visible issues.
+    function rawEquirectWidth(mobileWidth) {
+      if (mobileWidth && isMobileDevice()) return mobileWidth;
       return 4000;
     }
 
@@ -1734,7 +1735,7 @@
             source = Marzipano.ImageUrlSource.fromString('tiles/' + sid + '/img1/scene/{z}/{f}/{y}/{x}.jpg');
             document.getElementById('pano-loading-left').classList.add('hidden');
           } else {
-            geometry = new Marzipano.EquirectGeometry([{ width: rawEquirectWidth() }]);
+            geometry = new Marzipano.EquirectGeometry([{ width: rawEquirectWidth(config.mobile_1) }]);
             var stopImgUrl = rawImageUrl('tiles/' + sid + '/img1.jpg', config.mobile_1);
             source = Marzipano.ImageUrlSource.fromString(stopImgUrl);
             preloadPanoThenRun(stopImgUrl, 'left', function () {});

@@ -17,6 +17,6 @@
   "pin_style": "dot",
   "basemap_type": "esri_tile",
   "basemap_url": "https://tiles.arcgis.com/tiles/buuvDFFARQiOEbVZ/arcgis/rest/services/WOB_Ortho_20250530/MapServer/tile/{z}/{y}/{x}",
-  "mobile_1": true,
-  "mobile_2": false
+  "mobile_1": 4500,
+  "mobile_2": 0
 }

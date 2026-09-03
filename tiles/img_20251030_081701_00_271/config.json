@@ -1,8 +1,8 @@
 {
   "mode": "single",
   "format": "raw",
-  "yaw_1": -0.15011288316818394,
-  "pitch_1": 0.09979278084807319,
+  "yaw_1": -0.6217424485415322,
+  "pitch_1": 0.0757020061520226,
   "yaw_2": 0.0,
   "pitch_2": 0.0,
   "lat": 47.21366666666667,
@@ -17,6 +17,6 @@
   "pin_style": "dot",
   "basemap_type": "esri_tile",
   "basemap_url": "https://tiles.arcgis.com/tiles/buuvDFFARQiOEbVZ/arcgis/rest/services/WOB_Ortho_20250530/MapServer/tile/{z}/{y}/{x}",
-  "mobile_1": true,
-  "mobile_2": false
+  "mobile_1": 4500,
+  "mobile_2": 0
 }

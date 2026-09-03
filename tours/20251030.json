@@ -1,0 +1,37 @@
+{
+  "name": "WOB Imagery (10/30/2025)",
+  "sites": [
+    {
+      "site_id": "dji_20251030092219_0012_d",
+      "display_name": "South Lobe (Aerial)",
+      "lat": null,
+      "lng": null
+    },
+    {
+      "site_id": "dji_20251030092521_0016_d",
+      "display_name": "ELJs by Goldsborough",
+      "lat": null,
+      "lng": null
+    },
+    {
+      "site_id": "dji_20251030092822_0022_d",
+      "display_name": "West Lobe - East (Aerial)",
+      "lat": null,
+      "lng": null
+    },
+    {
+      "site_id": "dji_20251030092929_0023_d",
+      "display_name": "West Lobe - High Berm (Aerial)",
+      "lat": null,
+      "lng": null
+    },
+    {
+      "site_id": "dji_20251030093208_0027_d",
+      "display_name": "Shelton Creek (Aerial)",
+      "lat": null,
+      "lng": null
+    }
+  ],
+  "basemap_type": "esri_tile",
+  "basemap_url": "https://tiles.arcgis.com/tiles/buuvDFFARQiOEbVZ/arcgis/rest/services/WOB_Ortho_20250530/MapServer/tile/{z}/{y}/{x}"
+}

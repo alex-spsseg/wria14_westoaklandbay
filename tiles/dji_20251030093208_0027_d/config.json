@@ -1,0 +1,20 @@
+{
+  "mode": "single",
+  "format": "raw",
+  "yaw_1": 0.06913589570408973,
+  "pitch_1": 0.5299936284826874,
+  "yaw_2": 0.0,
+  "pitch_2": 0.0,
+  "lat": null,
+  "lng": null,
+  "label_1": "DJI_20251030093208_0027_D (2025/10/30)",
+  "label_2": "",
+  "autorotate": false,
+  "hotspots_1": [],
+  "hotspots_2": [],
+  "levels_1": [],
+  "levels_2": [],
+  "pin_style": "dot",
+  "basemap_type": "osm",
+  "basemap_url": ""
+}

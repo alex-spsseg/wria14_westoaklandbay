@@ -381,7 +381,7 @@
 </head>
 <body>
 
-  <div id="build-timestamp">Built 2026-09-03 09:50:30</div>
+  <div id="build-timestamp">Built 2026-09-03 10:11:53</div>
 
   <div id="status-banner"></div>
 
@@ -647,10 +647,11 @@
               thumbUrl = 'tiles/' + siteId + '/img' + (idx + 1) + '/scene/1/f/0/0.jpg';
               tsRawUrls.push(null);
             } else {
-              geometry = new Marzipano.EquirectGeometry([{ width: 4000 }]);
-              var tsImgUrl = 'tiles/' + siteId + '/img' + (idx + 1) + '.jpg';
+              geometry = new Marzipano.EquirectGeometry([{ width: rawEquirectWidth() }]);
+              var tsFullUrl = 'tiles/' + siteId + '/img' + (idx + 1) + '.jpg';
+              var tsImgUrl = rawImageUrl(tsFullUrl, p.mobile);
               source = Marzipano.ImageUrlSource.fromString(tsImgUrl);
-              thumbUrl = tsImgUrl;
+              thumbUrl = tsFullUrl;
               tsRawUrls.push(tsImgUrl);
             }
             var scene = viewerL.createScene({ source: source, geometry: geometry, view: view });
@@ -738,13 +739,13 @@
           // no single big payload to wait on, so no blocking spinner.
           document.getElementById('pano-loading-left').classList.add('hidden');
         } else {
-          geometryL = new Marzipano.EquirectGeometry([{ width: 4000 }]);
+          geometryL = new Marzipano.EquirectGeometry([{ width: rawEquirectWidth() }]);
           geometryR = geometryL;
-          var img1Url = 'tiles/' + siteId + '/img1.jpg';
+          var img1Url = rawImageUrl('tiles/' + siteId + '/img1.jpg', config.mobile_1);
           sourceL = Marzipano.ImageUrlSource.fromString(img1Url);
           preloadPanoThenRun(img1Url, 'left', function () {});
           if (!isSingleMode) {
-            var img2Url = 'tiles/' + siteId + '/img2.jpg';
+            var img2Url = rawImageUrl('tiles/' + siteId + '/img2.jpg', config.mobile_2);
             sourceR = Marzipano.ImageUrlSource.fromString(img2Url);
             preloadPanoThenRun(img2Url, 'right', function () {});
           }
@@ -899,6 +900,40 @@
       var d = document.createElement('div');
       d.textContent = s == null ? '' : s;
       return d.innerHTML;
+    }
+
+    // window width alone isn't the right signal here: a phone in
+    // landscape or a tablet in portrait is easily 800px+ wide, same
+    // weak GPU, just a wider viewport -- that would wrongly be
+    // treated as "desktop." pointer:coarse (touch-primary input) is
+    // tied to the device itself, not its current orientation or
+    // window size, so it stays correct across rotation. The width
+    // check is kept as a fallback for the rare case that media query
+    // isn't supported, and for someone deliberately shrinking a
+    // desktop browser very narrow, where serving the smaller file
+    // is harmless anyway.
+    function isMobileDevice() {
+      var coarse = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+      return coarse || window.innerWidth <= 700;
+    }
+
+    function rawEquirectWidth() {
+      return isMobileDevice() ? 2560 : 4000;
+    }
+
+    // hasMobile comes straight from config.json (mobile_1/mobile_2, or
+    // a photo's own "mobile" flag for timeseries) -- set at publish
+    // time by make_mobile_variant, which is the only place that
+    // actually knows whether a smaller file was successfully written.
+    // Sites published before this feature existed (or on a machine
+    // without Pillow installed) simply won't have one, so this always
+    // falls back to the full-size URL rather than guessing and having
+    // to recover from a 404.
+    function rawImageUrl(baseUrl, hasMobile) {
+      if (hasMobile && isMobileDevice()) {
+        return baseUrl.replace(/\.jpg$/i, '_mobile.jpg');
+      }
+      return baseUrl;
     }
 
     // Raw drone panos can be tens of MB; on a slow connection this is
@@ -1692,8 +1727,8 @@
             source = Marzipano.ImageUrlSource.fromString('tiles/' + sid + '/img1/scene/{z}/{f}/{y}/{x}.jpg');
             document.getElementById('pano-loading-left').classList.add('hidden');
           } else {
-            geometry = new Marzipano.EquirectGeometry([{ width: 4000 }]);
-            var stopImgUrl = 'tiles/' + sid + '/img1.jpg';
+            geometry = new Marzipano.EquirectGeometry([{ width: rawEquirectWidth() }]);
+            var stopImgUrl = rawImageUrl('tiles/' + sid + '/img1.jpg', config.mobile_1);
             source = Marzipano.ImageUrlSource.fromString(stopImgUrl);
             preloadPanoThenRun(stopImgUrl, 'left', function () {});
           }

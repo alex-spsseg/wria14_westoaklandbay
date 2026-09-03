@@ -381,7 +381,7 @@
 </head>
 <body>
 
-  <div id="build-timestamp">Built 2026-09-03 12:13:24</div>
+  <div id="build-timestamp">Built 2026-09-03 12:45:24</div>
 
   <div id="status-banner"></div>
 
@@ -606,7 +606,7 @@
     document.getElementById('reset-btn').addEventListener('click', () => resetViews());
 
     if (!tourParam) {
-    fetch('tiles/' + siteId + '/config.json')
+    fetch('tiles/' + siteId + '/config.json', { cache: 'no-store' })
       .then(res => {
         if (res.ok) return res.json();
         throw new Error('missing-config');
@@ -1718,7 +1718,7 @@
 
         var configPromise = configCache[sid]
           ? Promise.resolve(configCache[sid])
-          : fetch('tiles/' + sid + '/config.json').then(res => {
+          : fetch('tiles/' + sid + '/config.json', { cache: 'no-store' }).then(res => {
               if (!res.ok) throw new Error('missing-config');
               return res.json();
             }).then(cfg => { configCache[sid] = cfg; return cfg; });
@@ -1771,7 +1771,11 @@
       tourLoadStopFn = loadStop;
 
       var sanitizedTour = tourId.trim().toLowerCase().replace(/[\s-]+/g, '_');
-      fetch('tours/' + sanitizedTour + '.json')
+      // no-store: this fetch had no cache-busting at all before, unlike
+      // the landing page's equivalent fetches -- a tab left open across
+      // a republish (or even just a normal, non-hard refresh in some
+      // browsers) could keep showing a stale tour manifest indefinitely.
+      fetch('tours/' + sanitizedTour + '.json', { cache: 'no-store' })
         .then(res => {
           if (res.ok) return res.json();
           throw new Error('missing-tour');

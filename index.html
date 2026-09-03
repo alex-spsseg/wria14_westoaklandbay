@@ -381,7 +381,7 @@
 </head>
 <body>
 
-  <div id="build-timestamp">Built 2026-09-03 10:45:37</div>
+  <div id="build-timestamp">Built 2026-09-03 10:58:25</div>
 
   <div id="status-banner"></div>
 
@@ -917,8 +917,15 @@
       return coarse || window.innerWidth <= 700;
     }
 
+    // The mobile-size file is now generated at the same 4000px cap
+    // as this geometry value, so there's no longer a resolution gap
+    // to branch on here -- rawImageUrl below is what actually picks
+    // the smaller *file* on mobile (still a real decode/GPU saving
+    // versus the true full-resolution original, which is well above
+    // 4000px), this constant just needs to match whichever file ends
+    // up being requested.
     function rawEquirectWidth() {
-      return isMobileDevice() ? 2560 : 4000;
+      return 4000;
     }
 
     // hasMobile comes straight from config.json (mobile_1/mobile_2, or

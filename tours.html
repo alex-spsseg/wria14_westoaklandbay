@@ -25,7 +25,9 @@
     }
     header { max-width: 1000px; margin: 0 auto 28px; }
     h1 { font-size: 24px; font-weight: 700; color: #ffffff; }
-    header p { margin-top: 6px; color: #9fb2cc; font-size: 14px; }
+    header p.tagline { margin-top: 6px; color: #9fb2cc; font-size: 14px; }
+    header p#description { margin-top: 14px; color: #cbd8ec; font-size: 14px; line-height: 1.5; max-width: 640px; }
+    header p#description:empty { display: none; }
 
     .grid {
       max-width: 1000px; margin: 0 auto;
@@ -63,7 +65,8 @@
 <body>
   <header>
     <h1>WRIA 14 — West Oakland Bay</h1>
-    <p>360° site tours</p>
+    <p class="tagline">360° site tours</p>
+    <p id="description">West Oakland Bay, at the mouth of Goldsborough Creek in Shelton, is the site of a multi-phase estuary restoration led by SPSSEG to reconnect salt marsh habitat and remove historic shoreline armoring for threatened Puget Sound Chinook and steelhead, along with coho and chum. Prior phases installed engineered logjams, removed creosote pilings and bulkhead, and placed dozens of acres into permanent conservation; this final phase restores the North salt marsh lobe. This page tracks 360° site documentation from ongoing construction monitoring and drone surveys across the project area.</p>
   </header>
   <h2 class="section-heading" id="tours-heading" style="display:none;">Tours</h2>
   <div id="tours-grid" class="grid"></div>
@@ -101,11 +104,19 @@
         a.className = 'tour-card';
         a.href = 'index.html?tour=' + encodeURIComponent(t.tour_id);
         var siteCount = t.site_count != null ? t.site_count : 0;
-        var updated = t.updated ? new Date(t.updated).toLocaleDateString() : '';
+        var dateLabel = '';
+        if (t.field_visit_date) {
+          // Parsed as local midnight rather than UTC, so the date shown
+          // matches what was typed, not shifted a day by timezone.
+          var d = new Date(t.field_visit_date + 'T00:00:00');
+          dateLabel = 'visited ' + d.toLocaleDateString();
+        } else if (t.updated) {
+          dateLabel = 'updated ' + new Date(t.updated).toLocaleDateString();
+        }
         a.innerHTML =
           '<h2>' + escapeHtml(t.name || t.tour_id) + '</h2>' +
           '<div class="meta">' + siteCount + ' stop' + (siteCount === 1 ? '' : 's') +
-          (updated ? ' &middot; updated ' + escapeHtml(updated) : '') + '</div>';
+          (dateLabel ? ' &middot; ' + escapeHtml(dateLabel) : '') + '</div>';
         return a;
       });
 

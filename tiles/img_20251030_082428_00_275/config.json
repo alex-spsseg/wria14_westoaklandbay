@@ -9,12 +9,14 @@
   "lng": -123.09069444444444,
   "label_1": "IMG_20251030_082428_00_275 (2025/10/30)",
   "label_2": "",
-  "autorotate": true,
+  "autorotate": false,
   "hotspots_1": [],
   "hotspots_2": [],
   "levels_1": [],
   "levels_2": [],
   "pin_style": "dot",
   "basemap_type": "esri_tile",
-  "basemap_url": "https://tiles.arcgis.com/tiles/buuvDFFARQiOEbVZ/arcgis/rest/services/WOB_Ortho_20250530/MapServer/tile/{z}/{y}/{x}"
+  "basemap_url": "https://tiles.arcgis.com/tiles/buuvDFFARQiOEbVZ/arcgis/rest/services/WOB_Ortho_20250530/MapServer/tile/{z}/{y}/{x}",
+  "mobile_1": true,
+  "mobile_2": false
 }

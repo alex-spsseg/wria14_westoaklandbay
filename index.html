@@ -14,7 +14,25 @@
     #container { display: flex; width: 100vw; height: 100vh; position: relative; }
 
     .pano-panel { flex: 1; height: 100%; position: relative; border-right: 2px solid #1b3f95; }
-    .pano-panel:last-child { border-right: none; }
+
+    /* Raw drone panos can be tens of MB, which takes a real while on a
+    mobile connection -- without this, the pano panel just looks blank
+    or broken while it downloads, instead of visibly loading. Shown by
+    default, hidden once the current pano's image has actually loaded
+    (see preloadPanoThenRun). */
+    .pano-loading {
+      position: absolute; inset: 0; z-index: 400;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 12px; background: #0e1b33; color: #9fb2cc; font: 13px sans-serif;
+      pointer-events: none;
+    }
+    .pano-loading.hidden { display: none; }
+    .pano-loading .spinner {
+      width: 34px; height: 34px; border-radius: 50%;
+      border: 3px solid #1b3f95; border-top-color: #019fc4;
+      animation: pano-spin 0.8s linear infinite;
+    }
+    @keyframes pano-spin { to { transform: rotate(360deg); } }    .pano-panel:last-child { border-right: none; }
 
     #pano-right-wrapper { flex: 1; height: 100%; position: relative; }
     #pano-right-wrapper.hidden { display: none; }
@@ -363,15 +381,20 @@
 </head>
 <body>
 
-  <div id="build-timestamp">Built 2026-09-03 09:35:29</div>
+  <div id="build-timestamp">Built 2026-09-03 09:50:30</div>
 
   <div id="status-banner"></div>
 
   <div id="container">
-    <div id="pano-left" class="pano-panel"><div class="pano-label" id="label-left">360° View</div></div>
+    <div id="pano-left" class="pano-panel">
+      <div class="pano-label" id="label-left">360° View</div>
+      <div class="pano-loading" id="pano-loading-left"><div class="spinner"></div><div>Loading imagery&hellip;</div></div>
+    </div>
 
     <div id="pano-right-wrapper">
-      <div id="pano-right" class="pano-panel"></div>
+      <div id="pano-right" class="pano-panel">
+        <div class="pano-loading hidden" id="pano-loading-right"><div class="spinner"></div><div>Loading imagery&hellip;</div></div>
+      </div>
     </div>
     <div class="pano-label" id="label-right">Comparison View</div>
 
@@ -470,7 +493,7 @@
     var limiter = Marzipano.RectilinearView.limit.traditional(4000, 100 * Math.PI / 180);
 
     var isTimeseriesModeGlobal = false;
-    var tsScenes = [], tsViews = [], tsPhotos = [], tsActiveIdx = 0;
+    var tsScenes = [], tsViews = [], tsPhotos = [], tsActiveIdx = 0, tsRawUrls = [];
 
     var autorotate = Marzipano.autorotate({ yawSpeed: 0.03, targetPitch: 0, targetFov: Math.PI / 4 });
     var isRotating = false;
@@ -545,7 +568,15 @@
       if (!tsScenes.length || idx === tsActiveIdx) return;
       tsViews[idx].setParameters(tsViews[tsActiveIdx].parameters());
       tsActiveIdx = idx;
-      tsScenes[idx].switchTo();
+      // Only actually hits the network the first time this index is
+      // shown -- once loaded, the browser (and Marzipano's own scene)
+      // already have it, so this preload resolves instantly on repeat
+      // visits to the same photo.
+      if (tsRawUrls[idx]) {
+        preloadPanoThenRun(tsRawUrls[idx], 'left', function () { tsScenes[idx].switchTo(); });
+      } else {
+        tsScenes[idx].switchTo();
+      }
       if (isRotating) viewerL.startMovement(autorotate);
       document.getElementById('label-left').innerText = (tsPhotos[idx] && tsPhotos[idx].label) || ('Photo ' + (idx + 1));
       var strip = document.getElementById('timeseries-strip');
@@ -614,10 +645,13 @@
               geometry = new Marzipano.CubeGeometry((p.levels && p.levels.length) ? p.levels : defaultLevelsTs);
               source = Marzipano.ImageUrlSource.fromString('tiles/' + siteId + '/img' + (idx + 1) + '/scene/{z}/{f}/{y}/{x}.jpg');
               thumbUrl = 'tiles/' + siteId + '/img' + (idx + 1) + '/scene/1/f/0/0.jpg';
+              tsRawUrls.push(null);
             } else {
               geometry = new Marzipano.EquirectGeometry([{ width: 4000 }]);
-              source = Marzipano.ImageUrlSource.fromString('tiles/' + siteId + '/img' + (idx + 1) + '.jpg');
-              thumbUrl = 'tiles/' + siteId + '/img' + (idx + 1) + '.jpg';
+              var tsImgUrl = 'tiles/' + siteId + '/img' + (idx + 1) + '.jpg';
+              source = Marzipano.ImageUrlSource.fromString(tsImgUrl);
+              thumbUrl = tsImgUrl;
+              tsRawUrls.push(tsImgUrl);
             }
             var scene = viewerL.createScene({ source: source, geometry: geometry, view: view });
             renderHotspots(scene, p.hotspots, String(idx), document.getElementById('pano-left'), view, viewerL);
@@ -637,7 +671,12 @@
           });
 
           if (tsScenes.length) {
-            tsScenes[0].switchTo();
+            if (tsRawUrls[0]) {
+              preloadPanoThenRun(tsRawUrls[0], 'left', function () { tsScenes[0].switchTo(); });
+            } else {
+              document.getElementById('pano-loading-left').classList.add('hidden');
+              tsScenes[0].switchTo();
+            }
             document.getElementById('label-left').innerText = (tsPhotos[0] && tsPhotos[0].label) || 'Photo 1';
           }
 
@@ -695,12 +734,19 @@
                 (config.levels_2 && config.levels_2.length) ? config.levels_2 : defaultLevels);
             sourceR = Marzipano.ImageUrlSource.fromString('tiles/' + siteId + '/img2/scene/{z}/{f}/{y}/{x}.jpg');
           }
+          // Tiled scenes load many small tiles progressively -- there's
+          // no single big payload to wait on, so no blocking spinner.
+          document.getElementById('pano-loading-left').classList.add('hidden');
         } else {
           geometryL = new Marzipano.EquirectGeometry([{ width: 4000 }]);
           geometryR = geometryL;
-          sourceL = Marzipano.ImageUrlSource.fromString('tiles/' + siteId + '/img1.jpg');
+          var img1Url = 'tiles/' + siteId + '/img1.jpg';
+          sourceL = Marzipano.ImageUrlSource.fromString(img1Url);
+          preloadPanoThenRun(img1Url, 'left', function () {});
           if (!isSingleMode) {
-            sourceR = Marzipano.ImageUrlSource.fromString('tiles/' + siteId + '/img2.jpg');
+            var img2Url = 'tiles/' + siteId + '/img2.jpg';
+            sourceR = Marzipano.ImageUrlSource.fromString(img2Url);
+            preloadPanoThenRun(img2Url, 'right', function () {});
           }
         }
 
@@ -853,6 +899,27 @@
       var d = document.createElement('div');
       d.textContent = s == null ? '' : s;
       return d.innerHTML;
+    }
+
+    // Raw drone panos can be tens of MB; on a slow connection this is
+    // the difference between "loading" and "looks broken." Preloading
+    // via a plain Image() (rather than relying on some Marzipano
+    // internal load event, whose exact shape isn't guaranteed across
+    // versions) means the spinner's visible state is something this
+    // code fully controls, and by the time createScene() actually
+    // runs the browser already has the image cached, so Marzipano's
+    // own render is effectively instant right after.
+    function preloadPanoThenRun(url, side, onDone) {
+      var overlay = document.getElementById(side === 'right' ? 'pano-loading-right' : 'pano-loading-left');
+      if (overlay) overlay.classList.remove('hidden');
+      var img = new Image();
+      var finish = function () {
+        if (overlay) overlay.classList.add('hidden');
+        onDone();
+      };
+      img.onload = finish;
+      img.onerror = finish; // don't leave the spinner stuck forever on a real failure either
+      img.src = url;
     }
 
     function openImageLightbox(images, startIndex) {
@@ -1623,9 +1690,12 @@
             geometry = new Marzipano.CubeGeometry(
                 (config.levels_1 && config.levels_1.length) ? config.levels_1 : [{ tileSize: 256, size: 256, fallbackOnly: true }, { tileSize: 512, size: 512 }, { tileSize: 512, size: 1024 }, { tileSize: 512, size: 2048 }]);
             source = Marzipano.ImageUrlSource.fromString('tiles/' + sid + '/img1/scene/{z}/{f}/{y}/{x}.jpg');
+            document.getElementById('pano-loading-left').classList.add('hidden');
           } else {
             geometry = new Marzipano.EquirectGeometry([{ width: 4000 }]);
-            source = Marzipano.ImageUrlSource.fromString('tiles/' + sid + '/img1.jpg');
+            var stopImgUrl = 'tiles/' + sid + '/img1.jpg';
+            source = Marzipano.ImageUrlSource.fromString(stopImgUrl);
+            preloadPanoThenRun(stopImgUrl, 'left', function () {});
           }
 
           var scene = viewerL.createScene({ source: source, geometry: geometry, view: viewL });

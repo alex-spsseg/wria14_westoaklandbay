@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Redirecting…</title>
+  <script>
+    // GitHub Pages serves this file for any URL that isn't a real file
+    // or folder in the repo -- used here to give tours a clean path
+    // like /wria14_westoaklandbay/20260828/ without needing an actual folder
+    // + index.html + vendor copy per tour. The path segment right
+    // after the repo name is read off and forwarded to index.html as
+    // ?tour=, so it always resolves to the one real, shared viewer.
+    // This means a tour's ID *is* its URL slug -- name tours whatever
+    // you want them reachable as (e.g. "20260828").
+    var REPO_NAME = "wria14_westoaklandbay";
+    var parts = location.pathname.split('/').filter(Boolean);
+    var repoIdx = parts.indexOf(REPO_NAME);
+    var slug = repoIdx >= 0 ? parts[repoIdx + 1] : parts[0];
+    var base = repoIdx >= 0 ? '/' + parts.slice(0, repoIdx + 1).join('/') : '/' + REPO_NAME;
+    if (slug) {
+      location.replace(base + '/index.html?tour=' + encodeURIComponent(slug) + location.search);
+    } else {
+      location.replace(base + '/tours.html');
+    }
+  </script>
+</head>
+<body>
+  <p style="font-family: sans-serif; color: #9fb2cc; background: #0e1b33; padding: 24px;">Redirecting…</p>
+</body>
+</html>

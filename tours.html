@@ -27,7 +27,7 @@
     h1 { font-size: 24px; font-weight: 700; color: #ffffff; }
     header p { margin-top: 6px; color: #9fb2cc; font-size: 14px; }
 
-    #grid {
+    .grid {
       max-width: 1000px; margin: 0 auto;
       display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
       gap: 16px;
@@ -40,6 +40,12 @@
     .tour-card:hover { border-color: #019fc4; transform: translateY(-2px); }
     .tour-card h2 { font-size: 16px; font-weight: 600; color: #ffffff; margin-bottom: 6px; }
     .tour-card .meta { font-size: 12px; color: #9fb2cc; }
+
+    h2.section-heading {
+      max-width: 1000px; margin: 36px auto 14px; font-size: 15px; font-weight: 600;
+      color: #9fb2cc; text-transform: uppercase; letter-spacing: 0.06em;
+    }
+    h2.section-heading:first-of-type { margin-top: 0; }
 
     #empty, #error {
       max-width: 1000px; margin: 40px auto 0; color: #9fb2cc; font-size: 14px; text-align: center;
@@ -59,8 +65,11 @@
     <h1>WRIA 14 — West Oakland Bay</h1>
     <p>360° site tours</p>
   </header>
-  <div id="grid"></div>
-  <div id="empty" style="display:none;">No tours published yet.</div>
+  <h2 class="section-heading" id="tours-heading" style="display:none;">Tours</h2>
+  <div id="tours-grid" class="grid"></div>
+  <h2 class="section-heading" id="sites-heading" style="display:none;">Sites</h2>
+  <div id="sites-grid" class="grid"></div>
+  <div id="empty" style="display:none;">Nothing published yet.</div>
   <div id="error" style="display:none;">Could not load the tour list.</div>
 
   <script>
@@ -70,30 +79,53 @@
       return d.innerHTML;
     }
 
-    fetch('tours/_index.json', { cache: 'no-store' })
-      .then(res => { if (!res.ok) throw new Error('missing-index'); return res.json(); })
-      .then(tours => {
-        if (!Array.isArray(tours) || !tours.length) {
-          document.getElementById('empty').style.display = 'block';
-          return;
-        }
-        var grid = document.getElementById('grid');
-        tours.forEach(t => {
-          var a = document.createElement('a');
-          a.className = 'tour-card';
-          a.href = 'index.html?tour=' + encodeURIComponent(t.tour_id);
-          var siteCount = t.site_count != null ? t.site_count : 0;
-          var updated = t.updated ? new Date(t.updated).toLocaleDateString() : '';
-          a.innerHTML =
-            '<h2>' + escapeHtml(t.name || t.tour_id) + '</h2>' +
-            '<div class="meta">' + siteCount + ' stop' + (siteCount === 1 ? '' : 's') +
-            (updated ? ' &middot; updated ' + escapeHtml(updated) : '') + '</div>';
-          grid.appendChild(a);
-        });
-      })
-      .catch(() => {
-        document.getElementById('error').style.display = 'block';
+    function renderCards(gridEl, headingEl, items, buildCard) {
+      if (!items.length) return;
+      headingEl.style.display = 'block';
+      items.forEach(item => gridEl.appendChild(buildCard(item)));
+    }
+
+    Promise.all([
+      fetch('tours/_index.json', { cache: 'no-store' })
+        .then(res => res.ok ? res.json() : [])
+        .catch(() => []),
+      fetch('tiles/_index.json', { cache: 'no-store' })
+        .then(res => res.ok ? res.json() : [])
+        .catch(() => []),
+    ]).then(([tours, sites]) => {
+      tours = Array.isArray(tours) ? tours : [];
+      sites = (Array.isArray(sites) ? sites : []).filter(s => s.listed);
+
+      renderCards(document.getElementById('tours-grid'), document.getElementById('tours-heading'), tours, t => {
+        var a = document.createElement('a');
+        a.className = 'tour-card';
+        a.href = 'index.html?tour=' + encodeURIComponent(t.tour_id);
+        var siteCount = t.site_count != null ? t.site_count : 0;
+        var updated = t.updated ? new Date(t.updated).toLocaleDateString() : '';
+        a.innerHTML =
+          '<h2>' + escapeHtml(t.name || t.tour_id) + '</h2>' +
+          '<div class="meta">' + siteCount + ' stop' + (siteCount === 1 ? '' : 's') +
+          (updated ? ' &middot; updated ' + escapeHtml(updated) : '') + '</div>';
+        return a;
       });
+
+      renderCards(document.getElementById('sites-grid'), document.getElementById('sites-heading'), sites, s => {
+        var a = document.createElement('a');
+        a.className = 'tour-card';
+        a.href = 'index.html?site=' + encodeURIComponent(s.site_id);
+        var updated = s.updated ? new Date(s.updated).toLocaleDateString() : '';
+        a.innerHTML =
+          '<h2>' + escapeHtml(s.name || s.site_id) + '</h2>' +
+          '<div class="meta">' + (updated ? 'updated ' + escapeHtml(updated) : '') + '</div>';
+        return a;
+      });
+
+      if (!tours.length && !sites.length) {
+        document.getElementById('empty').style.display = 'block';
+      }
+    }).catch(() => {
+      document.getElementById('error').style.display = 'block';
+    });
   </script>
 </body>
 </html>

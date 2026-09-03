@@ -12,12 +12,22 @@
     // ?tour=, so it always resolves to the one real, shared viewer.
     // This means a tour's ID *is* its URL slug -- name tours whatever
     // you want them reachable as (e.g. "20260828").
+    //
+    // RESERVED_TOP_LEVEL matters because this file also fires for any
+    // genuinely broken/missing link, not just clean tour URLs -- e.g.
+    // a mistyped or unpublished path under tours/, tiles/, or vendor/.
+    // Without this check, a bad link like /wria14_westoaklandbay/tours/
+    // (missing the .html, or a typo) gets its first segment ("tours")
+    // read as a tour slug and redirected to a nonexistent tour named
+    // "tours", producing a confusing "Tour Not Found" instead of just
+    // landing on the actual tours list.
     var REPO_NAME = "wria14_westoaklandbay";
+    var RESERVED_TOP_LEVEL = ["tours", "tiles", "vendor"];
     var parts = location.pathname.split('/').filter(Boolean);
     var repoIdx = parts.indexOf(REPO_NAME);
     var slug = repoIdx >= 0 ? parts[repoIdx + 1] : parts[0];
     var base = repoIdx >= 0 ? '/' + parts.slice(0, repoIdx + 1).join('/') : '/' + REPO_NAME;
-    if (slug) {
+    if (slug && RESERVED_TOP_LEVEL.indexOf(slug) === -1) {
       location.replace(base + '/index.html?tour=' + encodeURIComponent(slug) + location.search);
     } else {
       location.replace(base + '/tours.html');

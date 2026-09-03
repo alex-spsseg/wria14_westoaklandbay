@@ -5,6 +5,8 @@
   "pitch_1": 0.4222125243661843,
   "yaw_2": 0.0,
   "pitch_2": 0.0,
+  "lat": -0.0,
+  "lng": -0.0,
   "label_1": "IMG_20260828_121536_00_969 (2026/08/28)",
   "label_2": "",
   "autorotate": false,
@@ -73,5 +75,9 @@
   "hotspots_2": [],
   "levels_1": [],
   "levels_2": [],
-  "pin_style": "dot"
+  "pin_style": "dot",
+  "basemap_type": "esri_tile",
+  "basemap_url": "https://tiles.arcgis.com/tiles/buuvDFFARQiOEbVZ/arcgis/rest/services/WOB_Ortho_20250530/MapServer/tile/{z}/{y}/{x}",
+  "mobile_1": 5000,
+  "mobile_2": 0
 }

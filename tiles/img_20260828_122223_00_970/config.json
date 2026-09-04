@@ -80,6 +80,16 @@
       "category": "link",
       "pin_style": "label_hover",
       "target": "dji_20260828134146_0001_d"
+    },
+    {
+      "yaw": 0,
+      "pitch": 0,
+      "title": "West Lobe - East View (Aerial)",
+      "text": "",
+      "link": "",
+      "category": "link",
+      "pin_style": "label_hover",
+      "target": "dji_20260828133337_0001_d"
     }
   ],
   "hotspots_2": [],

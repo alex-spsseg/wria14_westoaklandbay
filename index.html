@@ -161,6 +161,29 @@
       color: #d9b3ff; margin-bottom: 2px; padding-bottom: 6px;
       border-bottom: 1px solid rgba(179, 102, 255, 0.35);
     }
+    #hotspot-list-content {
+      max-height: 220px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px;
+      margin-top: 2px; padding-top: 6px; border-top: 1px solid rgba(179, 102, 255, 0.35);
+    }
+    .hotspot-list-empty { color: #b9a3d9; font-size: 11px; font-style: italic; }
+    .hotspot-list-row {
+      display: flex; align-items: center; gap: 6px; font-size: 12px;
+      background: rgba(255,255,255,0.05); border-radius: 4px; padding: 4px 6px;
+    }
+    .hotspot-list-row .hlr-title { flex: 1; color: #fff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .hotspot-list-row .hlr-cat {
+      font-size: 9px; text-transform: uppercase; letter-spacing: 0.03em;
+      padding: 1px 5px; border-radius: 3px; color: #fff; flex-shrink: 0;
+    }
+    .hotspot-list-row .hlr-cat.note { background: #019fc4; }
+    .hotspot-list-row .hlr-cat.issue { background: #e05555; }
+    .hotspot-list-row .hlr-cat.measurement { background: #4caf6d; }
+    .hotspot-list-row .hlr-cat.photo { background: #e0a030; }
+    .hotspot-list-row button {
+      flex-shrink: 0; font-size: 10px; padding: 2px 6px; border: none; border-radius: 3px;
+      background: #b366ff; color: #fff; cursor: pointer;
+    }
+    .hotspot-list-row button:hover { background: #c78cff; }
     .edit-tool-btn {
       background: #3a1f66; color: #ffffff; border: 1px solid #b366ff;
       padding: 8px 10px; font-size: 12px; font-weight: bold;
@@ -403,7 +426,7 @@
 </head>
 <body>
 
-  <div id="build-timestamp">Built 2026-09-03 16:02:22</div>
+  <div id="build-timestamp">Built 2026-09-03 17:06:22</div>
 
   <div id="status-banner"></div>
 
@@ -452,6 +475,8 @@
       <button id="place-hotspot-btn" class="edit-tool-btn" type="button" style="display:none;">Place New Point</button>
       <button id="edit-hotspots-btn" class="edit-tool-btn" type="button" style="display:none;">Move/Delete Points</button>
       <button id="save-hotspots-btn" class="edit-tool-btn" type="button" style="display:none;">Save Hotspots</button>
+      <button id="hotspot-list-btn" class="edit-tool-btn" type="button" style="display:none;">Show Hotspot List</button>
+      <div id="hotspot-list-content" style="display:none;"></div>
     </div>
   </div>
 
@@ -606,6 +631,7 @@
       document.getElementById('label-left').innerText = (tsPhotos[idx] && tsPhotos[idx].label) || ('Photo ' + (idx + 1));
       var strip = document.getElementById('timeseries-strip');
       Array.from(strip.children).forEach((child, i) => child.classList.toggle('active', i === idx));
+      refreshHotspotList();
     }
 
     document.getElementById('autorotate-btn').addEventListener('click', () => toggleAutorotate());
@@ -1090,6 +1116,7 @@
 
     function wireHotspotInteractions(pin, spot, ctx) {
       // ctx = { hotspotObj, scene, slotId, panelEl, view, viewerRef }
+      hotspotUiMap.set(spot, { ctx: ctx, pin: pin });
       var dragging = false;
       var moved = false;
       var dragStartX = 0, dragStartY = 0;
@@ -1415,6 +1442,74 @@
     var editingHotspots = false;
     var placingHotspot = false;
     var pendingSlotHotspots = {};
+    var lastUsedCategory = 'note'; // sticky across pins placed this session
+    // spot object -> { ctx, pin } for existing hotspots, so the list
+    // panel's Edit button can reuse the exact same edit-form code path
+    // a direct click on the pin itself already uses, rather than a
+    // second, divergent way to edit a hotspot.
+    var hotspotUiMap = new Map();
+
+    function getCurrentPrimarySlotId() {
+      // Tour stops key pendingSlotHotspots by site id (see loadStop),
+      // not '1' -- editing one stop's pins would otherwise bleed into
+      // whichever other stop happened to share that key.
+      if (tourParam && activeTourSiteId) return activeTourSiteId;
+      return tsScenes.length ? String(tsActiveIdx) : '1';
+    }
+
+    function refreshHotspotList() {
+      var content = document.getElementById('hotspot-list-content');
+      if (content.style.display === 'none') return; // don't do the work while collapsed
+      var slotId = getCurrentPrimarySlotId();
+      // Link hotspots are deliberately left out -- with a 10-stop tour
+      // fully cross-linked, this list would be almost entirely "jump to
+      // the next/previous stop" entries burying the handful of actual
+      // notes/issues/measurements someone's looking for.
+      var spots = (pendingSlotHotspots[slotId] || []).filter(s => s.category !== 'link');
+      if (!spots.length) {
+        content.innerHTML = '<div class="hotspot-list-empty">No notes, issues, measurements, or photo pins on this view.</div>';
+        return;
+      }
+      content.innerHTML = '';
+      spots.forEach(spot => {
+        var row = document.createElement('div');
+        row.className = 'hotspot-list-row';
+        var catSpan = document.createElement('span');
+        catSpan.className = 'hlr-cat ' + (spot.category || 'note');
+        catSpan.textContent = spot.category || 'note';
+        var titleSpan = document.createElement('span');
+        titleSpan.className = 'hlr-title';
+        titleSpan.textContent = spot.title || '(untitled)';
+        var jumpBtn = document.createElement('button');
+        jumpBtn.type = 'button';
+        jumpBtn.textContent = 'Jump';
+        jumpBtn.addEventListener('click', () => {
+          var ref = hotspotUiMap.get(spot);
+          if (ref) animateViewTo(ref.ctx.view, { yaw: spot.yaw, pitch: spot.pitch, fov: Math.PI / 4 });
+        });
+        var editBtn = document.createElement('button');
+        editBtn.type = 'button';
+        editBtn.textContent = 'Edit';
+        editBtn.addEventListener('click', (e) => {
+          var ref = hotspotUiMap.get(spot);
+          if (ref) showEditHotspotForm(e.clientX, e.clientY, spot, ref.ctx, ref.pin);
+        });
+        row.appendChild(catSpan);
+        row.appendChild(titleSpan);
+        row.appendChild(jumpBtn);
+        row.appendChild(editBtn);
+        content.appendChild(row);
+      });
+    }
+
+    var hotspotListBtn = document.getElementById('hotspot-list-btn');
+    hotspotListBtn.addEventListener('click', () => {
+      var content = document.getElementById('hotspot-list-content');
+      var showing = content.style.display !== 'none';
+      content.style.display = showing ? 'none' : 'flex';
+      hotspotListBtn.textContent = showing ? 'Show Hotspot List' : 'Hide Hotspot List';
+      if (!showing) refreshHotspotList();
+    });
     var siteDefaultPinStyle = 'dot'; // legacy site-wide fallback, read from
                                       // config.pin_style, only used for pins
                                       // saved before per-pin style existed
@@ -1426,6 +1521,7 @@
       editHotspotsBtn.style.display = 'inline-block';
       placeHotspotBtn.style.display = 'inline-block';
       saveHotspotsBtn.style.display = 'inline-block';
+      hotspotListBtn.style.display = 'inline-block';
     }
 
     editHotspotsBtn.addEventListener('click', () => {
@@ -1532,6 +1628,53 @@
       return '<input type="text" class="hf-target" placeholder="e.g. west_lobe_south_view">';
     }
 
+    function addReturnLinkHotspot(targetSiteId, pinStyle) {
+      // Adds a link hotspot pointing back to the current stop, at the
+      // *target* stop's own config.json -- a separate, direct save to
+      // that other site, not something that goes through the current
+      // site's own pendingSlotHotspots/Save Hotspots flow. Placed at
+      // yaw/pitch (0, 0): there's no way to know a sensible spot in a
+      // photo this code has never actually looked at, so it lands
+      // center-of-frame and is meant to be dragged into a better
+      // position later via Move/Delete Points on that stop, not
+      // treated as perfectly placed already.
+      // One known gap: if the target stop's config was already loaded
+      // this session (configCache, inside renderTourPage's closure),
+      // that in-memory copy won't reflect this addition until the page
+      // reloads -- narrow edge case (only matters if you'd already
+      // visited the target before adding the return link), not worth
+      // the scope-crossing to fix.
+      var sourceSiteId = activeTourSiteId;
+      var sourceEntry = tourSiteOptions && tourSiteOptions.find(s => s.site_id === sourceSiteId);
+      var sourceLabel = sourceEntry ? (sourceEntry.display_name || sourceSiteId) : sourceSiteId;
+      fetch('tiles/' + targetSiteId + '/config.json', { cache: 'no-store' })
+        .then(res => { if (!res.ok) throw new Error('missing-config'); return res.json(); })
+        .then(cfg => {
+          var isTs = cfg.mode === 'timeseries';
+          var slotId = isTs ? '0' : '1';
+          var existing = isTs
+            ? ((cfg.photos && cfg.photos[0] && cfg.photos[0].hotspots) || []).slice()
+            : (cfg.hotspots_1 || []).slice();
+          existing.push({
+            yaw: 0, pitch: 0, title: sourceLabel, text: '', link: '',
+            category: 'link', pin_style: pinStyle, target: sourceSiteId,
+          });
+          var slots = {};
+          slots[slotId] = existing;
+          return fetch('/__save_hotspots', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ site_id: targetSiteId, slots: slots }),
+          });
+        })
+        .then(res => {
+          if (!res || !res.ok) throw new Error('save-failed');
+        })
+        .catch(() => {
+          alert('Could not automatically add the return link at "' + targetSiteId +
+                '". You can still add it by hand on that stop.');
+        });
+    }
+
     function showHotspotForm(x, y, onSave) {
       closeOpenHotspotForms();
       var form = document.createElement('div');
@@ -1553,6 +1696,8 @@
         '</select>' +
         '<div class="hf-target-row" style="display:none;">' +
         '<label>Target Site ID</label>' + targetFieldMarkup() +
+        '<label class="hf-return-link-label" style="display:none;">' +
+        '<input type="checkbox" class="hf-return-link" checked> Also add a return link back here</label>' +
         '</div>' +
         '<label>Pin Style</label>' +
         '<select class="hf-pinstyle">' +
@@ -1568,16 +1713,47 @@
 
       var catSelect = form.querySelector('.hf-cat');
       var targetRow = form.querySelector('.hf-target-row');
+      var returnLinkLabel = form.querySelector('.hf-return-link-label');
+      var targetFieldEl = form.querySelector('.hf-target');
+      // Only offer a return link when the target is the tour's dropdown
+      // (a known stop with a real display name to build a title from),
+      // not the plain text field used outside a tour.
+      var canReturnLink = targetFieldEl.tagName === 'SELECT';
       function syncTargetVisibility() {
-        targetRow.style.display = catSelect.value === 'link' ? 'block' : 'none';
+        var isLink = catSelect.value === 'link';
+        targetRow.style.display = isLink ? 'block' : 'none';
+        returnLinkLabel.style.display = (isLink && canReturnLink) ? 'block' : 'none';
       }
       catSelect.addEventListener('change', syncTargetVisibility);
+      // Sticky category: starts on whatever was last used this session
+      // instead of always resetting to Note, since placing several
+      // pins of the same kind in a row (a run of Issue tags, a run of
+      // link hotspots while building out a tour) is the common case,
+      // not the exception.
+      catSelect.value = lastUsedCategory;
+      syncTargetVisibility();
+
+      // Auto-fill Title from the chosen stop's display name for link
+      // hotspots -- only when the target field is the tour's dropdown
+      // (not the plain text field used outside a tour, where there's
+      // no known display name to pull from), and only when Title is
+      // still empty, so it never overwrites something already typed.
+      var titleField = form.querySelector('.hf-title');
+      var targetField = form.querySelector('.hf-target');
+      if (targetField.tagName === 'SELECT') {
+        targetField.addEventListener('change', () => {
+          if (!titleField.value.trim() && targetField.selectedIndex > 0) {
+            titleField.value = targetField.options[targetField.selectedIndex].text;
+          }
+        });
+      }
 
       function close() { form.remove(); }
       form.querySelector('.hf-cancel').addEventListener('click', close);
       form.querySelector('.hf-save').addEventListener('click', () => {
         var saveBtn = form.querySelector('.hf-save');
         var category = catSelect.value;
+        lastUsedCategory = category;
         var spot = {
           title: form.querySelector('.hf-title').value.trim(),
           text: form.querySelector('.hf-text').value.trim(),
@@ -1585,9 +1761,12 @@
           category: category,
           pin_style: form.querySelector('.hf-pinstyle').value,
         };
+        var wantsReturnLink = false;
         if (category === 'link') {
           spot.target = form.querySelector('.hf-target').value.trim()
               .toLowerCase().replace(/[\s-]+/g, '_');
+          wantsReturnLink = canReturnLink && spot.target &&
+              form.querySelector('.hf-return-link').checked;
         }
         var imageFiles = form.querySelector('.hf-image').files;
         if (imageFiles.length) {
@@ -1597,6 +1776,7 @@
             spot.images = paths;
             close();
             onSave(spot);
+            if (wantsReturnLink) addReturnLinkHotspot(spot.target, spot.pin_style);
           }).catch(() => {
             saveBtn.disabled = false;
             saveBtn.textContent = 'Save Pin';
@@ -1605,6 +1785,7 @@
         } else {
           close();
           onSave(spot);
+          if (wantsReturnLink) addReturnLinkHotspot(spot.target, spot.pin_style);
         }
       });
       form.querySelector('.hf-title').focus();
@@ -1701,6 +1882,7 @@
           pin.el.className = 'hotspot-pin hotspot-cat-' + spot.category + pinStyleClass(spot);
           updateHotspotTooltipBody(pin.body, spot);
           close();
+          refreshHotspotList();
         }
 
         var imageFiles = form.querySelector('.hf-image').files;
@@ -1730,7 +1912,9 @@
           var idx = arr.indexOf(spot);
           if (idx !== -1) arr.splice(idx, 1);
         }
+        hotspotUiMap.delete(spot);
         close();
+        refreshHotspotList();
       });
       form.querySelector('.hf-title').focus();
     }
@@ -1747,6 +1931,7 @@
         wireHotspotInteractions(pin, spot, {
           hotspotObj: hotspotObj, scene: scene, slotId: slotId, panelEl: panelEl, view: view, viewerRef: viewerRef,
         });
+        refreshHotspotList();
       });
     }
 
@@ -1776,9 +1961,11 @@
         editHotspotsBtn = document.getElementById('edit-hotspots-btn');
         placeHotspotBtn = document.getElementById('place-hotspot-btn');
         saveHotspotsBtn = document.getElementById('save-hotspots-btn');
+        hotspotListBtn = document.getElementById('hotspot-list-btn');
         editHotspotsBtn.style.display = 'inline-block';
         placeHotspotBtn.style.display = 'inline-block';
         saveHotspotsBtn.style.display = 'inline-block';
+        hotspotListBtn.style.display = 'inline-block';
 
         // Placing a new hotspot needs its own click listener on the pano
         // panel, same as the non-tour single/compare/curtain/toggle flow
@@ -1883,6 +2070,7 @@
           // stop happened to share that key.
           renderHotspots(scene, config.hotspots_1, sid, document.getElementById('pano-left'), viewL, viewerL);
           scene.switchTo();
+          refreshHotspotList();
           setTimeout(() => { viewerL.updateSize(); }, 100);
 
           var resolvedLabel = config.label_1 || fallbackLabel;

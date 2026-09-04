@@ -52,16 +52,6 @@
       "target": "img_20260828_120243_00_968"
     },
     {
-      "yaw": -1.874221536671154,
-      "pitch": 0.37404345771886227,
-      "title": "BESEs",
-      "text": "",
-      "link": "",
-      "category": "link",
-      "pin_style": "label_hover",
-      "target": "img_20260828_122223_00_970"
-    },
-    {
       "yaw": -1.1564224502510925,
       "pitch": 0.37278229653866646,
       "title": "West Lobe - North",
@@ -100,6 +90,16 @@
       "category": "link",
       "pin_style": "label_hover",
       "target": "dji_20260828133753_0001_d"
+    },
+    {
+      "yaw": -1.8960025039411121,
+      "pitch": 0.3789925046482647,
+      "title": "Veg Growth on BESEs (Ground)",
+      "text": "",
+      "link": "",
+      "category": "link",
+      "pin_style": "label_hover",
+      "target": "img_20260828_122223_00_970"
     }
   ],
   "hotspots_2": [],

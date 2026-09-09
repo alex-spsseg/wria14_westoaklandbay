@@ -140,15 +140,22 @@
       background-repeat: no-repeat;
     }
 
-    #site-map-fit-btn, #site-map-basemap-btn {
+    #site-map-fit-btn, #site-map-basemap-btn, #site-map-zoomto-btn {
       position: absolute; z-index: 1600; top: 8px;
       width: 30px; height: 30px; border-radius: 4px; border: 2px solid rgba(0,0,0,0.2);
       background: #fff; color: #333; font-size: 15px; line-height: 1;
       cursor: pointer; display: flex; align-items: center; justify-content: center;
     }
     #site-map-fit-btn { right: 8px; }
-    #site-map-basemap-btn { right: 44px; font-size: 16px; display: none; }
-    #site-map-fit-btn:hover, #site-map-basemap-btn:hover { background: #f4f4f4; }
+    #site-map-zoomto-btn { right: 44px; }
+    #site-map-basemap-btn { right: 80px; font-size: 16px; display: none; }
+    #site-map-fit-btn:hover, #site-map-basemap-btn:hover, #site-map-zoomto-btn:hover { background: #f4f4f4; }
+    /* Armed state (waiting for the map click that picks the zoom
+    point) gets a highlighted border so it reads as "active tool"
+    rather than a plain hover, and the cursor change over the map
+    itself is the other half of that feedback. */
+    #site-map-zoomto-btn.armed { background: #019fc4; color: #fff; border-color: #019fc4; }
+    #site-map.zoomto-armed { cursor: crosshair; }
 
     #control-bar {
       position: absolute; top: 12px; right: 12px; z-index: 1000;
@@ -485,7 +492,7 @@
 </head>
 <body>
 
-  <div id="build-timestamp">Built 2026-09-08 17:17:56</div>
+  <div id="build-timestamp">Built 2026-09-08 17:22:52</div>
 
   <div id="status-banner"></div>
 
@@ -527,6 +534,7 @@
       <div id="site-map"></div>
       <div id="site-map-resize-handle" title="Drag to resize"></div>
       <button id="site-map-fit-btn" type="button" title="Zoom to fit all points">&#10021;</button>
+      <button id="site-map-zoomto-btn" type="button" title="Zoom to point (click, then click the map)">&#8982;</button>
       <button id="site-map-basemap-btn" type="button" title="Toggle basemap">&#128506;</button>
     </div>
 
@@ -1618,6 +1626,7 @@
       if (window.ResizeObserver) {
         new ResizeObserver(() => siteMap.invalidateSize()).observe(siteMapPanel);
       }
+      wireZoomToPoint();
     }
 
     var lastMapFit = null;
@@ -1625,6 +1634,47 @@
       e.stopPropagation();
       if (lastMapFit) lastMapFit();
     });
+
+    // -- zoom to point (click the tool, then click the map) ----------------
+    // Armed/disarmed rather than a continuous mode: one click on the
+    // map picks the point and zooms, then the tool turns itself off.
+    // That matches how the fit/basemap buttons behave (one action per
+    // click) and avoids leaving a mode active that would otherwise
+    // swallow every future map click, including marker clicks used to
+    // jump between tour stops.
+    var zoomToBtn = document.getElementById('site-map-zoomto-btn');
+    var zoomToArmed = false;
+
+    function setZoomToArmed(on) {
+      zoomToArmed = on;
+      zoomToBtn.classList.toggle('armed', on);
+      var mapEl = document.getElementById('site-map');
+      mapEl.classList.toggle('zoomto-armed', on);
+    }
+
+    zoomToBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (!siteMap) return;
+      setZoomToArmed(!zoomToArmed);
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && zoomToArmed) setZoomToArmed(false);
+    });
+
+    function wireZoomToPoint() {
+      if (!siteMap) return;
+      siteMap.on('click', (e) => {
+        if (!zoomToArmed) return;
+        // One step in past the max zoom the current basemap actually
+        // has tiles for would just show a blank/blurry tile, so clamp
+        // to whatever this map's own configured max is rather than a
+        // hardcoded number.
+        var targetZoom = Math.min(siteMap.getZoom() + 3, siteMap.getMaxZoom());
+        siteMap.setView(e.latlng, targetZoom, { animate: true });
+        setZoomToArmed(false);
+      });
+    }
 
     // Dragging the top-left handle: the panel is anchored from
     // bottom/right (see CSS), so growing its width/height naturally

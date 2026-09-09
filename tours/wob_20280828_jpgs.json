@@ -63,5 +63,7 @@
     }
   ],
   "basemap_type": "esri_tile",
-  "basemap_url": "https://tiles.arcgis.com/tiles/buuvDFFARQiOEbVZ/arcgis/rest/services/WOB_Ortho_20250530/MapServer/tile/{z}/{y}/{x}"
+  "basemap_url": "https://tiles.arcgis.com/tiles/buuvDFFARQiOEbVZ/arcgis/rest/services/WOB_Ortho_20250530/MapServer/tile/{z}/{y}/{x}",
+  "forward_label": "Forward",
+  "backward_label": "Back"
 }

@@ -14,6 +14,16 @@
     #container { display: flex; width: 100vw; height: 100vh; position: relative; }
 
     .pano-panel { flex: 1; height: 100%; position: relative; border-right: 2px solid #1b3f95; }
+    .center-crosshair {
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      width: 28px; height: 28px; pointer-events: none; z-index: 3000; display: none;
+    }
+    .center-crosshair::before, .center-crosshair::after {
+      content: ""; position: absolute; background: rgba(255, 255, 255, 0.85);
+      box-shadow: 0 0 2px rgba(0, 0, 0, 0.9);
+    }
+    .center-crosshair::before { top: 50%; left: 0; width: 100%; height: 1.5px; transform: translateY(-50%); }
+    .center-crosshair::after { left: 50%; top: 0; height: 100%; width: 1.5px; transform: translateX(-50%); }
 
     /* Raw drone panos can be tens of MB, which takes a real while on a
     mobile connection -- without this, the pano panel just looks blank
@@ -119,9 +129,15 @@
 
     #site-map-resize-handle {
       position: absolute; z-index: 1600; top: 0; left: 0;
-      width: 16px; height: 16px; cursor: nwse-resize;
-      background: linear-gradient(135deg, #019fc4 0 40%, transparent 40% 100%);
+      width: 20px; height: 20px; cursor: nwse-resize;
+      background-color: rgba(1, 159, 196, 0.25);
       border-top-left-radius: 8px;
+      /* Diagonal grip lines, the same visual convention textareas and
+      windows already use for a draggable corner -- a plain colored
+      triangle here didn't read as "draggable" on its own, easy to
+      mistake for decoration instead of a control. */
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20'%3E%3Cg stroke='%23019fc4' stroke-width='2' stroke-linecap='round'%3E%3Cline x1='4' y1='16' x2='16' y2='4'/%3E%3Cline x1='4' y1='11' x2='11' y2='4'/%3E%3Cline x1='4' y1='6' x2='6' y2='4'/%3E%3C/g%3E%3C/svg%3E");
+      background-repeat: no-repeat;
     }
 
     #site-map-fit-btn, #site-map-basemap-btn {
@@ -152,7 +168,7 @@
 
     #edit-tools-panel {
       position: absolute; top: 60px; right: 12px; z-index: 1000;
-      display: flex; flex-direction: column; gap: 6px; width: 200px;
+      display: flex; flex-direction: column; gap: 6px; width: 280px;
       background: rgba(20, 12, 40, 0.9); border: 1px solid #b366ff;
       border-radius: 8px; padding: 10px; box-shadow: 0 4px 16px rgba(0,0,0,0.6);
     }
@@ -166,11 +182,34 @@
       margin-top: 2px; padding-top: 6px; border-top: 1px solid rgba(179, 102, 255, 0.35);
     }
     .hotspot-list-empty { color: #b9a3d9; font-size: 11px; font-style: italic; }
-    .hotspot-list-row {
-      display: flex; align-items: center; gap: 6px; font-size: 12px;
-      background: rgba(255,255,255,0.05); border-radius: 4px; padding: 4px 6px;
+    #heading-dial-row {
+      margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(179, 102, 255, 0.35);
     }
-    .hotspot-list-row .hlr-title { flex: 1; color: #fff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    #heading-dial-label { color: #d9b3ff; font-size: 12px; margin-bottom: 6px; }
+    #heading-value-display { font-weight: bold; color: #fff; }
+    #heading-dial-nudges { display: flex; gap: 4px; margin-bottom: 6px; }
+    #heading-dial-nudges button {
+      flex: 1; padding: 6px 0; border: none; border-radius: 4px;
+      background: #b366ff; color: #fff; cursor: pointer; font-weight: bold;
+    }
+    #heading-dial-nudges button:hover { background: #c78cff; }
+    #heading-calibrate-list { margin-top: 8px; }
+    .heading-calibrate-label { color: #b9a3d9; font-size: 11px; font-style: italic; margin-bottom: 4px; }
+    .heading-calibrate-btn {
+      display: block; width: 100%; text-align: left; margin-bottom: 4px; padding: 6px 8px;
+      border: none; border-radius: 4px; background: rgba(179, 102, 255, 0.25); color: #fff;
+      cursor: pointer; font-size: 12px;
+    }
+    .heading-calibrate-btn:hover { background: rgba(179, 102, 255, 0.5); }
+    .hotspot-list-row {
+      display: flex; flex-direction: column; gap: 4px; font-size: 12px;
+      background: rgba(255,255,255,0.05); border-radius: 4px; padding: 5px 7px;
+    }
+    .hotspot-list-row .hlr-top { display: flex; align-items: center; gap: 6px; }
+    .hotspot-list-row .hlr-title {
+      flex: 1; color: #fff; overflow: hidden; text-overflow: ellipsis;
+      white-space: nowrap; min-width: 0;
+    }
     .hotspot-list-row .hlr-cat {
       font-size: 9px; text-transform: uppercase; letter-spacing: 0.03em;
       padding: 1px 5px; border-radius: 3px; color: #fff; flex-shrink: 0;
@@ -179,8 +218,10 @@
     .hotspot-list-row .hlr-cat.issue { background: #e05555; }
     .hotspot-list-row .hlr-cat.measurement { background: #4caf6d; }
     .hotspot-list-row .hlr-cat.photo { background: #e0a030; }
+    .hotspot-list-row .hlr-cat.link { background: #b366ff; }
+    .hotspot-list-row .hlr-actions { display: flex; justify-content: flex-end; gap: 4px; }
     .hotspot-list-row button {
-      flex-shrink: 0; font-size: 10px; padding: 2px 6px; border: none; border-radius: 3px;
+      flex-shrink: 0; font-size: 10px; padding: 2px 8px; border: none; border-radius: 3px;
       background: #b366ff; color: #fff; cursor: pointer;
     }
     .hotspot-list-row button:hover { background: #c78cff; }
@@ -357,6 +398,24 @@
       border-radius: 4px; width: 36px; height: 36px; font-size: 18px; cursor: pointer;
       display: none;
     }
+    .tour-nav-btn {
+      position: absolute; top: 12px; z-index: 4001; height: 36px; padding: 0 12px;
+      background: rgba(14, 27, 51, 0.9); color: #ffffff; border: 1px solid #019fc4;
+      border-radius: 4px; font-size: 13px; font-weight: bold; cursor: pointer;
+      display: none; white-space: nowrap;
+    }
+    .tour-nav-btn:hover { background: rgba(1, 159, 196, 0.3); }
+    /* Right next to the tour sidebar toggle, not the top-right control
+    bar -- these are core navigation for a tour, not an occasional
+    setting like Auto-Rotate/Full Screen, so they belong where you're
+    already looking to orient yourself, not tucked in with settings. */
+    #prev-stop-btn { left: 56px; }
+    #next-stop-btn { left: 132px; }
+    @media (max-width: 700px) {
+      .tour-nav-btn { top: 8px; height: 34px; padding: 0 8px; font-size: 12px; }
+      #prev-stop-btn { left: 64px; }
+      #next-stop-btn { left: 126px; }
+    }
     #tour-sidebar {
       position: absolute; top: 60px; left: 12px; z-index: 3999; width: 220px;
       max-height: 70vh; overflow-y: auto; font-family: sans-serif;
@@ -426,7 +485,7 @@
 </head>
 <body>
 
-  <div id="build-timestamp">Built 2026-09-03 17:06:22</div>
+  <div id="build-timestamp">Built 2026-09-08 17:17:56</div>
 
   <div id="status-banner"></div>
 
@@ -434,11 +493,13 @@
     <div id="pano-left" class="pano-panel">
       <div class="pano-label" id="label-left">360° View</div>
       <div class="pano-loading" id="pano-loading-left"><div class="spinner"></div><div>Loading imagery&hellip;</div></div>
+      <div class="center-crosshair" id="center-crosshair-left"></div>
     </div>
 
     <div id="pano-right-wrapper">
       <div id="pano-right" class="pano-panel">
         <div class="pano-loading hidden" id="pano-loading-right"><div class="spinner"></div><div>Loading imagery&hellip;</div></div>
+        <div class="center-crosshair" id="center-crosshair-right"></div>
       </div>
     </div>
     <div class="pano-label" id="label-right">Comparison View</div>
@@ -459,6 +520,9 @@
       </div>
     </div>
 
+    <button id="prev-stop-btn" class="tour-nav-btn" type="button" style="display:none;">&#8592; Prev</button>
+    <button id="next-stop-btn" class="tour-nav-btn" type="button" style="display:none;">Next &#8594;</button>
+
     <div id="site-map-panel" style="display:none;">
       <div id="site-map"></div>
       <div id="site-map-resize-handle" title="Drag to resize"></div>
@@ -468,6 +532,7 @@
 
     <div id="edit-tools-panel" style="display:none;">
       <div id="edit-tools-header">Editing Tools (Preview Locally)</div>
+      <button id="crosshair-toggle-btn" class="edit-tool-btn" type="button" style="display:none;">Show Center Crosshair</button>
       <button id="use-view-btn" class="edit-tool-btn" type="button" style="display:none;">Use This View</button>
       <button id="unlock-aim-btn" class="edit-tool-btn" type="button" style="display:none;">Unlock Independent Aim</button>
       <button id="use-view-left-btn" class="edit-tool-btn" type="button" style="display:none;">Use Left View</button>
@@ -477,6 +542,17 @@
       <button id="save-hotspots-btn" class="edit-tool-btn" type="button" style="display:none;">Save Hotspots</button>
       <button id="hotspot-list-btn" class="edit-tool-btn" type="button" style="display:none;">Show Hotspot List</button>
       <div id="hotspot-list-content" style="display:none;"></div>
+      <div id="heading-dial-row" style="display:none;">
+        <div id="heading-dial-label">Heading: <span id="heading-value-display">0</span>&deg;</div>
+        <div id="heading-dial-nudges">
+          <button id="heading-minus5" type="button">-5</button>
+          <button id="heading-minus1" type="button">-1</button>
+          <button id="heading-plus1" type="button">+1</button>
+          <button id="heading-plus5" type="button">+5</button>
+        </div>
+        <button id="save-heading-btn" class="edit-tool-btn" type="button">Save Heading</button>
+        <div id="heading-calibrate-list"></div>
+      </div>
     </div>
   </div>
 
@@ -490,6 +566,10 @@
     var tourLoadStopFn = null; // set inside renderTourPage; lets a "link" hotspot
                                 // jump to another stop in the current tour, in place,
                                 // the same way the sidebar does.
+    var syncSceneCacheHeading = function () {}; // real implementation assigned inside
+                                                 // renderTourPage, where sceneCache actually
+                                                 // lives -- a no-op until then so calling it
+                                                 // early (outside a tour) is harmless
     var tourSiteOptions = null; // [{site_id, display_name}] once the tour manifest
                                  // loads, so the "link" hotspot form can offer a
                                  // dropdown of real stops instead of free text you
@@ -636,6 +716,23 @@
 
     document.getElementById('autorotate-btn').addEventListener('click', () => toggleAutorotate());
 
+    // Prev/Next: step through the tour's stops in Tour Order, same
+    // sequence Auto-Chain links against -- doesn't wrap at the ends
+    // unless the tour was actually built as a loop (no way to tell
+    // that from here, so both buttons just no-op past either end
+    // rather than guessing).
+    function stepTourStop(delta) {
+      if (!tourSiteOptions || !tourLoadStopFn) return;
+      var idx = tourSiteOptions.findIndex(s =>
+          s.site_id.trim().toLowerCase().replace(/[\s-]+/g, '_') === activeTourSiteId);
+      if (idx === -1) return;
+      var next = idx + delta;
+      if (next < 0 || next >= tourSiteOptions.length) return;
+      tourLoadStopFn(tourSiteOptions[next].site_id);
+    }
+    document.getElementById('prev-stop-btn').addEventListener('click', () => stepTourStop(-1));
+    document.getElementById('next-stop-btn').addEventListener('click', () => stepTourStop(1));
+
     // Mobile only (control-bar-toggle is display:none above 700px) --
     // collapses the row of control buttons behind a single menu icon
     // instead of them wrapping or overflowing a narrow screen. Tapping
@@ -665,6 +762,9 @@
       .then(config => {
         const mode = config.mode || 'single';
         siteDefaultPinStyle = config.pin_style === 'label' ? 'label' : 'dot';
+        currentHeadingOffset = config.heading_offset || 0;
+        headingIsKnown = config.heading_offset != null;
+        updateHeadingDialDisplay();
 
         var pageTitle = config.label_1 ||
             (config.photos && config.photos[0] && config.photos[0].label) || rawSiteId;
@@ -1250,6 +1350,211 @@
       });
     }
 
+    // -- viewscape cone: a wedge on the minimap showing which way the
+    // pano is currently facing, live, same idea as Google Street View's
+    // own minimap cone. Only ever drawn once a site's heading_offset is
+    // genuinely known (see headingIsKnown) -- without that, "which way
+    // is the camera facing" isn't answerable at all, so showing a cone
+    // anyway would just be confidently wrong instead of honestly absent.
+    var viewConeLayer = null;
+    var viewConePolygons = [];
+    var VIEWCONE_HALF_ANGLE = 30, VIEWCONE_RADIUS_M = 35;
+
+    function destinationPoint(lat, lng, bearingDeg, distanceMeters) {
+      var R = 6371000;
+      var brng = bearingDeg * Math.PI / 180;
+      var lat1 = lat * Math.PI / 180, lng1 = lng * Math.PI / 180;
+      var lat2 = Math.asin(Math.sin(lat1) * Math.cos(distanceMeters / R) +
+                            Math.cos(lat1) * Math.sin(distanceMeters / R) * Math.cos(brng));
+      var lng2 = lng1 + Math.atan2(
+          Math.sin(brng) * Math.sin(distanceMeters / R) * Math.cos(lat1),
+          Math.cos(distanceMeters / R) - Math.sin(lat1) * Math.sin(lat2));
+      return [lat2 * 180 / Math.PI, lng2 * 180 / Math.PI];
+    }
+
+    function computeBearingJs(lat1, lng1, lat2, lng2) {
+      // Same forward-azimuth formula as compute_bearing() on the Python
+      // side -- kept as a second implementation deliberately, not a
+      // shared library, since this one runs client-side against
+      // tourSiteOptions (already fetched with the manifest) instead of
+      // reading files off disk.
+      var phi1 = lat1 * Math.PI / 180, phi2 = lat2 * Math.PI / 180;
+      var deltaLng = (lng2 - lng1) * Math.PI / 180;
+      var x = Math.sin(deltaLng) * Math.cos(phi2);
+      var y = Math.cos(phi1) * Math.sin(phi2) - Math.sin(phi1) * Math.cos(phi2) * Math.cos(deltaLng);
+      return (Math.atan2(x, y) * 180 / Math.PI + 360) % 360;
+    }
+
+    function findTourSiteLatLng(siteIdToFind) {
+      if (!tourSiteOptions) return null;
+      var match = tourSiteOptions.find(s =>
+          s.site_id.trim().toLowerCase().replace(/[\s-]+/g, '_') === siteIdToFind);
+      return (match && match.lat != null && match.lng != null) ? [match.lat, match.lng] : null;
+    }
+
+    function computeDefaultYawFacingNext(sid, config) {
+      // A calibrated stop's default view can face the next stop
+      // automatically -- the same bearing math everything else here
+      // already uses, just applied once up front instead of needing
+      // Use This View set by hand for every single stop in a walk.
+      if ((config.yaw_1 || 0) !== 0 || (config.pitch_1 || 0) !== 0) return null;
+      if (config.heading_offset == null || config.lat == null || config.lng == null) return null;
+      if (!tourSiteOptions) return null;
+      var idx = tourSiteOptions.findIndex(s =>
+          s.site_id.trim().toLowerCase().replace(/[\s-]+/g, '_') === sid);
+      if (idx === -1 || idx + 1 >= tourSiteOptions.length) return null;
+      var next = tourSiteOptions[idx + 1];
+      if (next.lat == null || next.lng == null) return null;
+      var bearing = computeBearingJs(config.lat, config.lng, next.lat, next.lng);
+      var yawDeg = (bearing - config.heading_offset + 360) % 360;
+      return yawDeg * Math.PI / 180;
+    }
+
+    // -- calibrate heading by aiming the camera, not dragging a pin --
+    // panning to look straight at something is the one interaction
+    // Marzipano is already smooth and precise at; dragging a small pin
+    // across a wide equirectangular image is not, which is exactly the
+    // tedium this replaces. Same underlying math as the pin-drag
+    // version (bearing minus whatever yaw is now "facing" the target),
+    // just reading the view's current yaw instead of a dragged spot's.
+    function refreshCalibrateTargets() {
+      var container = document.getElementById('heading-calibrate-list');
+      if (!container) return;
+      container.innerHTML = '';
+      if (!tourParam || !activeTourSiteId) return;
+      var slotId = getCurrentPrimarySlotId();
+      var links = (pendingSlotHotspots[slotId] || []).filter(h => h.category === 'link' && h.target);
+      if (!links.length) return;
+      var label = document.createElement('div');
+      label.className = 'heading-calibrate-label';
+      label.textContent = 'Pan the view to aim at one, then click it:';
+      container.appendChild(label);
+      links.forEach(h => {
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'heading-calibrate-btn';
+        btn.textContent = '\u2192 ' + (h.title || h.target);
+        btn.addEventListener('click', () => calibrateHeadingFromView(h, btn));
+        container.appendChild(btn);
+      });
+    }
+
+    function calibrateHeadingFromView(targetHotspot, btn) {
+      if (!viewL) return;
+      var siteLatLng = findTourSiteLatLng(activeTourSiteId);
+      var targetLatLng = findTourSiteLatLng(targetHotspot.target);
+      var original = btn.textContent;
+      if (!siteLatLng || !targetLatLng) {
+        btn.textContent = 'Missing GPS on this site or target';
+        setTimeout(() => { btn.textContent = original; }, 2200);
+        return;
+      }
+      var bearing = computeBearingJs(siteLatLng[0], siteLatLng[1], targetLatLng[0], targetLatLng[1]);
+      var viewYawDeg = viewL.parameters().yaw * 180 / Math.PI;
+      var heading = (bearing - viewYawDeg + 360) % 360;
+      btn.textContent = 'Calibrating\u2026';
+      fetch('/__save_heading', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ site_id: activeTourSiteId, heading: heading }),
+      }).then(res => {
+        if (!res.ok) throw new Error('save-failed');
+        currentHeadingOffset = heading;
+        headingIsKnown = true;
+        updateHeadingDialDisplay();
+        syncSceneCacheHeading(activeTourSiteId, heading, true);
+        // Snap every link hotspot at this site to its real bearing now,
+        // including the one just used -- its position was never
+        // dragged this time, only inferred, so there's nothing "already
+        // correct" about it to preserve the way the pin-drag version
+        // left the dragged pin alone.
+        var slotId = getCurrentPrimarySlotId();
+        var links = (pendingSlotHotspots[slotId] || []).filter(h => h.category === 'link' && h.target);
+        var snapped = 0;
+        links.forEach(h => {
+          var tLatLng = findTourSiteLatLng(h.target);
+          if (!tLatLng) return;
+          var b = computeBearingJs(siteLatLng[0], siteLatLng[1], tLatLng[0], tLatLng[1]);
+          var newYaw = (b - heading + 360) % 360;
+          h.yaw = newYaw * Math.PI / 180;
+          // pitch deliberately untouched -- bearing is horizontal-only,
+          // overwriting it here would erase any manual vertical nudge
+          var ref = hotspotUiMap.get(h);
+          if (ref) ref.ctx.hotspotObj.setPosition({ yaw: h.yaw, pitch: h.pitch });
+          snapped++;
+        });
+        if (snapped) {
+          fetch('/__save_hotspots', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ site_id: activeTourSiteId, slots: { '1': pendingSlotHotspots[slotId] || [] } }),
+          });
+        }
+        btn.textContent = 'Calibrated! Snapped ' + snapped + ' pin(s)';
+        setTimeout(() => { btn.textContent = original; }, 2200);
+      }).catch(() => {
+        btn.textContent = 'Failed, try again';
+        setTimeout(() => { btn.textContent = original; }, 1800);
+      });
+    }
+
+    function currentSiteLatLng() {
+      if (pendingMapData && pendingMapData.type === 'single') {
+        return [pendingMapData.lat, pendingMapData.lng];
+      }
+      if (pendingMapData && pendingMapData.type === 'tour' && tourMarkersBySite[activeTourSiteId]) {
+        var ll = tourMarkersBySite[activeTourSiteId].getLatLng();
+        return [ll.lat, ll.lng];
+      }
+      return null;
+    }
+
+    function updateViewCone() {
+      if (!siteMap || siteMapPanel.style.display === 'none') return;
+      if (!headingIsKnown) {
+        if (viewConeLayer) { siteMap.removeLayer(viewConeLayer); viewConeLayer = null; viewConePolygons = []; }
+        return;
+      }
+      var center = currentSiteLatLng();
+      if (!center || center[0] == null || center[1] == null) {
+        if (viewConeLayer) { siteMap.removeLayer(viewConeLayer); viewConeLayer = null; viewConePolygons = []; }
+        return;
+      }
+      var liveYawDeg = viewL ? (viewL.parameters().yaw * 180 / Math.PI) : 0;
+      var heading = (currentHeadingOffset + liveYawDeg + 360) % 360;
+
+      // A fade-with-distance look (solid near the marker, see-through
+      // toward the far edge, like a flashlight beam) purely from
+      // overlapping-polygon opacity: three triangles from the same
+      // apex at shrinking radius, same low fillOpacity each, so the
+      // band nearest the marker sits under all three (stacking up to
+      // full strength) while the far edge is only ever covered by the
+      // single outermost, faintest one. No raw SVG gradient defs
+      // needed, which would otherwise have to be recomputed by hand
+      // every update just to stay aligned as the cone rotates.
+      var fractions = [1.0, 0.66, 0.35];
+      var pointSets = fractions.map(frac => [
+        center,
+        destinationPoint(center[0], center[1], heading - VIEWCONE_HALF_ANGLE, VIEWCONE_RADIUS_M * frac),
+        destinationPoint(center[0], center[1], heading + VIEWCONE_HALF_ANGLE, VIEWCONE_RADIUS_M * frac),
+      ]);
+
+      if (viewConeLayer) {
+        viewConePolygons.forEach((poly, i) => poly.setLatLngs(pointSets[i]));
+      } else {
+        viewConePolygons = pointSets.map((points, i) => L.polygon(points, {
+          color: '#019fc4', weight: i === 0 ? 1 : 0, fillColor: '#019fc4',
+          fillOpacity: 0.22, interactive: false,
+        }));
+        viewConeLayer = L.layerGroup(viewConePolygons).addTo(siteMap);
+      }
+    }
+
+    // Polling rather than a Marzipano view-change event -- simpler and
+    // safer against not knowing the exact event API surface across
+    // Marzipano versions, at the cost of a bit of needless work while
+    // the map panel is closed (guarded against above) or the person
+    // isn't actively panning (harmless, just a cheap no-op redraw).
+    setInterval(updateViewCone, 200);
+
     function updateActiveMapMarker() {
       Object.keys(tourMarkersBySite).forEach(sid => {
         var m = tourMarkersBySite[sid];
@@ -1402,14 +1707,19 @@
       // to be told to re-measure once it's actually visible, or tiles
       // render into a collapsed 0x0 area.
       setTimeout(() => { if (siteMap) siteMap.invalidateSize(); }, 60);
+      updateViewCone();
+    }
+
+    function openSiteMap() {
+      siteMapPanel.style.display = 'block';
+      mapToggleBtn.textContent = 'Hide Map';
+      renderMapData();
     }
 
     mapToggleBtn.addEventListener('click', () => {
       var isHidden = siteMapPanel.style.display === 'none' || !siteMapPanel.style.display;
       if (isHidden) {
-        siteMapPanel.style.display = 'block';
-        mapToggleBtn.textContent = 'Hide Map';
-        renderMapData();
+        openSiteMap();
       } else {
         siteMapPanel.style.display = 'none';
         mapToggleBtn.textContent = 'Show Map';
@@ -1458,16 +1768,13 @@
     }
 
     function refreshHotspotList() {
+      refreshCalibrateTargets();
       var content = document.getElementById('hotspot-list-content');
       if (content.style.display === 'none') return; // don't do the work while collapsed
       var slotId = getCurrentPrimarySlotId();
-      // Link hotspots are deliberately left out -- with a 10-stop tour
-      // fully cross-linked, this list would be almost entirely "jump to
-      // the next/previous stop" entries burying the handful of actual
-      // notes/issues/measurements someone's looking for.
-      var spots = (pendingSlotHotspots[slotId] || []).filter(s => s.category !== 'link');
+      var spots = pendingSlotHotspots[slotId] || [];
       if (!spots.length) {
-        content.innerHTML = '<div class="hotspot-list-empty">No notes, issues, measurements, or photo pins on this view.</div>';
+        content.innerHTML = '<div class="hotspot-list-empty">No hotspots on this view.</div>';
         return;
       }
       content.innerHTML = '';
@@ -1479,7 +1786,14 @@
         catSpan.textContent = spot.category || 'note';
         var titleSpan = document.createElement('span');
         titleSpan.className = 'hlr-title';
-        titleSpan.textContent = spot.title || '(untitled)';
+        // For a link hotspot, showing where it actually points matters
+        // more for reviewing a tour's link structure than the title
+        // text alone would (which is often just the target's name
+        // anyway, thanks to the auto-fill, so this makes the arrow
+        // explicit rather than relying on that always being true).
+        titleSpan.textContent = spot.category === 'link' && spot.target
+            ? (spot.title || '(untitled)') + ' \u2192 ' + spot.target
+            : (spot.title || '(untitled)');
         var jumpBtn = document.createElement('button');
         jumpBtn.type = 'button';
         jumpBtn.textContent = 'Jump';
@@ -1494,10 +1808,16 @@
           var ref = hotspotUiMap.get(spot);
           if (ref) showEditHotspotForm(e.clientX, e.clientY, spot, ref.ctx, ref.pin);
         });
-        row.appendChild(catSpan);
-        row.appendChild(titleSpan);
-        row.appendChild(jumpBtn);
-        row.appendChild(editBtn);
+        var topRow = document.createElement('div');
+        topRow.className = 'hlr-top';
+        topRow.appendChild(catSpan);
+        topRow.appendChild(titleSpan);
+        var actionsRow = document.createElement('div');
+        actionsRow.className = 'hlr-actions';
+        actionsRow.appendChild(jumpBtn);
+        actionsRow.appendChild(editBtn);
+        row.appendChild(topRow);
+        row.appendChild(actionsRow);
         content.appendChild(row);
       });
     }
@@ -1513,6 +1833,48 @@
     var siteDefaultPinStyle = 'dot'; // legacy site-wide fallback, read from
                                       // config.pin_style, only used for pins
                                       // saved before per-pin style existed
+    var currentHeadingOffset = 0; // which compass direction this site's own
+                                   // yaw-zero points at, from config.heading_offset --
+                                   // 0 (unaligned) until a config with a real value loads
+    var headingIsKnown = false; // distinct from currentHeadingOffset === 0, since 0 is
+                                 // itself a valid real heading (due north) -- the view
+                                 // cone only draws once this is genuinely true, not
+                                 // just whenever the dial happens to read zero
+    function updateHeadingDialDisplay() {
+      document.getElementById('heading-value-display').textContent = Math.round(currentHeadingOffset);
+    }
+    function currentEditSiteId() {
+      return (tourParam && activeTourSiteId) ? activeTourSiteId : siteId;
+    }
+    (function () {
+      var row = document.getElementById('heading-dial-row');
+      var display = document.getElementById('heading-value-display');
+      function nudge(delta) {
+        currentHeadingOffset = (currentHeadingOffset + delta + 360) % 360;
+        updateHeadingDialDisplay();
+      }
+      document.getElementById('heading-minus5').addEventListener('click', () => nudge(-5));
+      document.getElementById('heading-minus1').addEventListener('click', () => nudge(-1));
+      document.getElementById('heading-plus1').addEventListener('click', () => nudge(1));
+      document.getElementById('heading-plus5').addEventListener('click', () => nudge(5));
+      var saveBtn = document.getElementById('save-heading-btn');
+      saveBtn.addEventListener('click', () => {
+        var targetSite = currentEditSiteId();
+        if (!targetSite) return;
+        var original = saveBtn.textContent;
+        fetch('/__save_heading', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ site_id: targetSite, heading: currentHeadingOffset }),
+        }).then(res => {
+          if (res.ok) syncSceneCacheHeading(targetSite, currentHeadingOffset, true);
+          saveBtn.textContent = res.ok ? 'Saved!' : 'Failed, try again';
+          setTimeout(() => { saveBtn.textContent = original; }, 1400);
+        }).catch(() => {
+          saveBtn.textContent = 'Preview server not reachable';
+          setTimeout(() => { saveBtn.textContent = original; }, 1800);
+        });
+      });
+    })();
     var editHotspotsBtn = document.getElementById('edit-hotspots-btn');
     var placeHotspotBtn = document.getElementById('place-hotspot-btn');
     var saveHotspotsBtn = document.getElementById('save-hotspots-btn');
@@ -1522,7 +1884,21 @@
       placeHotspotBtn.style.display = 'inline-block';
       saveHotspotsBtn.style.display = 'inline-block';
       hotspotListBtn.style.display = 'inline-block';
+      document.getElementById('heading-dial-row').style.display = 'block';
+      document.getElementById('crosshair-toggle-btn').style.display = 'inline-block';
     }
+
+    (function () {
+      var btn = document.getElementById('crosshair-toggle-btn');
+      var left = document.getElementById('center-crosshair-left');
+      var right = document.getElementById('center-crosshair-right');
+      btn.addEventListener('click', () => {
+        var showing = left.style.display === 'block';
+        left.style.display = showing ? 'none' : 'block';
+        right.style.display = showing ? 'none' : 'block';
+        btn.textContent = showing ? 'Show Center Crosshair' : 'Hide Center Crosshair';
+      });
+    })();
 
     editHotspotsBtn.addEventListener('click', () => {
       editingHotspots = !editingHotspots;
@@ -1633,11 +2009,15 @@
       // *target* stop's own config.json -- a separate, direct save to
       // that other site, not something that goes through the current
       // site's own pendingSlotHotspots/Save Hotspots flow. Placed at
-      // yaw/pitch (0, 0): there's no way to know a sensible spot in a
-      // photo this code has never actually looked at, so it lands
-      // center-of-frame and is meant to be dragged into a better
-      // position later via Move/Delete Points on that stop, not
-      // treated as perfectly placed already.
+      // yaw/pitch: no way to know a sensible spot in a photo this code
+      // has never actually looked at, so this defaults to yaw 180
+      // rather than 0 specifically -- 0 is what most other pins/UI
+      // defaults land on, so starting the return link at the opposite
+      // side at least keeps it from landing stacked on whatever else
+      // might already be sitting at yaw 0 in that photo. Still just a
+      // starting point, meant to be dragged into a better position
+      // later via Move/Delete Points on that stop, not treated as
+      // already correctly placed.
       // One known gap: if the target stop's config was already loaded
       // this session (configCache, inside renderTourPage's closure),
       // that in-memory copy won't reflect this addition until the page
@@ -1656,7 +2036,7 @@
             ? ((cfg.photos && cfg.photos[0] && cfg.photos[0].hotspots) || []).slice()
             : (cfg.hotspots_1 || []).slice();
           existing.push({
-            yaw: 0, pitch: 0, title: sourceLabel, text: '', link: '',
+            yaw: Math.PI, pitch: 0, title: sourceLabel, text: '', link: '',
             category: 'link', pin_style: pinStyle, target: sourceSiteId,
           });
           var slots = {};
@@ -1814,6 +2194,8 @@
         '</select>' +
         '<div class="hf-target-row" style="display:none;">' +
         '<label>Target Site ID</label>' + targetFieldMarkup() +
+        '<button type="button" class="hf-calibrate-heading" style="display:none; margin-top:8px;">' +
+        'Calibrate Heading From This Position</button>' +
         '</div>' +
         '<label>Pin Style</label>' +
         '<select class="hf-pinstyle">' +
@@ -1854,11 +2236,76 @@
 
       var catSelect = form.querySelector('.hf-cat');
       var targetRow = form.querySelector('.hf-target-row');
+      var calibrateBtn = form.querySelector('.hf-calibrate-heading');
       function syncTargetVisibility() {
-        targetRow.style.display = catSelect.value === 'link' ? 'block' : 'none';
+        var isLink = catSelect.value === 'link';
+        targetRow.style.display = isLink ? 'block' : 'none';
+        // Deliberately separate from ordinary dragging (Move/Delete
+        // Points never touches heading_offset on its own) -- this only
+        // fires when explicitly clicked, precisely so "nudge a pin off
+        // a rock in the frame" can never silently recalibrate a stop
+        // that's already correct.
+        calibrateBtn.style.display = (isLink && tourParam && spot.target) ? 'inline-block' : 'none';
       }
       catSelect.addEventListener('change', syncTargetVisibility);
       syncTargetVisibility();
+
+      calibrateBtn.addEventListener('click', () => {
+        var siteLatLng = findTourSiteLatLng(activeTourSiteId);
+        var targetLatLng = findTourSiteLatLng(spot.target);
+        if (!siteLatLng || !targetLatLng) {
+          calibrateBtn.textContent = 'Missing GPS on this site or target';
+          setTimeout(() => { calibrateBtn.textContent = 'Calibrate Heading From This Position'; }, 2200);
+          return;
+        }
+        var bearing = computeBearingJs(siteLatLng[0], siteLatLng[1], targetLatLng[0], targetLatLng[1]);
+        var draggedYawDeg = spot.yaw * 180 / Math.PI;
+        var heading = (bearing - draggedYawDeg + 360) % 360;
+        var original = calibrateBtn.textContent;
+        calibrateBtn.textContent = 'Calibrating\u2026';
+        fetch('/__save_heading', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ site_id: activeTourSiteId, heading: heading }),
+        }).then(res => {
+          if (!res.ok) throw new Error('save-failed');
+          currentHeadingOffset = heading;
+          headingIsKnown = true;
+          updateHeadingDialDisplay();
+          syncSceneCacheHeading(activeTourSiteId, heading, true);
+          // The pin just dragged into place is now correct by
+          // definition and is left alone -- every *other* link
+          // hotspot at this same site can now be auto-snapped to its
+          // own correct position too, using this newly known heading,
+          // instead of needing the same drag-and-calibrate treatment
+          // repeated for each one.
+          var others = (pendingSlotHotspots[activeTourSiteId] || [])
+              .filter(h => h !== spot && h.category === 'link' && h.target);
+          var snapped = 0;
+          others.forEach(h => {
+            var otherTargetLatLng = findTourSiteLatLng(h.target);
+            if (!otherTargetLatLng) return;
+            var otherBearing = computeBearingJs(siteLatLng[0], siteLatLng[1], otherTargetLatLng[0], otherTargetLatLng[1]);
+            var newYaw = (otherBearing - heading + 360) % 360;
+            h.yaw = newYaw * Math.PI / 180;
+            // pitch deliberately untouched -- same reasoning as the
+            // view-aim calibrate path, bearing is horizontal-only
+            var ref = hotspotUiMap.get(h);
+            if (ref) ref.ctx.hotspotObj.setPosition({ yaw: h.yaw, pitch: h.pitch });
+            snapped++;
+          });
+          if (snapped) {
+            fetch('/__save_hotspots', {
+              method: 'POST', headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ site_id: activeTourSiteId, slots: { '1': pendingSlotHotspots[activeTourSiteId] || [] } }),
+            });
+          }
+          calibrateBtn.textContent = snapped ? ('Calibrated! Snapped ' + snapped + ' other pin(s)') : 'Calibrated!';
+          setTimeout(() => { calibrateBtn.textContent = original; }, 2200);
+        }).catch(() => {
+          calibrateBtn.textContent = 'Failed, try again';
+          setTimeout(() => { calibrateBtn.textContent = original; }, 1800);
+        });
+      });
 
       function close() { form.remove(); }
       form.querySelector('.hf-cancel').addEventListener('click', close);
@@ -1966,6 +2413,8 @@
         placeHotspotBtn.style.display = 'inline-block';
         saveHotspotsBtn.style.display = 'inline-block';
         hotspotListBtn.style.display = 'inline-block';
+        document.getElementById('heading-dial-row').style.display = 'block';
+        document.getElementById('crosshair-toggle-btn').style.display = 'inline-block';
 
         // Placing a new hotspot needs its own click listener on the pano
         // panel, same as the non-tour single/compare/curtain/toggle flow
@@ -2034,6 +2483,10 @@
           document.getElementById('label-left').innerText = cached.label;
           document.title = tourNameForTitle + ' \u2014 ' + cached.label;
           siteDefaultPinStyle = cached.pinStyle === 'label' ? 'label' : 'dot';
+          currentHeadingOffset = cached.heading || 0;
+          headingIsKnown = !!cached.headingKnown;
+          updateHeadingDialDisplay();
+          refreshHotspotList();
           return;
         }
 
@@ -2047,6 +2500,14 @@
         configPromise.then(config => {
           var isTiled = config.format === 'tiled';
           defaultViewL = { yaw: config.yaw_1 || 0, pitch: config.pitch_1 || 0, fov: Math.PI / 4 };
+          // Only ever a fallback for a stop that's still at its
+          // untouched default (yaw/pitch both exactly 0 -- Use This
+          // View was never clicked here) and already has a calibrated
+          // heading -- never overrides a real, intentionally-set
+          // default view, and never applies at all until that stop's
+          // actually aligned.
+          var facingYaw = computeDefaultYawFacingNext(sid, config);
+          if (facingYaw != null) defaultViewL.yaw = facingYaw;
           viewL = new Marzipano.RectilinearView(defaultViewL, limiter);
 
           var geometry, source;
@@ -2077,6 +2538,9 @@
           document.getElementById('label-left').innerText = resolvedLabel;
           document.title = tourNameForTitle + ' \u2014 ' + resolvedLabel;
           siteDefaultPinStyle = config.pin_style === 'label' ? 'label' : 'dot';
+          currentHeadingOffset = config.heading_offset || 0;
+          headingIsKnown = config.heading_offset != null;
+          updateHeadingDialDisplay();
 
           // Cache the built scene itself, not just its config, so
           // revisiting this stop later is an instant switchTo() with
@@ -2084,13 +2548,20 @@
           // and re-fetching every tile from scratch again.
           sceneCache[sid] = {
             scene: scene, view: viewL, defaultView: defaultViewL,
-            label: resolvedLabel, pinStyle: config.pin_style,
+            label: resolvedLabel, pinStyle: config.pin_style, heading: config.heading_offset || 0,
+            headingKnown: config.heading_offset != null,
           };
         }).catch(() => {
           showBanner('Could not load "' + sid + '" for this tour.');
         });
       }
       tourLoadStopFn = loadStop;
+      syncSceneCacheHeading = function (sid, heading, known) {
+        if (sceneCache[sid]) {
+          sceneCache[sid].heading = heading;
+          sceneCache[sid].headingKnown = known;
+        }
+      };
 
       var sanitizedTour = tourId.trim().toLowerCase().replace(/[\s-]+/g, '_');
       // no-store: this fetch had no cache-busting at all before, unlike
@@ -2116,6 +2587,12 @@
               basemapType: manifest.basemap_type || 'osm', basemapUrl: manifest.basemap_url || '',
             };
             mapToggleBtn.style.display = 'inline-block';
+            openSiteMap();
+          }
+
+          if (sites.length > 1) {
+            document.getElementById('prev-stop-btn').style.display = 'inline-block';
+            document.getElementById('next-stop-btn').style.display = 'inline-block';
           }
 
           sites.forEach((s, idx) => {

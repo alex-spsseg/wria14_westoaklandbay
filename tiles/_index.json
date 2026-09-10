@@ -1,9 +1,15 @@
 [
   {
-    "site_id": "20260909_sheltoncreek_swipe",
+    "site_id": "20260909_sheltoncreek_side",
     "name": "Shelton Creek",
     "listed": true,
-    "updated": "2026-09-09T17:57:09.522025"
+    "updated": "2026-09-09T18:49:06.343440"
+  },
+  {
+    "site_id": "20260909_sheltoncreek_swipe",
+    "name": "Shelton Creek (2026/08/28) (2026/08/28)",
+    "listed": true,
+    "updated": "2026-09-09T18:20:11.877867"
   },
   {
     "site_id": "20260909_northlobe_swipe",

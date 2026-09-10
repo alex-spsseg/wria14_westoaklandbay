@@ -260,6 +260,10 @@
     }
     .edit-tool-btn:hover { background: #b366ff; color: #1a0e33; }
     .edit-tool-btn.active { background: #b366ff; color: #1a0e33; border-color: #ffffff; }
+    #pin-match-help {
+      font-size: 11px; color: #d9c6f5; line-height: 1.4; max-width: 220px;
+      padding: 2px 2px 4px;
+    }
 
     body.editing-hotspots .hotspot-pin { width: 32px; height: 32px; }
 
@@ -512,7 +516,7 @@
 </head>
 <body>
 
-  <div id="build-timestamp">Built 2026-09-09 17:57:07</div>
+  <div id="build-timestamp">Built 2026-09-09 18:49:04</div>
 
   <div id="status-banner"></div>
 
@@ -565,6 +569,11 @@
       <button id="unlock-aim-btn" class="edit-tool-btn" type="button" style="display:none;">Unlock Independent Aim</button>
       <button id="use-view-left-btn" class="edit-tool-btn" type="button" style="display:none;">Use Left View</button>
       <button id="use-view-right-btn" class="edit-tool-btn" type="button" style="display:none;">Use Right View</button>
+      <button id="pin-match-btn" class="edit-tool-btn" type="button" style="display:none;">Pin Match Point (0/4)</button>
+      <button id="clear-pins-btn" class="edit-tool-btn" type="button" style="display:none;">Clear Pins</button>
+      <div id="pin-match-help" style="display:none;">Aim both panels at the same real-world
+        feature, then Pin. Do 2-4 features spread around the scene (not clustered) for the
+        best fit, then lock -- alignment will hold across the whole pano, not just at one point.</div>
       <button id="place-hotspot-btn" class="edit-tool-btn" type="button" style="display:none;">Place New Point</button>
       <button id="edit-hotspots-btn" class="edit-tool-btn" type="button" style="display:none;">Move/Delete Points</button>
       <button id="save-hotspots-btn" class="edit-tool-btn" type="button" style="display:none;">Save Hotspots</button>
@@ -586,7 +595,7 @@
 
   <script>
     const urlParams = new URLSearchParams(window.location.search);
-    let rawSiteId = urlParams.get('site') || urlParams.get('well') || '20260909_sheltoncreek_swipe';
+    let rawSiteId = urlParams.get('site') || urlParams.get('well') || '20260909_sheltoncreek_side';
     const siteId = rawSiteId.trim().toLowerCase().replace(/[\s-]+/g, '_');
 
     const tourParam = urlParams.get('tour');
@@ -636,6 +645,155 @@
       var b = document.getElementById('status-banner');
       b.textContent = msg;
       b.style.display = 'block';
+    }
+
+    // -- rotation math for multi-point lock alignment -----------------------
+    // A single pinned point only gives a flat yaw/pitch offset (2 degrees
+    // of freedom), which can satisfy exactly one spot in the pano and
+    // drifts everywhere else if the two photos differ in roll as well
+    // (different gimbal bank angle, slightly different flight heading,
+    // etc -- expected even from the same drone waypoint). 2-4 pinned
+    // points, spread apart rather than clustered, are enough to solve
+    // the actual 3D rotation via the Kabsch algorithm (least-squares
+    // best-fit rotation -- the same method used for point-cloud/molecule
+    // alignment), which holds alignment across the whole image instead
+    // of just at one point. These helpers treat (yaw, pitch) as our own
+    // consistent spherical coordinates purely to do that vector math --
+    // they don't need to match Marzipano's internal convention exactly,
+    // since the rotation itself is always solved from the actual pinned
+    // data, not assumed from first principles.
+    function dirFromYawPitch(yaw, pitch) {
+      var cp = Math.cos(pitch);
+      return [cp * Math.sin(yaw), Math.sin(pitch), cp * Math.cos(yaw)];
+    }
+    function yawPitchFromDir(v) {
+      return { yaw: Math.atan2(v[0], v[2]), pitch: Math.asin(Math.max(-1, Math.min(1, v[1]))) };
+    }
+    function vNormalize(v) {
+      var n = Math.hypot(v[0], v[1], v[2]) || 1;
+      return [v[0] / n, v[1] / n, v[2] / n];
+    }
+    function vCross(a, b) {
+      return [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
+    }
+    function matMul(A, B) {
+      var R = [[0, 0, 0], [0, 0, 0], [0, 0, 0]];
+      for (var i = 0; i < 3; i++)
+        for (var j = 0; j < 3; j++)
+          for (var k = 0; k < 3; k++) R[i][j] += A[i][k] * B[k][j];
+      return R;
+    }
+    function matApply(R, v) {
+      return [
+        R[0][0] * v[0] + R[0][1] * v[1] + R[0][2] * v[2],
+        R[1][0] * v[0] + R[1][1] * v[1] + R[1][2] * v[2],
+        R[2][0] * v[0] + R[2][1] * v[1] + R[2][2] * v[2],
+      ];
+    }
+    function matTranspose(R) {
+      return [[R[0][0], R[1][0], R[2][0]], [R[0][1], R[1][1], R[2][1]], [R[0][2], R[1][2], R[2][2]]];
+    }
+    function det3(M) {
+      return M[0][0] * (M[1][1] * M[2][2] - M[1][2] * M[2][1])
+           - M[0][1] * (M[1][0] * M[2][2] - M[1][2] * M[2][0])
+           + M[0][2] * (M[1][0] * M[2][1] - M[1][1] * M[2][0]);
+    }
+    // Jacobi eigenvalue method for a symmetric 3x3 matrix: repeatedly
+    // zeroes the largest off-diagonal pair via a Givens rotation until
+    // the matrix is (numerically) diagonal. Simple, robust, and more
+    // than accurate enough for 3x3 -- avoids needing a general SVD
+    // implementation just to get Kabsch's rotation/singular values.
+    function jacobiEigenSym3(Ain) {
+      var A = [Ain[0].slice(), Ain[1].slice(), Ain[2].slice()];
+      var V = [[1, 0, 0], [0, 1, 0], [0, 0, 1]];
+      var pairs = [[0, 1], [0, 2], [1, 2]];
+      for (var iter = 0; iter < 60; iter++) {
+        var p = 0, q = 1, best = Math.abs(A[0][1]);
+        for (var pi = 0; pi < pairs.length; pi++) {
+          var i = pairs[pi][0], j = pairs[pi][1];
+          if (Math.abs(A[i][j]) > best) { best = Math.abs(A[i][j]); p = i; q = j; }
+        }
+        if (best < 1e-12) break;
+        var theta = (A[q][q] - A[p][p]) / (2 * A[p][q]);
+        var t = (theta >= 0 ? 1 : -1) / (Math.abs(theta) + Math.sqrt(theta * theta + 1));
+        var c = 1 / Math.sqrt(t * t + 1), s = t * c;
+        var app = A[p][p], aqq = A[q][q], apq = A[p][q];
+        A[p][p] = c * c * app - 2 * s * c * apq + s * s * aqq;
+        A[q][q] = s * s * app + 2 * s * c * apq + c * c * aqq;
+        A[p][q] = A[q][p] = 0;
+        for (var k = 0; k < 3; k++) {
+          if (k !== p && k !== q) {
+            var akp = A[k][p], akq = A[k][q];
+            A[k][p] = A[p][k] = c * akp - s * akq;
+            A[k][q] = A[q][k] = s * akp + c * akq;
+          }
+        }
+        for (var r = 0; r < 3; r++) {
+          var vp = V[r][p], vq = V[r][q];
+          V[r][p] = c * vp - s * vq;
+          V[r][q] = s * vp + c * vq;
+        }
+      }
+      return { values: [A[0][0], A[1][1], A[2][2]], vectors: V }; // vectors' columns are eigenvectors
+    }
+    function kabschRotation(aList, bList) {
+      // Least-squares best-fit rotation R minimizing sum |R*a_i - b_i|^2
+      // across all pinned pairs (2-4), rather than TRIAD's approach of
+      // fitting the first pair exactly and letting the rest absorb all
+      // the error -- with only 2 points TRIAD is fine, but the fit gets
+      // worse the closer those 2 points are to each other, which is
+      // exactly the "one pin lines up, the other doesn't" symptom.
+      var H = [[0, 0, 0], [0, 0, 0], [0, 0, 0]];
+      for (var n = 0; n < aList.length; n++) {
+        for (var i = 0; i < 3; i++)
+          for (var j = 0; j < 3; j++) H[i][j] += aList[n][i] * bList[n][j];
+      }
+      var eig = jacobiEigenSym3(matMul(matTranspose(H), H));
+      var order = [0, 1, 2].sort((x, y) => eig.values[y] - eig.values[x]);
+      var Vcols = order.map(k => [eig.vectors[0][k], eig.vectors[1][k], eig.vectors[2][k]]);
+      var singular = order.map(k => Math.sqrt(Math.max(eig.values[k], 0)));
+      var Ucols = Vcols.map((v, idx) => {
+        if (singular[idx] < 1e-9) return null;
+        var hv = matApply(H, v);
+        return [hv[0] / singular[idx], hv[1] / singular[idx], hv[2] / singular[idx]];
+      });
+      if (!Ucols[0]) Ucols[0] = [1, 0, 0];
+      if (!Ucols[1]) {
+        var seed = Math.abs(Ucols[0][0]) < 0.9 ? [1, 0, 0] : [0, 1, 0];
+        Ucols[1] = vNormalize(vCross(Ucols[0], seed));
+      }
+      if (!Ucols[2]) Ucols[2] = vCross(Ucols[0], Ucols[1]);
+      var U = [[Ucols[0][0], Ucols[1][0], Ucols[2][0]],
+               [Ucols[0][1], Ucols[1][1], Ucols[2][1]],
+               [Ucols[0][2], Ucols[1][2], Ucols[2][2]]];
+      var Vm = [[Vcols[0][0], Vcols[1][0], Vcols[2][0]],
+                [Vcols[0][1], Vcols[1][1], Vcols[2][1]],
+                [Vcols[0][2], Vcols[1][2], Vcols[2][2]]];
+      var d = det3(matMul(Vm, matTranspose(U))) > 0 ? 1 : -1;
+      var D = [[1, 0, 0], [0, 1, 0], [0, 0, d]];
+      return matMul(matMul(Vm, D), matTranspose(U));
+    }
+
+    function sendLockAnchors(anchors, siteIdOverride, btn) {
+      var targetSiteId = siteIdOverride || siteId;
+      var payload = anchors.map(a => ({
+        yaw_l: a.l.yaw * 180 / Math.PI, pitch_l: a.l.pitch * 180 / Math.PI,
+        yaw_r: a.r.yaw * 180 / Math.PI, pitch_r: a.r.pitch * 180 / Math.PI,
+      }));
+      var original = btn ? btn.textContent : null;
+      fetch('/__save_lock_anchors', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ site_id: targetSiteId, anchors: payload }),
+      }).then(res => {
+        if (!btn) return;
+        btn.textContent = res.ok ? 'Saved!' : 'Failed, try again';
+        setTimeout(() => { btn.textContent = original; }, 1400);
+      }).catch(() => {
+        if (!btn) return;
+        btn.textContent = 'Preview server not reachable';
+        setTimeout(() => { btn.textContent = original; }, 1800);
+      });
     }
 
     var container = document.getElementById('container');
@@ -1008,23 +1166,54 @@
           // yaw/pitch difference exists at the moment you lock and
           // preserves *that* offset while panning, so the alignment you
           // just set survives being locked.
+          //
+          // A flat offset only has 2 degrees of freedom though, so it
+          // can satisfy exactly one pinned point and drifts everywhere
+          // else in the image if the two photos differ in roll too (a
+          // real possibility even from the same drone waypoint -- gimbal
+          // bank angle, slightly different flight heading). If two
+          // "Pin Match Point" correspondences have been saved (below),
+          // lockRotation holds the actual 3D rotation solved from them
+          // instead, which keeps alignment correct across the whole
+          // pano rather than just at one spot. lockRotation stays null
+          // (falling back to the flat offset above) until 2 points are
+          // pinned.
           var lockYawOffset = 0, lockPitchOffset = 0;
+          var lockRotation = null; // 3x3 matrix, left-to-right, once 2 points are pinned
           function captureLockOffset() {
             var pL = viewL.parameters(), pR = viewR.parameters();
             lockYawOffset = pR.yaw - pL.yaw;
             lockPitchOffset = pR.pitch - pL.pitch;
+          }
+          function computeLockRotation(anchors) {
+            if (!anchors || anchors.length < 2) { lockRotation = null; return; }
+            var aList = anchors.map(a => dirFromYawPitch(a.l.yaw, a.l.pitch));
+            var bList = anchors.map(a => dirFromYawPitch(a.r.yaw, a.r.pitch));
+            lockRotation = kabschRotation(aList, bList);
+          }
+          if (config.lock_anchors && config.lock_anchors.length >= 2) {
+            computeLockRotation(config.lock_anchors.map(a => ({
+              l: { yaw: a.yaw_l, pitch: a.pitch_l }, r: { yaw: a.yaw_r, pitch: a.pitch_r },
+            })));
           }
           captureLockOffset();
           function syncViews(src, tgt, srcIsLeft) {
             if (isSyncing || !aimLocked) return;
             isSyncing = true;
             var sp = src.parameters();
-            var sign = srcIsLeft ? 1 : -1;
-            tgt.setParameters({
-              yaw: sp.yaw + sign * lockYawOffset,
-              pitch: sp.pitch + sign * lockPitchOffset,
-              fov: sp.fov,
-            });
+            if (lockRotation) {
+              var dir = dirFromYawPitch(sp.yaw, sp.pitch);
+              var outDir = srcIsLeft ? matApply(lockRotation, dir) : matApply(matTranspose(lockRotation), dir);
+              var outYp = yawPitchFromDir(outDir);
+              tgt.setParameters({ yaw: outYp.yaw, pitch: outYp.pitch, fov: sp.fov });
+            } else {
+              var sign = srcIsLeft ? 1 : -1;
+              tgt.setParameters({
+                yaw: sp.yaw + sign * lockYawOffset,
+                pitch: sp.pitch + sign * lockPitchOffset,
+                fov: sp.fov,
+              });
+            }
             isSyncing = false;
           }
           viewL.addEventListener('change', () => syncViews(viewL, viewR, true));
@@ -1095,6 +1284,52 @@
           useRightBtn.addEventListener('click', () => {
             var v = viewR.parameters();
             sendViewCapture(v.yaw, v.pitch, 1);
+          });
+          var pinMatchBtn = document.getElementById('pin-match-btn');
+          var clearPinsBtn = document.getElementById('clear-pins-btn');
+          var pinHelp = document.getElementById('pin-match-help');
+          if (isLocalPreview) {
+            pinMatchBtn.style.display = 'inline-block';
+            clearPinsBtn.style.display = 'inline-block';
+            pinHelp.style.display = 'block';
+          }
+          // Persisted anchors from config.json, if this site already has
+          // some saved, seed both the in-memory pin list (so the count
+          // and Clear Pins button reflect reality) and lockRotation
+          // (already computed above from the same config value, kept
+          // here only so both stay in sync going forward).
+          var MAX_PINS = 4;
+          var pinnedAnchors = (config.lock_anchors && config.lock_anchors.length >= 2)
+              ? config.lock_anchors.map(a => ({
+                  l: { yaw: a.yaw_l, pitch: a.pitch_l }, r: { yaw: a.yaw_r, pitch: a.pitch_r },
+                }))
+              : [];
+          function updatePinUI() {
+            pinMatchBtn.textContent = 'Pin Match Point (' + pinnedAnchors.length + '/' + MAX_PINS + ')';
+          }
+          updatePinUI();
+          pinMatchBtn.addEventListener('click', () => {
+            if (pinnedAnchors.length >= MAX_PINS) {
+              showBanner('Already have ' + MAX_PINS + ' pinned points -- Clear Pins to start over.');
+              return;
+            }
+            var pL = viewL.parameters(), pR = viewR.parameters();
+            pinnedAnchors.push({ l: { yaw: pL.yaw, pitch: pL.pitch }, r: { yaw: pR.yaw, pitch: pR.pitch } });
+            updatePinUI();
+            // Recompute (and resave) on every pin from the 2nd one on,
+            // not just the last one -- each added point (up to 4)
+            // improves the least-squares fit, and saving as you go
+            // means you keep whatever you've got if you stop early.
+            if (pinnedAnchors.length >= 2) {
+              computeLockRotation(pinnedAnchors);
+              sendLockAnchors(pinnedAnchors, null, pinMatchBtn);
+            }
+          });
+          clearPinsBtn.addEventListener('click', () => {
+            pinnedAnchors = [];
+            lockRotation = null;
+            updatePinUI();
+            sendLockAnchors([], null, clearPinsBtn);
           });
           document.getElementById('pano-left').addEventListener('click', (e) => {
             if (!placingHotspot) return;

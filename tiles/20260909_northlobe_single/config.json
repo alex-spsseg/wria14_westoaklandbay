@@ -1,0 +1,23 @@
+{
+  "mode": "single",
+  "format": "raw",
+  "yaw_1": -2.615860868688344,
+  "pitch_1": 0.647699151614777,
+  "yaw_2": 0.0,
+  "pitch_2": 0.0,
+  "lat": 47.21337883333334,
+  "lng": -123.08925963888889,
+  "label_1": "Photo 1 (2026/08/28)",
+  "label_2": "",
+  "autorotate": false,
+  "hotspots_1": [],
+  "hotspots_2": [],
+  "levels_1": [],
+  "levels_2": [],
+  "pin_style": "dot",
+  "basemap_type": "esri_tile",
+  "basemap_url": "https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}",
+  "mobile_1": 5000,
+  "mobile_2": 0,
+  "heading_offset": 355.0
+}

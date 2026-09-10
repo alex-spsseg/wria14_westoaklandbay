@@ -1,0 +1,23 @@
+{
+  "mode": "curtain",
+  "format": "raw",
+  "yaw_1": -2.5902431428847845,
+  "pitch_1": 0.6400122367063207,
+  "yaw_2": -2.1603685481185813,
+  "pitch_2": 0.6848671984825749,
+  "lat": 47.21337883333334,
+  "lng": -123.08925963888889,
+  "label_1": "North Lobe (2026/08/28)",
+  "label_2": "North Lobe (2026/09/09)",
+  "autorotate": false,
+  "hotspots_1": [],
+  "hotspots_2": [],
+  "levels_1": [],
+  "levels_2": [],
+  "pin_style": "dot",
+  "basemap_type": "esri_tile",
+  "basemap_url": "https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}",
+  "mobile_1": 5000,
+  "mobile_2": 5000,
+  "heading_offset": null
+}

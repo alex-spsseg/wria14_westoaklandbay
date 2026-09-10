@@ -14,6 +14,26 @@
     #container { display: flex; width: 100vw; height: 100vh; position: relative; }
 
     .pano-panel { flex: 1; height: 100%; position: relative; border-right: 2px solid #1b3f95; }
+
+    /* Marzipano falls back to a plain <img>-based CSS3D renderer on
+    any browser/GPU combo without usable WebGL (common on locked-down
+    work laptops and VMs with no real graphics driver) -- and plain
+    <img> elements are natively draggable in Chrome/Edge by default.
+    Without this, starting a pan drag on one of those machines instead
+    kicks off the browser's own native image drag-and-drop, which
+    swallows the gesture (Marzipano's own pan handler never sees the
+    movement) and animates the image back to its starting position the
+    moment the drag ends -- exactly like the pano "snapping back"
+    instead of panning. Harmless to apply unconditionally: it's a
+    no-op on the normal WebGL canvas renderer, and only matters on the
+    img-based fallback.
+    -webkit-user-drag covers Chrome/Edge/Safari; user-select stops
+    the accompanying text/image selection highlight some browsers
+    show on a click-drag over an image. */
+    .pano-panel, .pano-panel img, .pano-panel canvas,
+    #pano-right-wrapper, #pano-right-wrapper img, #pano-right-wrapper canvas {
+      -webkit-user-drag: none; user-drag: none; user-select: none; -webkit-touch-callout: none;
+    }
     .center-crosshair {
       position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
       width: 28px; height: 28px; pointer-events: none; z-index: 3000; display: none;
@@ -492,7 +512,7 @@
 </head>
 <body>
 
-  <div id="build-timestamp">Built 2026-09-08 17:22:52</div>
+  <div id="build-timestamp">Built 2026-09-09 17:47:52</div>
 
   <div id="status-banner"></div>
 
@@ -566,7 +586,7 @@
 
   <script>
     const urlParams = new URLSearchParams(window.location.search);
-    let rawSiteId = urlParams.get('site') || urlParams.get('well') || 'dji_20260828132858_0001_d';
+    let rawSiteId = urlParams.get('site') || urlParams.get('well') || '20260909_northlobe_swipe';
     const siteId = rawSiteId.trim().toLowerCase().replace(/[\s-]+/g, '_');
 
     const tourParam = urlParams.get('tour');
@@ -622,6 +642,48 @@
     var panelR = document.getElementById('pano-right');
     var wrapperR = document.getElementById('pano-right-wrapper');
     var slider = document.getElementById('curtain-slider');
+
+    // Belt-and-suspenders alongside the CSS -webkit-user-drag rule
+    // above: some browsers still fire a native 'dragstart' on an
+    // img-based fallback render even with that CSS in place (image
+    // drag suppression via CSS alone isn't fully reliable across
+    // engines). Blocking it at the event level too guarantees a pan
+    // drag can never be hijacked into a native image drag, on any
+    // browser, instead of just "usually."
+    container.addEventListener('dragstart', (e) => e.preventDefault());
+
+    // -- guard floating control buttons against drag-release clicks --------
+    // Every button/panel below (edit-tools-panel, control-bar,
+    // site-map-panel, the tour prev/next buttons) floats directly on
+    // top of the pano. Native 'click' fires at wherever the mouse
+    // button was RELEASED, not where it went down -- so panning the
+    // pano with a drag that happens to end over one of these buttons
+    // (very easy to do, e.g. dragging up-right into the Editing Tools
+    // panel in the corner) fires a real click on it, silently
+    // re-toggling Lock/Unlock Independent Aim, hiding the crosshair,
+    // etc, mid-pan even though nothing was actually clicked on
+    // purpose. Only let a click through a guarded element if the
+    // mousedown that started this click sequence was ALSO inside that
+    // same element -- a genuine press-and-release on the button, not
+    // a pan that happened to end there.
+    (function () {
+      var lastMouseDownTarget = null;
+      document.addEventListener('mousedown', (e) => { lastMouseDownTarget = e.target; }, true);
+      document.addEventListener('touchstart', (e) => {
+        lastMouseDownTarget = e.touches[0] ? document.elementFromPoint(e.touches[0].clientX, e.touches[0].clientY) : null;
+      }, true);
+      ['edit-tools-panel', 'control-bar', 'site-map-panel', 'prev-stop-btn', 'next-stop-btn'].forEach(id => {
+        var el = document.getElementById(id);
+        if (!el) return;
+        el.addEventListener('click', (e) => {
+          if (!lastMouseDownTarget || !el.contains(lastMouseDownTarget)) {
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+            e.preventDefault();
+          }
+        }, true);
+      });
+    })();
 
     var viewerL = new Marzipano.Viewer(document.getElementById('pano-left'));
     var viewerR = null;
@@ -932,14 +994,41 @@
           pendingSlotHotspots['2'] = (config.hotspots_2 || []).slice();
 
           var isSyncing = false;
-          function syncViews(src, tgt) {
+          // "Lock Views Together" used to force viewR to the exact same
+          // yaw/pitch as viewL, which is right for two photos shot from
+          // the same spot facing the same reference direction but wrong
+          // for this tool's actual compare workflow: the two photos are
+          // usually shot from different camera positions/headings, so
+          // Unlock Independent Aim is used to aim each one at the same
+          // real-world feature -- which means their yaw/pitch are
+          // supposed to differ by some offset once aligned. Re-locking
+          // with an absolute sync threw that offset away and snapped
+          // both panels to identical numbers, which looked exactly like
+          // the pan "resetting." Locking now instead captures whatever
+          // yaw/pitch difference exists at the moment you lock and
+          // preserves *that* offset while panning, so the alignment you
+          // just set survives being locked.
+          var lockYawOffset = 0, lockPitchOffset = 0;
+          function captureLockOffset() {
+            var pL = viewL.parameters(), pR = viewR.parameters();
+            lockYawOffset = pR.yaw - pL.yaw;
+            lockPitchOffset = pR.pitch - pL.pitch;
+          }
+          captureLockOffset();
+          function syncViews(src, tgt, srcIsLeft) {
             if (isSyncing || !aimLocked) return;
             isSyncing = true;
-            tgt.setParameters(src.parameters());
+            var sp = src.parameters();
+            var sign = srcIsLeft ? 1 : -1;
+            tgt.setParameters({
+              yaw: sp.yaw + sign * lockYawOffset,
+              pitch: sp.pitch + sign * lockPitchOffset,
+              fov: sp.fov,
+            });
             isSyncing = false;
           }
-          viewL.addEventListener('change', () => syncViews(viewL, viewR));
-          viewR.addEventListener('change', () => syncViews(viewR, viewL));
+          viewL.addEventListener('change', () => syncViews(viewL, viewR, true));
+          viewR.addEventListener('change', () => syncViews(viewR, viewL, false));
         }
 
         if (isToggleMode) {
@@ -992,6 +1081,10 @@
           }
           unlockBtn.addEventListener('click', () => {
             aimLocked = !aimLocked;
+            // Re-locking should preserve whatever offset independent
+            // aim was just used to set up, not snap back to a plain
+            // 1:1 match -- see captureLockOffset above.
+            if (aimLocked) captureLockOffset();
             unlockBtn.textContent = aimLocked ? 'Unlock Independent Aim' : 'Lock Views Together';
             unlockBtn.classList.toggle('active', !aimLocked);
           });

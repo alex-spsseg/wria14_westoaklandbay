@@ -1,0 +1,23 @@
+{
+  "mode": "curtain",
+  "format": "raw",
+  "yaw_1": 0.08184365274621898,
+  "pitch_1": 0.09169560954394029,
+  "yaw_2": 0.5365728609640747,
+  "pitch_2": 0.08754072862501516,
+  "lat": 47.21337883333334,
+  "lng": -123.08925963888889,
+  "label_1": "North Lobe Before (2026/08/28)",
+  "label_2": "North Lobe After (2026/09/09)",
+  "autorotate": false,
+  "hotspots_1": [],
+  "hotspots_2": [],
+  "levels_1": [],
+  "levels_2": [],
+  "pin_style": "dot",
+  "basemap_type": "xyz_tile",
+  "basemap_url": "https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}",
+  "mobile_1": 5000,
+  "mobile_2": 5000,
+  "heading_offset": null
+}

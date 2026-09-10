@@ -1,15 +1,15 @@
 [
   {
-    "site_id": "20260909_sheltoncreek_side",
-    "name": "Shelton Creek (Dual) (2026/08/28)",
+    "site_id": "20260909_sheltoncreek_swipe",
+    "name": "Shelton Creek (Swipe View)",
     "listed": true,
-    "updated": "2026-09-10T14:40:51.550909"
+    "updated": "2026-09-10T15:05:46.235707"
   },
   {
-    "site_id": "20260909_sheltoncreek_swipe",
-    "name": "Shelton Creek (Swipe) (2026/08/28)",
+    "site_id": "20260909_sheltoncreek_side",
+    "name": "Shelton Creek (Dual View)",
     "listed": true,
-    "updated": "2026-09-10T14:40:24.148274"
+    "updated": "2026-09-10T15:05:13.539130"
   },
   {
     "site_id": "20260909_northlobe_swipe",

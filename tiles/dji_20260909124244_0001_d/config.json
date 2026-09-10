@@ -1,8 +1,8 @@
 {
   "mode": "single",
   "format": "raw",
-  "yaw_1": 0.0,
-  "pitch_1": 0.0,
+  "yaw_1": -0.9253860034887325,
+  "pitch_1": 0.7060782581399964,
   "yaw_2": 0.0,
   "pitch_2": 0.0,
   "lat": 47.21176508333333,
@@ -10,7 +10,130 @@
   "label_1": "DJI_20260909124244_0001_D (2026/09/09)",
   "label_2": "",
   "autorotate": false,
-  "hotspots_1": [],
+  "hotspots_1": [
+    {
+      "yaw": 2.548129410064563,
+      "pitch": 0.8854159502381016,
+      "title": "West Lobe - East View",
+      "text": "",
+      "link": "",
+      "category": "link",
+      "pin_style": "label_always",
+      "target": "dji_20260909123847_0001_d"
+    },
+    {
+      "yaw": 3.0784266749391946,
+      "pitch": 0.48310141428367537,
+      "title": "West Lobe - High Berm View",
+      "text": "",
+      "link": "",
+      "category": "link",
+      "pin_style": "label_always",
+      "target": "dji_20260909124045_0001_d"
+    },
+    {
+      "yaw": 1.3388139558567431,
+      "pitch": 0.28774249294130705,
+      "title": "South Lobe",
+      "text": "",
+      "link": "",
+      "category": "link",
+      "pin_style": "label_always",
+      "target": "dji_20260909123432_0001_d"
+    },
+    {
+      "yaw": 2.5460130022236482,
+      "pitch": 0.432122237722961,
+      "title": "ELJs on Goldsborough",
+      "text": "",
+      "link": "",
+      "category": "link",
+      "pin_style": "label_always",
+      "target": "dji_20260909123649_0001_d"
+    },
+    {
+      "yaw": 2.702311446774357,
+      "pitch": 0.5421449485649852,
+      "title": "West Lobe - South View 3 (ground)",
+      "text": "",
+      "link": "",
+      "category": "link",
+      "pin_style": "label_hover",
+      "target": "img_20260909_120210_00_979",
+      "images": []
+    },
+    {
+      "yaw": 3.137598245183014,
+      "pitch": 0.7331543535464942,
+      "title": "West Lobe - BEZEs (ground)",
+      "text": "",
+      "link": "",
+      "category": "link",
+      "pin_style": "label_always",
+      "target": "img_20260909_115426_00_975"
+    },
+    {
+      "yaw": 2.5772796250189494,
+      "pitch": 1.0343200569269975,
+      "title": "West Lobe - East End (ground)",
+      "text": "",
+      "link": "",
+      "category": "link",
+      "pin_style": "label_hover",
+      "target": "img_20260909_115721_00_976"
+    },
+    {
+      "yaw": 2.451851686651784,
+      "pitch": 0.8164460365521222,
+      "title": "West Lobe - South View 1 (ground)",
+      "text": "",
+      "link": "",
+      "category": "link",
+      "pin_style": "label_hover",
+      "target": "img_20260909_115811_00_977"
+    },
+    {
+      "yaw": 2.5506132999785827,
+      "pitch": 0.7070106975563615,
+      "title": "West Lobe - South View 2 (ground)",
+      "text": "",
+      "link": "",
+      "category": "link",
+      "pin_style": "label_hover",
+      "target": "img_20260909_115850_00_978"
+    },
+    {
+      "yaw": -1.655360059206533,
+      "pitch": 0.45515332835999267,
+      "title": "Shelton Creek",
+      "text": "",
+      "link": "",
+      "category": "link",
+      "pin_style": "label_always",
+      "target": "dji_20260909124449_0001_d"
+    },
+    {
+      "yaw": -0.9628080492980047,
+      "pitch": 0.5501998747387145,
+      "title": "North Lobe",
+      "text": "",
+      "link": "",
+      "category": "link",
+      "pin_style": "label_always",
+      "target": "dji_20260909124644_0001_d"
+    },
+    {
+      "yaw": -0.44422326717736027,
+      "pitch": 0.38070109391881957,
+      "title": "Yacht Club",
+      "text": "",
+      "link": "",
+      "category": "link",
+      "pin_style": "label_always",
+      "target": "dji_20260909124850_0001_d",
+      "images": []
+    }
+  ],
   "hotspots_2": [],
   "levels_1": [],
   "levels_2": [],
@@ -19,5 +142,5 @@
   "basemap_url": "https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}",
   "mobile_1": 5000,
   "mobile_2": 0,
-  "heading_offset": null
+  "heading_offset": 68.90019549575646
 }

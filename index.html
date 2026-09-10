@@ -193,6 +193,25 @@
     .ctrl-btn:hover { background: #019fc4; color: #0e1b33; }
     .ctrl-btn:active, .ctrl-btn.active { background: #019fc4; color: #0e1b33; border-color: #ffffff; }
 
+    #info-overlay {
+      display: none; position: fixed; inset: 0; background: rgba(9, 17, 36, 0.75);
+      z-index: 3000; align-items: center; justify-content: center; padding: 20px;
+    }
+    #info-overlay.visible { display: flex; }
+    #info-panel {
+      background: #132447; border: 1px solid #1b3f95; border-radius: 10px;
+      max-width: 420px; width: 100%; max-height: 80vh; overflow-y: auto;
+      padding: 22px 24px; color: #e8eef7; position: relative;
+    }
+    #info-panel h2 { font-size: 16px; font-weight: 700; color: #ffffff; margin-bottom: 14px; padding-right: 20px; }
+    #info-list { padding-left: 18px; margin: 0; }
+    #info-list li { margin-bottom: 10px; font-size: 13px; line-height: 1.5; color: #cbd8ec; }
+    #info-close-btn {
+      position: absolute; top: 10px; right: 12px; background: none; border: none;
+      color: #9fb2cc; font-size: 22px; line-height: 1; cursor: pointer; padding: 4px;
+    }
+    #info-close-btn:hover { color: #ffffff; }
+
     #edit-tools-panel {
       position: absolute; top: 60px; right: 12px; z-index: 1000;
       display: flex; flex-direction: column; gap: 6px; width: 280px;
@@ -516,7 +535,7 @@
 </head>
 <body>
 
-  <div id="build-timestamp">Built 2026-09-09 18:49:04</div>
+  <div id="build-timestamp">Built 2026-09-10 14:27:14</div>
 
   <div id="status-banner"></div>
 
@@ -548,6 +567,15 @@
         <button id="autorotate-btn" class="ctrl-btn" type="button">Auto-Rotate</button>
         <button id="fullscreen-btn" class="ctrl-btn" type="button">Full Screen</button>
         <button id="reset-btn" class="ctrl-btn" type="button">Reset View</button>
+        <button id="info-btn" class="ctrl-btn" type="button" title="Help">&#9432; Help</button>
+      </div>
+    </div>
+
+    <div id="info-overlay">
+      <div id="info-panel">
+        <button id="info-close-btn" type="button" title="Close" aria-label="Close">&times;</button>
+        <h2>Navigating this viewer</h2>
+        <ul id="info-list"></ul>
       </div>
     </div>
 
@@ -595,7 +623,7 @@
 
   <script>
     const urlParams = new URLSearchParams(window.location.search);
-    let rawSiteId = urlParams.get('site') || urlParams.get('well') || '20260909_sheltoncreek_side';
+    let rawSiteId = urlParams.get('site') || urlParams.get('well') || 'dji_20260909124244_0001_d';
     const siteId = rawSiteId.trim().toLowerCase().replace(/[\s-]+/g, '_');
 
     const tourParam = urlParams.get('tour');
@@ -980,6 +1008,56 @@
     });
     document.getElementById('fullscreen-btn').addEventListener('click', () => toggleFullscreen());
     document.getElementById('reset-btn').addEventListener('click', () => resetViews());
+
+    // -- help / info panel ---------------------------------------------
+    // For site visitors, not the local-preview editing tools -- always
+    // visible regardless of isLocalPreview. Built by checking which
+    // control-bar buttons are actually shown/hidden and whether the
+    // curtain-mode class is on the container, all read straight off
+    // the DOM at open-time, rather than needing mode/isCurtainMode
+    // (declared later, inside the per-site config fetch callback) in
+    // scope up here alongside the other control-bar wiring.
+    (function () {
+      var overlay = document.getElementById('info-overlay');
+      var list = document.getElementById('info-list');
+      function isShown(id) {
+        var el = document.getElementById(id);
+        return !!el && el.style.display !== 'none';
+      }
+      function buildTips() {
+        var tips = ['Click and drag to look around. Scroll, or pinch on mobile, to zoom in and out.'];
+        if (container.classList.contains('curtain-mode')) {
+          tips.push('Drag the divider in the middle left or right to compare the two photos.');
+        } else if (isShown('toggle-btn')) {
+          tips.push('Use the Toggle button to switch between the two photos.');
+        } else if (!document.getElementById('pano-right-wrapper').classList.contains('hidden')) {
+          tips.push('The two photos are shown side by side for comparison.');
+        }
+        if (isShown('map-toggle-btn')) tips.push('Show Map displays this location on a map.');
+        if (isShown('hotspots-toggle-btn')) {
+          tips.push('Colored pins in the photo are hotspots -- click one for more detail. Hide/Show Hotspots toggles them.');
+        }
+        tips.push('Auto-Rotate slowly pans the view on its own. Full Screen expands the viewer. Reset View returns to the starting position.');
+        if (isShown('prev-stop-btn')) tips.push('Use Prev / Next to move between stops on this tour.');
+        return tips;
+      }
+      function openInfo() {
+        list.innerHTML = '';
+        buildTips().forEach(t => {
+          var li = document.createElement('li');
+          li.textContent = t;
+          list.appendChild(li);
+        });
+        overlay.classList.add('visible');
+      }
+      function closeInfo() { overlay.classList.remove('visible'); }
+      document.getElementById('info-btn').addEventListener('click', openInfo);
+      document.getElementById('info-close-btn').addEventListener('click', closeInfo);
+      overlay.addEventListener('click', (e) => { if (e.target === overlay) closeInfo(); });
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && overlay.classList.contains('visible')) closeInfo();
+      });
+    })();
 
     if (!tourParam) {
     fetch('tiles/' + siteId + '/config.json', { cache: 'no-store' })

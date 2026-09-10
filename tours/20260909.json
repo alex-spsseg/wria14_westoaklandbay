@@ -1,87 +1,87 @@
 {
-  "name": "WOB Site Imagery (Low Tide -0.7ft)",
+  "name": "WOB Site Imagery (9/9/2026, -0.7ft)",
   "sites": [
     {
+      "site_id": "dji_20260909124244_0001_d",
+      "display_name": "Overview",
+      "lat": 47.21176508333333,
+      "lng": -123.08991633333333
+    },
+    {
       "site_id": "dji_20260909123432_0001_d",
-      "display_name": "DJI_20260909123432_0001_D (2026/09/09)",
+      "display_name": "South Lobe",
       "lat": 47.20993666666667,
       "lng": -123.08778997222221
     },
     {
       "site_id": "dji_20260909123649_0001_d",
-      "display_name": "DJI_20260909123649_0001_D (2026/09/09)",
+      "display_name": "ELJs on Goldsborough",
       "lat": 47.21002547222223,
       "lng": -123.09168627777777
     },
     {
-      "site_id": "dji_20260909123847_0001_d",
-      "display_name": "DJI_20260909123847_0001_D (2026/09/09)",
-      "lat": 47.211100638888894,
-      "lng": -123.09057949999999
-    },
-    {
       "site_id": "dji_20260909124045_0001_d",
-      "display_name": "DJI_20260909124045_0001_D (2026/09/09)",
+      "display_name": "West Lobe - High Berm View",
       "lat": 47.21126463888889,
       "lng": -123.09188036111111
     },
     {
-      "site_id": "dji_20260909124244_0001_d",
-      "display_name": "DJI_20260909124244_0001_D (2026/09/09)",
-      "lat": 47.21176508333333,
-      "lng": -123.08991633333333
-    },
-    {
-      "site_id": "dji_20260909124449_0001_d",
-      "display_name": "DJI_20260909124449_0001_D (2026/09/09)",
-      "lat": 47.212814111111115,
-      "lng": -123.09098436111111
-    },
-    {
-      "site_id": "dji_20260909124644_0001_d",
-      "display_name": "DJI_20260909124644_0001_D (2026/09/09)",
-      "lat": 47.2133745,
-      "lng": -123.0892648611111
-    },
-    {
-      "site_id": "dji_20260909124850_0001_d",
-      "display_name": "DJI_20260909124850_0001_D (2026/09/09)",
-      "lat": 47.213319444444444,
-      "lng": -123.0876486111111
+      "site_id": "dji_20260909123847_0001_d",
+      "display_name": "West Lobe - East View",
+      "lat": 47.211100638888894,
+      "lng": -123.09057949999999
     },
     {
       "site_id": "img_20260909_115426_00_975",
-      "display_name": "IMG_20260909_115426_00_975 (2026/09/09)",
+      "display_name": "West Lobe - BEZEs (ground)",
       "lat": 47.211318464144554,
       "lng": -123.09165652579071
     },
     {
       "site_id": "img_20260909_115721_00_976",
-      "display_name": "IMG_20260909_115721_00_976 (2026/09/09)",
+      "display_name": "West Lobe - East End (ground)",
       "lat": 47.21115503627828,
       "lng": -123.09041162860127
     },
     {
       "site_id": "img_20260909_115811_00_977",
-      "display_name": "IMG_20260909_115811_00_977 (2026/09/09)",
+      "display_name": "West Lobe - South View 1 (ground)",
       "lat": 47.210900387263344,
       "lng": -123.09053435655558
     },
     {
       "site_id": "img_20260909_115850_00_978",
-      "display_name": "IMG_20260909_115850_00_978 (2026/09/09)",
+      "display_name": "West Lobe - South View 2 (ground)",
       "lat": 47.21072204818812,
       "lng": -123.09084821960224
     },
     {
       "site_id": "img_20260909_120210_00_979",
-      "display_name": "IMG_20260909_120210_00_979 (2026/09/09)",
+      "display_name": "West Lobe - South View 3 (ground)",
       "lat": 47.21027134099617,
       "lng": -123.09199954053582
+    },
+    {
+      "site_id": "dji_20260909124449_0001_d",
+      "display_name": "Shelton Creek",
+      "lat": 47.212814111111115,
+      "lng": -123.09098436111111
+    },
+    {
+      "site_id": "dji_20260909124644_0001_d",
+      "display_name": "North Lobe",
+      "lat": 47.2133745,
+      "lng": -123.0892648611111
+    },
+    {
+      "site_id": "dji_20260909124850_0001_d",
+      "display_name": "Yacht Club",
+      "lat": 47.213319444444444,
+      "lng": -123.0876486111111
     }
   ],
   "basemap_type": "esri_tile",
-  "basemap_url": "https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}",
+  "basemap_url": "https://tiles.arcgis.com/tiles/buuvDFFARQiOEbVZ/arcgis/rest/services/WOB_20260909_minus0p7_ortho/MapServer/tile/{z}/{y}/{x}",
   "forward_label": "Forward",
   "backward_label": "Back"
 }

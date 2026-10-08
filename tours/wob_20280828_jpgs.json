@@ -1,23 +1,26 @@
 {
-  "name": "Site Visit (-0.02ft)",
+  "name": "Site Visit (-0.5ft)",
   "sites": [
     {
       "site_id": "dji_20260828132858_0001_d",
-      "display_name": "South Lobe (Aerial)",
+      "display_name": "South Lobe",
       "lat": 47.20993586111111,
-      "lng": -123.08778863888888
+      "lng": -123.08778863888888,
+      "platform": "aerial"
     },
     {
       "site_id": "dji_20260828133132_0001_d",
       "display_name": "ELJs on Goldsborough Creek",
       "lat": 47.210025333333334,
-      "lng": -123.09168608333333
+      "lng": -123.09168608333333,
+      "platform": "aerial"
     },
     {
       "site_id": "dji_20260828133337_0001_d",
-      "display_name": "West Lobe - East View (Aerial)",
+      "display_name": "West Lobe - East View",
       "lat": 47.211101472222225,
-      "lng": -123.0905781111111
+      "lng": -123.0905781111111,
+      "platform": "aerial"
     },
     {
       "site_id": "img_20260828_121536_00_969",
@@ -39,32 +42,43 @@
     },
     {
       "site_id": "dji_20260828133527_0001_d",
-      "display_name": "West Lobe - High Berm (Aerial)",
+      "display_name": "West Lobe - High Berm",
       "lat": 47.211263055555555,
-      "lng": -123.09187869444445
+      "lng": -123.09187869444445,
+      "platform": "aerial"
     },
     {
       "site_id": "dji_20260828133753_0001_d",
-      "display_name": "Shelton Creek (Aerial)",
+      "display_name": "Shelton Creek",
       "lat": 47.212814111111115,
-      "lng": -123.09098558333334
+      "lng": -123.09098558333334,
+      "platform": "aerial"
     },
     {
       "site_id": "dji_20260828133959_0001_d",
-      "display_name": "North Lobe (Aerial)",
+      "display_name": "North Lobe",
       "lat": 47.21337883333334,
-      "lng": -123.08925963888889
+      "lng": -123.08925963888889,
+      "platform": "aerial"
     },
     {
       "site_id": "dji_20260828134146_0001_d",
-      "display_name": "Yacht Club (Aerial)",
+      "display_name": "Yacht Club",
       "lat": 47.21331952777778,
-      "lng": -123.08764775
+      "lng": -123.08764775,
+      "platform": "aerial"
     }
   ],
   "basemap_type": "xyz_tile",
   "basemap_url": "http://mt0.google.com/vt/lyrs=s&hl=en&x={x}&y={y}&z={z}",
   "overlays": [
+    {
+      "label": "Ortho (8/28/2026, -0.5ft)",
+      "url": "https://tiles.arcgis.com/tiles/buuvDFFARQiOEbVZ/arcgis/rest/services/WOB_20260828_minus0p5ft_ortho_tif/MapServer/tile/{z}/{y}/{x}",
+      "opacity": 1.0,
+      "default_on": true,
+      "type": "tile"
+    },
     {
       "label": "Ortho (5/30/2025)",
       "url": "https://tiles.arcgis.com/tiles/buuvDFFARQiOEbVZ/arcgis/rest/services/WOB_Ortho_20250530/MapServer/tile/{z}/{y}/{x}",
@@ -74,5 +88,6 @@
     }
   ],
   "forward_label": "Forward",
-  "backward_label": "Back"
+  "backward_label": "Back",
+  "field_visit_date": "2026-08-28"
 }

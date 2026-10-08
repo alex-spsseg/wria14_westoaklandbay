@@ -7,10 +7,39 @@
   "lng": -123.0892648611111,
   "pin_style": "dot",
   "autorotate": false,
-  "basemap_type": "esri_tile",
-  "basemap_url": "https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}",
-  "overlays": null,
-  "default_photo": "p2",
+  "basemap_type": "xyz_tile",
+  "basemap_url": "http://mt0.google.com/vt/lyrs=s&hl=en&x={x}&y={y}&z={z}",
+  "overlays": [
+    {
+      "label": "Ortho (9/30/2026)",
+      "url": "https://tiles.arcgis.com/tiles/buuvDFFARQiOEbVZ/arcgis/rest/services/WOB_20260930_plus5p8ft_ortho/MapServer/tile/{z}/{y}/{x}",
+      "opacity": 1.0,
+      "default_on": true,
+      "type": "tile"
+    },
+    {
+      "label": "Ortho (9/7/2026, -0.7ft)",
+      "url": "https://tiles.arcgis.com/tiles/buuvDFFARQiOEbVZ/arcgis/rest/services/WOB_20260909_minus0p7_ortho/MapServer/tile/{z}/{y}/{x}",
+      "opacity": 1.0,
+      "default_on": false,
+      "type": "tile"
+    },
+    {
+      "label": "Ortho (8/28/2026, -0.5ft)",
+      "url": "https://tiles.arcgis.com/tiles/buuvDFFARQiOEbVZ/arcgis/rest/services/WOB_20260828_minus0p5ft_ortho_tif/MapServer/tile/{z}/{y}/{x}",
+      "opacity": 1.0,
+      "default_on": false,
+      "type": "tile"
+    },
+    {
+      "label": "Ortho (5/30/2025, -0.02ft)",
+      "url": "https://tiles.arcgis.com/tiles/buuvDFFARQiOEbVZ/arcgis/rest/services/WOB_Ortho_20250530/MapServer/tile/{z}/{y}/{x}",
+      "opacity": 1.0,
+      "default_on": true,
+      "type": "tile"
+    }
+  ],
+  "default_photo": "p3",
   "hotspots": [
     {
       "pitch": -0.438833914352184,
@@ -34,8 +63,8 @@
       "levels": [],
       "mobile": 5000,
       "heading_offset": 70.36406689996761,
-      "yaw": 1.8779841150651724,
-      "pitch": 0.4369765083678683,
+      "yaw": -2.2621120924628433,
+      "pitch": 0.6274936596628091,
       "lat": 47.2133745,
       "lng": -123.0892648611111,
       "hotspots": []
@@ -49,12 +78,29 @@
       "levels": [],
       "mobile": 5000,
       "heading_offset": 64.2,
-      "yaw": 1.5687433242924333,
-      "pitch": 0.5742765059798103,
+      "yaw": -2.228980207089382,
+      "pitch": 0.6260737623606439,
       "lat": 47.21337541666667,
       "lng": -123.08926613888889,
       "hotspots": [],
       "source": "dji_20260930163301_0001_d"
+    },
+    {
+      "id": "p3",
+      "date": "2026-08-28",
+      "label": "2026-08-28",
+      "path": "img3",
+      "format": "raw",
+      "levels": [],
+      "mobile": 5000,
+      "heading_offset": 90.2,
+      "yaw": -2.686195005806031,
+      "pitch": 0.5877639588857875,
+      "lat": 47.21337883333334,
+      "lng": -123.08925963888889,
+      "hotspots": [],
+      "source": "dji_20260828133959_0001_d"
     }
-  ]
+  ],
+  "name": "North Lobe"
 }

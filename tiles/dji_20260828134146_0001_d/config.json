@@ -12,7 +12,7 @@
   "autorotate": false,
   "hotspots_1": [
     {
-      "yaw": 1.5564829847124129,
+      "yaw": 1.603729545348313,
       "pitch": -0.1203358652117199,
       "title": "South Lobe",
       "text": "",
@@ -22,7 +22,7 @@
       "target": "dji_20260828132858_0001_d"
     },
     {
-      "yaw": 2.286621536084727,
+      "yaw": 2.3068641435344386,
       "pitch": -0.1637290856860929,
       "title": "West Lobe - East View",
       "text": "",
@@ -32,7 +32,7 @@
       "target": "dji_20260828133337_0001_d"
     },
     {
-      "yaw": 3.0239180236816656,
+      "yaw": 2.9269402074538604,
       "pitch": -0.17089227859409917,
       "title": "Shelton Creek",
       "text": "",
@@ -42,7 +42,7 @@
       "target": "dji_20260828133753_0001_d"
     },
     {
-      "yaw": 2.822654380425023,
+      "yaw": 3.2003704836508713,
       "pitch": -0.2553174452516114,
       "title": "North Lobe",
       "text": "",
@@ -52,7 +52,7 @@
       "target": "dji_20260828133959_0001_d"
     },
     {
-      "yaw": 2.242616667763155,
+      "yaw": 2.269865595884976,
       "pitch": -0.011382475401866543,
       "title": "ELJs",
       "text": "",
@@ -62,7 +62,7 @@
       "target": "dji_20260828133132_0001_d"
     },
     {
-      "yaw": 2.4799035412566575,
+      "yaw": 2.5251954175440083,
       "pitch": -0.15292785182109014,
       "title": "West Lobe - High Berm",
       "text": "",
@@ -79,5 +79,7 @@
   "basemap_type": "esri_tile",
   "basemap_url": "https://tiles.arcgis.com/tiles/buuvDFFARQiOEbVZ/arcgis/rest/services/WOB_Ortho_20250530/MapServer/tile/{z}/{y}/{x}",
   "mobile_1": 5000,
-  "mobile_2": 0
+  "mobile_2": 0,
+  "platform": "aerial",
+  "heading_offset": 89.73325813890665
 }

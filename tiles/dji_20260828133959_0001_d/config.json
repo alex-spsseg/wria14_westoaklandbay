@@ -26,7 +26,7 @@
       ]
     },
     {
-      "yaw": 1.2139107379187273,
+      "yaw": 1.061391388014965,
       "pitch": -0.09908712209277226,
       "title": "South Lobe",
       "text": "",
@@ -38,7 +38,7 @@
       "images": []
     },
     {
-      "yaw": 1.959188551739735,
+      "yaw": 1.7185659450548685,
       "pitch": -0.10475761312284071,
       "title": "West Lobe - East View",
       "text": "",
@@ -50,7 +50,7 @@
       "images": []
     },
     {
-      "yaw": 2.9169337291920607,
+      "yaw": 2.4657849103606533,
       "pitch": -0.1281667433799356,
       "title": "Shelton Creek",
       "text": "",
@@ -62,7 +62,7 @@
       "images": []
     },
     {
-      "yaw": -0.1608513246890535,
+      "yaw": 6.110356920442436,
       "pitch": -0.072285008068949,
       "title": "Yacht Club",
       "text": "",
@@ -81,5 +81,7 @@
   "basemap_type": "esri_tile",
   "basemap_url": "https://tiles.arcgis.com/tiles/buuvDFFARQiOEbVZ/arcgis/rest/services/WOB_Ortho_20250530/MapServer/tile/{z}/{y}/{x}",
   "mobile_1": 5000,
-  "mobile_2": 0
+  "mobile_2": 0,
+  "platform": "aerial",
+  "heading_offset": 103.00213392426565
 }

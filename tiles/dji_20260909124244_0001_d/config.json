@@ -21,6 +21,8 @@
       "pin_style": "label_always",
       "target": "dji_20260909123847_0001_d",
       "id": "h1",
+      "link_icon": "aerial",
+      "images": [],
       "bearing": 214.8972563456162
     },
     {
@@ -32,6 +34,8 @@
       "pin_style": "label_always",
       "target": "dji_20260909124045_0001_d",
       "id": "h2",
+      "link_icon": "aerial",
+      "images": [],
       "bearing": 245.2810515102637
     },
     {
@@ -43,6 +47,8 @@
       "pin_style": "label_always",
       "target": "dji_20260909123432_0001_d",
       "id": "h3",
+      "link_icon": "aerial",
+      "images": [],
       "bearing": 145.60858471956192
     },
     {
@@ -54,6 +60,8 @@
       "pin_style": "label_always",
       "target": "dji_20260909123649_0001_d",
       "id": "h4",
+      "link_icon": "aerial",
+      "images": [],
       "bearing": 214.77599510860335
     },
     {
@@ -110,7 +118,7 @@
       "pin_style": "label_hover",
       "target": "img_20260909_115850_00_978",
       "id": "h9",
-      "bearing": 215.03957275446464
+      "bearing": 215.03957275446467
     },
     {
       "pitch": 0.45515332835999267,
@@ -121,6 +129,8 @@
       "pin_style": "label_always",
       "target": "dji_20260909124449_0001_d",
       "id": "h10",
+      "link_icon": "aerial",
+      "images": [],
       "bearing": 334.055050528696
     },
     {
@@ -132,7 +142,9 @@
       "pin_style": "label_always",
       "target": "dji_20260909124644_0001_d",
       "id": "h11",
-      "bearing": 13.039485865151086
+      "link_icon": "aerial",
+      "images": [],
+      "bearing": 13.039485865151107
     },
     {
       "pitch": 0.38070109391881957,
@@ -144,6 +156,7 @@
       "target": "dji_20260909124850_0001_d",
       "images": [],
       "id": "h12",
+      "link_icon": "aerial",
       "bearing": 43.44807712498135
     },
     {
@@ -215,5 +228,6 @@
       "hotspots": [],
       "source": "dji_20260930162913_0001_d"
     }
-  ]
+  ],
+  "listed": false
 }

@@ -6,6 +6,7 @@
       "display_name": "Overview",
       "lat": 47.21176508333333,
       "lng": -123.08991633333333,
+      "platform": "aerial",
       "photo": "p1"
     },
     {
@@ -13,6 +14,7 @@
       "display_name": "South Lobe",
       "lat": 47.20993666666667,
       "lng": -123.08778997222221,
+      "platform": "aerial",
       "photo": "p1"
     },
     {
@@ -20,6 +22,7 @@
       "display_name": "ELJs on Goldsborough",
       "lat": 47.21002547222223,
       "lng": -123.09168627777777,
+      "platform": "aerial",
       "photo": "p1"
     },
     {
@@ -27,6 +30,7 @@
       "display_name": "West Lobe - High Berm View",
       "lat": 47.21126463888889,
       "lng": -123.09188036111111,
+      "platform": "aerial",
       "photo": "p1"
     },
     {
@@ -34,6 +38,7 @@
       "display_name": "West Lobe - East View",
       "lat": 47.211100638888894,
       "lng": -123.09057949999999,
+      "platform": "aerial",
       "photo": "p1"
     },
     {
@@ -71,6 +76,7 @@
       "display_name": "Shelton Creek",
       "lat": 47.212814111111115,
       "lng": -123.09098436111111,
+      "platform": "aerial",
       "photo": "p1"
     },
     {
@@ -78,6 +84,7 @@
       "display_name": "North Lobe",
       "lat": 47.2133745,
       "lng": -123.0892648611111,
+      "platform": "aerial",
       "photo": "p1"
     },
     {
@@ -85,6 +92,7 @@
       "display_name": "Yacht Club",
       "lat": 47.213319444444444,
       "lng": -123.0876486111111,
+      "platform": "aerial",
       "photo": "p1"
     }
   ],
@@ -92,7 +100,7 @@
   "basemap_url": "http://mt0.google.com/vt/lyrs=s&hl=en&x={x}&y={y}&z={z}",
   "overlays": [
     {
-      "label": "Ortho (9/7/2026, -0.7ft)",
+      "label": "Ortho (9/9/2026, -0.7ft)",
       "url": "https://tiles.arcgis.com/tiles/buuvDFFARQiOEbVZ/arcgis/rest/services/WOB_20260909_minus0p7_ortho/MapServer/tile/{z}/{y}/{x}",
       "opacity": 1.0,
       "default_on": true,
@@ -114,5 +122,6 @@
     }
   ],
   "forward_label": "Forward",
-  "backward_label": "Back"
+  "backward_label": "Back",
+  "field_visit_date": "2026-09-09"
 }

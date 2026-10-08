@@ -12,7 +12,7 @@
   "autorotate": false,
   "hotspots_1": [
     {
-      "yaw": 2.1612598336367235,
+      "yaw": 2.1997676678524822,
       "pitch": -0.1765749242318826,
       "title": "West Lobe - East View",
       "text": "",
@@ -42,7 +42,7 @@
       "target": "img_20260828_121536_00_969"
     },
     {
-      "yaw": -3.0744936331530113,
+      "yaw": 3.194003577392598,
       "pitch": -0.09708063978025194,
       "title": "South Lobe",
       "text": "",
@@ -52,7 +52,7 @@
       "target": "dji_20260828132858_0001_d"
     },
     {
-      "yaw": 1.1475938020531071,
+      "yaw": 1.4841319008002127,
       "pitch": -0.2737889102619242,
       "title": "West Lobe - High Berm",
       "text": "",
@@ -69,5 +69,7 @@
   "basemap_type": "esri_tile",
   "basemap_url": "https://tiles.arcgis.com/tiles/buuvDFFARQiOEbVZ/arcgis/rest/services/WOB_Ortho_20250530/MapServer/tile/{z}/{y}/{x}",
   "mobile_1": 5000,
-  "mobile_2": 0
+  "mobile_2": 0,
+  "platform": "aerial",
+  "heading_offset": 268.93115531452133
 }

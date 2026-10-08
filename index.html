@@ -704,7 +704,7 @@
 </head>
 <body>
 
-  <div id="build-timestamp">Built 2026-10-08 12:06:22</div>
+  <div id="build-timestamp">Built 2026-10-08 13:39:59</div>
 
   <div id="status-banner"></div>
 
@@ -830,7 +830,7 @@
 
   <script>
     const urlParams = new URLSearchParams(window.location.search);
-    let rawSiteId = urlParams.get('site') || urlParams.get('well') || 'dji_20260909124244_0001_d';
+    let rawSiteId = urlParams.get('site') || urlParams.get('well') || 'sheltoncreek_location';
     const siteId = rawSiteId.trim().toLowerCase().replace(/[\s-]+/g, '_');
 
     const tourParam = urlParams.get('tour');
@@ -845,6 +845,15 @@
     var unplacedBySite = {};
     function locPhotoFor(sid) {
       return (sid != null && locPhotoBySite[sid] != null) ? locPhotoBySite[sid] : null;
+    }
+    var locSlotsBySite = {}; // compare views: hotspot slot '1'/'2' -> photo index
+    var locTsBySite = {};    // dates view: slots are positions in the date ordered strip
+    function locSlotsFor(sid) { return locSlotsBySite[sid] || null; }
+    // For "Use This View": 0 is the left photo, 1 the right one.
+    function locPhotoForSlotIndex(sid, idx) {
+      var slots = locSlotsBySite[sid];
+      if (slots) return locTsBySite[sid] ? slots[String(idx)] : slots[idx === 0 ? '1' : '2'];
+      return locPhotoFor(sid);
     }
     var tourReloadStopFn = function () {}; // real implementation assigned inside renderTourPage
     // After a heading is saved on a photo whose shared links were waiting for
@@ -882,7 +891,7 @@
       fetch('/__save_view', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ site_id: targetSiteId, yaw: yawDeg, pitch: pitchDeg, photo_index: photoIndex, loc_photo: locPhotoFor(targetSiteId) }),
+        body: JSON.stringify({ site_id: targetSiteId, yaw: yawDeg, pitch: pitchDeg, photo_index: photoIndex, loc_photo: locPhotoForSlotIndex(targetSiteId, photoIndex) }),
       }).then(res => {
         useViewBtn.textContent = res.ok ? 'Captured!' : 'Failed, try again';
         setTimeout(() => { useViewBtn.textContent = original; }, 1400);
@@ -1504,18 +1513,23 @@
         throw new Error('missing-config');
       })
       .then(config => {
-        config = normalizeLocationConfig(config, null, false);
+        config = normalizeLocationConfig(config, null, false, {
+          view: urlParams.get('view'), a: urlParams.get('a'), b: urlParams.get('b'),
+        });
         if (config._location && config._photoIndex != null) {
           locPhotoBySite[siteId] = config._photoIndex;
           unplacedBySite[siteId] = config._unplacedLinks || [];
         }
+        if (config._locSlots) locSlotsBySite[siteId] = config._locSlots;
+        if (config._locTs) locTsBySite[siteId] = true;
+        if (config._locDates && config._locDates.length >= 2) buildLocationToolbar(config);
         const mode = config.mode || 'single';
         siteDefaultPinStyle = config.pin_style === 'label' ? 'label' : 'dot';
         currentHeadingOffset = config.heading_offset || 0;
         headingIsKnown = config.heading_offset != null;
         updateHeadingDialDisplay();
 
-        var pageTitle = config.label_1 ||
+        var pageTitle = config._locName || config.label_1 ||
             (config.photos && config.photos[0] && config.photos[0].label) || rawSiteId;
         document.title = pageTitle;
 
@@ -1538,18 +1552,21 @@
           tsPhotos = config.photos || [];
           var strip = document.getElementById('timeseries-strip');
           strip.style.display = 'flex';
+          var tsStart = config._locStart || 0;
+          tsActiveIdx = tsStart;
 
           tsPhotos.forEach((p, idx) => {
             var view = new Marzipano.RectilinearView({ yaw: p.yaw || 0, pitch: p.pitch || 0, fov: Math.PI / 4 }, limiter);
             var geometry, source, thumbUrl;
             if ((p.format || (isTiledTs ? 'tiled' : 'raw')) === 'tiled') {
               geometry = new Marzipano.CubeGeometry((p.levels && p.levels.length) ? p.levels : defaultLevelsTs);
-              source = Marzipano.ImageUrlSource.fromString('tiles/' + siteId + '/img' + (idx + 1) + '/scene/{z}/{f}/{y}/{x}.jpg');
-              thumbUrl = 'tiles/' + siteId + '/img' + (idx + 1) + '/scene/1/f/0/0.jpg';
+              var tsImg = p._img || ('img' + (idx + 1));
+              source = Marzipano.ImageUrlSource.fromString('tiles/' + siteId + '/' + tsImg + '/scene/{z}/{f}/{y}/{x}.jpg');
+              thumbUrl = 'tiles/' + siteId + '/' + tsImg + '/scene/1/f/0/0.jpg';
               tsRawUrls.push(null);
             } else {
               geometry = new Marzipano.EquirectGeometry([{ width: rawEquirectWidth(p.mobile) }]);
-              var tsFullUrl = 'tiles/' + siteId + '/img' + (idx + 1) + '.jpg';
+              var tsFullUrl = 'tiles/' + siteId + '/' + (p._img || ('img' + (idx + 1))) + '.jpg';
               var tsImgUrl = rawImageUrl(tsFullUrl, p.mobile);
               source = Marzipano.ImageUrlSource.fromString(tsImgUrl);
               thumbUrl = tsFullUrl;
@@ -1562,7 +1579,7 @@
             tsViews.push(view);
 
             var el = document.createElement('div');
-            el.className = 'ts-thumb' + (idx === 0 ? ' active' : '');
+            el.className = 'ts-thumb' + (idx === tsStart ? ' active' : '');
             el.style.backgroundImage = "url('" + thumbUrl + "')";
             var lbl = document.createElement('div');
             lbl.className = 'ts-thumb-label';
@@ -1573,13 +1590,13 @@
           });
 
           if (tsScenes.length) {
-            if (tsRawUrls[0]) {
-              preloadPanoThenRun(tsRawUrls[0], 'left', function () { tsScenes[0].switchTo(); });
+            if (tsRawUrls[tsStart]) {
+              preloadPanoThenRun(tsRawUrls[tsStart], 'left', function () { tsScenes[tsStart].switchTo(); });
             } else {
               document.getElementById('pano-loading-left').classList.add('hidden');
-              tsScenes[0].switchTo();
+              tsScenes[tsStart].switchTo();
             }
-            document.getElementById('label-left').innerText = (tsPhotos[0] && tsPhotos[0].label) || 'Photo 1';
+            document.getElementById('label-left').innerText = (tsPhotos[tsStart] && tsPhotos[tsStart].label) || ('Photo ' + (tsStart + 1));
           }
 
           useViewBtn.addEventListener('click', () => {
@@ -1626,27 +1643,37 @@
 
         var geometryL, geometryR, sourceL, sourceR;
         var defaultLevels = [{ tileSize: 256, size: 256, fallbackOnly: true }, { tileSize: 512, size: 512 }, { tileSize: 512, size: 1024 }, { tileSize: 512, size: 2048 }];
+        // Each side is tiled or raw on its own, since two dates of one
+        // location can be stored differently. Older sites set one format
+        // for both and have no format_1/format_2.
+        var isTiledL = (config.format_1 || config.format) === 'tiled';
+        var isTiledR = (config.format_2 || config.format) === 'tiled';
+        var imgNameL = config._imgNameL || config._imgName || 'img1';
+        var imgNameR = config._imgNameR || 'img2';
 
-        if (isTiled) {
+        if (isTiledL) {
           geometryL = new Marzipano.CubeGeometry(
               (config.levels_1 && config.levels_1.length) ? config.levels_1 : defaultLevels);
-          sourceL = Marzipano.ImageUrlSource.fromString('tiles/' + siteId + '/' + (config._imgName || 'img1') + '/scene/{z}/{f}/{y}/{x}.jpg');
-          if (!isSingleMode) {
-            geometryR = new Marzipano.CubeGeometry(
-                (config.levels_2 && config.levels_2.length) ? config.levels_2 : defaultLevels);
-            sourceR = Marzipano.ImageUrlSource.fromString('tiles/' + siteId + '/img2/scene/{z}/{f}/{y}/{x}.jpg');
-          }
+          sourceL = Marzipano.ImageUrlSource.fromString('tiles/' + siteId + '/' + imgNameL + '/scene/{z}/{f}/{y}/{x}.jpg');
           // Tiled scenes load many small tiles progressively -- there's
           // no single big payload to wait on, so no blocking spinner.
           document.getElementById('pano-loading-left').classList.add('hidden');
         } else {
           geometryL = new Marzipano.EquirectGeometry([{ width: rawEquirectWidth(config.mobile_1) }]);
-          geometryR = geometryL;
-          var img1Url = rawImageUrl('tiles/' + siteId + '/' + (config._imgName || 'img1') + '.jpg', config.mobile_1);
+          var img1Url = rawImageUrl('tiles/' + siteId + '/' + imgNameL + '.jpg', config.mobile_1);
           sourceL = Marzipano.ImageUrlSource.fromString(img1Url);
           preloadPanoThenRun(img1Url, 'left', function () {});
-          if (!isSingleMode) {
-            var img2Url = rawImageUrl('tiles/' + siteId + '/img2.jpg', config.mobile_2);
+        }
+        if (!isSingleMode) {
+          if (isTiledR) {
+            geometryR = new Marzipano.CubeGeometry(
+                (config.levels_2 && config.levels_2.length) ? config.levels_2 : defaultLevels);
+            sourceR = Marzipano.ImageUrlSource.fromString('tiles/' + siteId + '/' + imgNameR + '/scene/{z}/{f}/{y}/{x}.jpg');
+            var loadingR = document.getElementById('pano-loading-right');
+            if (loadingR) loadingR.classList.add('hidden');
+          } else {
+            geometryR = new Marzipano.EquirectGeometry([{ width: rawEquirectWidth(config.mobile_2 || config.mobile_1) }]);
+            var img2Url = rawImageUrl('tiles/' + siteId + '/' + imgNameR + '.jpg', config.mobile_2);
             sourceR = Marzipano.ImageUrlSource.fromString(img2Url);
             preloadPanoThenRun(img2Url, 'right', function () {});
           }
@@ -2290,16 +2317,80 @@
       return out;
     }
 
-    function normalizeLocationConfig(cfg, photoId, forceSingle) {
+    function fmtLocDate(dateStr) {
+      var d = new Date(dateStr + 'T00:00:00');
+      return (dateStr && !isNaN(d.getTime())) ? d.toLocaleDateString() : (dateStr || '');
+    }
+
+    // Photos in date order (ties keep storage order), as indexes.
+    function locationDateOrder(cfg) {
+      var ph = cfg.photos || [];
+      return ph.map(function (p, i) { return i; }).sort(function (x, y) {
+        return String(ph[x].date || '').localeCompare(String(ph[y].date || '')) || (x - y);
+      });
+    }
+
+    function locationDatesList(cfg) {
+      return locationDateOrder(cfg).map(function (i) {
+        var p = cfg.photos[i];
+        return { idx: i, id: p.id, date: p.date, text: fmtLocDate(p.date) || p.label || p.id };
+      });
+    }
+
+    // Two dates of one location as the older two photo compare shapes the
+    // viewer already knows: view is 'compare' (side by side), 'curtain'
+    // (swipe) or 'toggle'. Both photos' shared links are drawn using each
+    // photo's own heading, and when both headings are known the right
+    // photo starts facing the same compass direction as the left one.
+    function locationCompareConfig(cfg, base, view, aId, bId) {
+      var photos = cfg.photos;
+      var idxOf = function (id) {
+        for (var i = 0; i < photos.length; i++) { if (photos[i].id === id) return i; }
+        return -1;
+      };
+      var ia = idxOf(aId), ib = idxOf(bId);
+      if (ia < 0 || ib < 0 || ia === ib) {
+        var order = locationDateOrder(cfg);
+        ia = order[order.length - 2];
+        ib = order[order.length - 1];
+      }
+      var A = photos[ia], B = photos[ib];
+      var yawA = A.yaw || 0, yawB = B.yaw || 0;
+      if (A.heading_offset != null && B.heading_offset != null) {
+        yawB = yawA + (A.heading_offset - B.heading_offset) * Math.PI / 180;
+      }
+      return Object.assign(base, {
+        mode: view === 'curtain' ? 'curtain' : (view === 'toggle' ? 'toggle' : 'compare'),
+        format_1: A.format || 'raw', format_2: B.format || 'raw',
+        levels_1: A.levels || [], levels_2: B.levels || [],
+        mobile_1: A.mobile || 0, mobile_2: B.mobile || 0,
+        yaw_1: yawA, pitch_1: A.pitch || 0, yaw_2: yawB, pitch_2: B.pitch || 0,
+        label_1: fmtLocDate(A.date) || A.label || 'Photo A', label_2: fmtLocDate(B.date) || B.label || 'Photo B',
+        hotspots_1: resolveLocationHotspots(cfg, A), hotspots_2: resolveLocationHotspots(cfg, B),
+        heading_offset: A.heading_offset == null ? null : A.heading_offset,
+        _imgNameL: A.path || ('img' + (ia + 1)), _imgNameR: B.path || ('img' + (ib + 1)),
+        _photoIndex: ia, _locSlots: { '1': ia, '2': ib },
+        _locView: view, _locDates: locationDatesList(cfg), _locA: A.id, _locB: B.id,
+      });
+    }
+
+    function normalizeLocationConfig(cfg, photoId, forceSingle, params) {
       if (!cfg || cfg.mode !== 'location' || !(cfg.photos && cfg.photos.length)) return cfg;
       var base = {
         pin_style: cfg.pin_style, lat: cfg.lat, lng: cfg.lng, autorotate: cfg.autorotate,
         basemap_type: cfg.basemap_type, basemap_url: cfg.basemap_url, overlays: cfg.overlays,
-        _location: true, _platform: cfg.platform,
+        _location: true, _platform: cfg.platform, _locName: cfg.name || null,
       };
+      var view = (params && params.view) || 'compare';
+      if (view === 'toggle') view = 'compare'; // Toggle isn't offered any more; old links still open
+      if (!forceSingle && cfg.photos.length >= 2 && (view === 'compare' || view === 'curtain')) {
+        return locationCompareConfig(cfg, base, view, params && params.a, params && params.b);
+      }
       if (cfg.photos.length === 1 || forceSingle) {
         var idx = locationPhotoIndex(cfg, photoId);
         var p = cfg.photos[idx];
+        var order = locationDateOrder(cfg);
+        var otherIdx = order.filter(function (i) { return i !== idx; }).pop();
         return Object.assign(base, {
           mode: 'single', format: p.format || 'raw', levels_1: p.levels || [], mobile_1: p.mobile || 0,
           yaw_1: p.yaw || 0, pitch_1: p.pitch || 0, label_1: p.label || '',
@@ -2308,15 +2399,28 @@
           _unplacedLinks: p.heading_offset == null
               ? (cfg.hotspots || []).filter(function (h) { return h.category === 'link' && h.target; })
               : [],
-          _photoIndex: idx, _imgName: p.path || ('img' + (idx + 1)),
+          _photoIndex: idx, _imgName: p.path || ('img' + (idx + 1)), _photoId: p.id,
+          _locDates: locationDatesList(cfg),
+          _locCompare: otherIdx == null ? null : { a: p.id, b: cfg.photos[otherIdx].id },
         });
       }
+      // The Dates strip runs oldest to newest and opens on the default (newest)
+      // photo. Each entry remembers its image folder and its place in the
+      // stored list, so images and saves still go to the right photo.
+      var dateOrder = locationDateOrder(cfg);
+      var tsSlots = {};
+      dateOrder.forEach(function (storeIdx, i) { tsSlots[String(i)] = storeIdx; });
+      var startStore = locationPhotoIndex(cfg, null);
       return Object.assign(base, {
         mode: 'timeseries', format: cfg.photos[0].format || 'raw', heading_offset: null,
-        photos: cfg.photos.map(function (p) {
+        _locView: 'dates', _locDates: locationDatesList(cfg), _locA: null, _locB: null,
+        _locSlots: tsSlots, _locTs: true, _locStart: Math.max(dateOrder.indexOf(startStore), 0),
+        photos: dateOrder.map(function (storeIdx) {
+          var p = cfg.photos[storeIdx];
           return {
-            label: p.label || p.date || '', yaw: p.yaw || 0, pitch: p.pitch || 0, format: p.format || 'raw',
+            label: fmtLocDate(p.date) || p.label || '', yaw: p.yaw || 0, pitch: p.pitch || 0, format: p.format || 'raw',
             levels: p.levels || [], mobile: p.mobile || 0, hotspots: resolveLocationHotspots(cfg, p),
+            _img: p.path || ('img' + (storeIdx + 1)),
           };
         }),
       });
@@ -2351,6 +2455,118 @@
           return manifest;
         })
         .catch(function () { return manifest; });
+    }
+
+    // Date and compare controls for a location with two or more dates. Changing
+    // anything reloads the page with the choice in the address, so every view
+    // can be bookmarked or shared as a link.
+    function buildLocationToolbar(config) {
+      var dates = config._locDates, view = config._locView;
+      var bar = document.createElement('div');
+      bar.id = 'loc-toolbar';
+      bar.style.cssText = 'position:fixed;top:52px;left:50%;transform:translateX(-50%);z-index:1002;' +
+          'display:flex;flex-wrap:wrap;gap:6px;align-items:center;justify-content:center;max-width:94vw;' +
+          'padding:6px 8px;background:rgba(10,20,40,0.88);border:1px solid #019fc4;border-radius:8px;' +
+          'color:#fff;font:bold 12px system-ui,sans-serif;';
+      if (config._locName) {
+        var nameEl = document.createElement('div');
+        nameEl.textContent = config._locName;
+        nameEl.style.cssText = 'font:bold 14px system-ui,sans-serif;padding:0 8px 0 4px;color:#fff;';
+        bar.appendChild(nameEl);
+      }
+      var go = function (next) {
+        var q = new URLSearchParams(window.location.search);
+        Object.keys(next).forEach(function (k) { if (next[k] == null) q.delete(k); else q.set(k, next[k]); });
+        window.location.search = q.toString();
+      };
+      // Location picker: every place photographed on more than one date.
+      // Switched off for now (one location at a time); set to true to bring it back.
+      var showLocationPicker = false;
+      var locWrap = document.createElement('label');
+      locWrap.style.cssText = 'display:none;align-items:center;gap:4px;';
+      locWrap.appendChild(document.createTextNode('Location'));
+      var locSel = document.createElement('select');
+      locSel.style.cssText = 'background:#0a1428;color:#fff;border:1px solid #019fc4;border-radius:4px;padding:5px;font-size:12px;max-width:220px;';
+      locWrap.appendChild(locSel);
+      if (showLocationPicker) bar.appendChild(locWrap);
+      fetch(showLocationPicker ? 'tiles/_locations.json' : 'data:application/json,[]', { cache: 'no-store' })
+        .then(function (res) { return res.ok ? res.json() : []; })
+        .then(function (list) {
+          if (!Array.isArray(list) || list.length < 2) return;
+          list.forEach(function (l) {
+            var o = document.createElement('option');
+            o.value = l.site_id;
+            o.textContent = l.name || l.site_id;
+            if (l.site_id === siteId) o.selected = true;
+            locSel.appendChild(o);
+          });
+          locWrap.style.display = 'flex';
+          locSel.addEventListener('change', function () {
+            go({ site: locSel.value, view: view, a: null, b: null });
+          });
+        })
+        .catch(function () {});
+      [['dates', 'Dates'], ['compare', 'Side by side'], ['curtain', 'Swipe']].forEach(function (vw) {
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'ctrl-btn';
+        b.textContent = vw[1];
+        if (view === vw[0]) b.style.cssText = 'background:#019fc4;color:#0e1b33;';
+        b.addEventListener('click', function () { go({ view: vw[0] }); });
+        bar.appendChild(b);
+      });
+      if (view !== 'dates') {
+        var mkSel = function (label, current, key) {
+          var wrap = document.createElement('label');
+          wrap.style.cssText = 'display:flex;align-items:center;gap:4px;';
+          wrap.appendChild(document.createTextNode(label));
+          var sel = document.createElement('select');
+          sel.style.cssText = 'background:#0a1428;color:#fff;border:1px solid #019fc4;border-radius:4px;padding:5px;font-size:12px;';
+          dates.forEach(function (d) {
+            var o = document.createElement('option');
+            o.value = d.id;
+            o.textContent = d.text;
+            if (d.id === current) o.selected = true;
+            sel.appendChild(o);
+          });
+          sel.addEventListener('change', function () {
+            var next = { view: view, a: config._locA, b: config._locB };
+            next[key] = sel.value;
+            go(next);
+          });
+          wrap.appendChild(sel);
+          return wrap;
+        };
+        bar.appendChild(mkSel('Left', config._locA, 'a'));
+        bar.appendChild(mkSel('Right', config._locB, 'b'));
+      }
+      document.body.appendChild(bar);
+    }
+
+    // Inside a tour: a button on any stop that has other dates, opening that
+    // location's compare page with this tour's photo on the left.
+    var tourCompareInfo = {};
+    var tourCompareBtn = null;
+    function updateTourCompareButton(sid) {
+      var info = sid ? tourCompareInfo[sid] : null;
+      if (!tourCompareBtn) {
+        tourCompareBtn = document.createElement('button');
+        tourCompareBtn.type = 'button';
+        tourCompareBtn.className = 'ctrl-btn';
+        tourCompareBtn.textContent = 'Compare Dates';
+        tourCompareBtn.style.cssText = 'position:fixed;top:52px;left:50%;transform:translateX(-50%);z-index:1002;display:none;';
+        tourCompareBtn.addEventListener('click', function () {
+          if (tourCompareBtn.dataset.href) window.open(tourCompareBtn.dataset.href, '_blank');
+        });
+        document.body.appendChild(tourCompareBtn);
+      }
+      if (info) {
+        tourCompareBtn.dataset.href = 'index.html?site=' + encodeURIComponent(sid) + '&view=compare&a=' +
+            encodeURIComponent(info.a) + '&b=' + encodeURIComponent(info.b);
+        tourCompareBtn.style.display = 'inline-block';
+      } else {
+        tourCompareBtn.style.display = 'none';
+      }
     }
 
     function tourPhotoIdFor(sid) {
@@ -3101,7 +3317,7 @@
       fetch('/__save_hotspots', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ site_id: siteId, slots: pendingSlotHotspots, loc_photo: locPhotoFor(siteId) }),
+        body: JSON.stringify({ site_id: siteId, slots: pendingSlotHotspots, loc_photo: locSlotsFor(siteId) ? null : locPhotoFor(siteId), loc_slots: locSlotsFor(siteId) }),
       }).then(res => {
         saveHotspotsBtn.textContent = res.ok ? 'Saved!' : 'Failed, try again';
         setTimeout(() => { saveHotspotsBtn.textContent = original; }, 1400);
@@ -4045,6 +4261,7 @@
         var fallbackLabel = linkEl ? linkEl.textContent : sid;
         activeTourSiteId = sid;
         updateActiveMapMarker();
+        updateTourCompareButton(null);
 
         if (sceneCache[sid] && sceneCache[sid].flat) {
           showFlatStop(sid, sceneCache[sid].config, fallbackLabel);
@@ -4068,6 +4285,7 @@
           mapToggleBtn.style.display = cached.hasMap ? 'inline-block' : 'none';
           hotspotsToggleBtn.style.display = cached.hasHotspots ? 'inline-block' : 'none';
           refreshHotspotList();
+          updateTourCompareButton(sid);
           return;
         }
 
@@ -4083,6 +4301,8 @@
           if (config._location) {
             locPhotoBySite[sid] = config._photoIndex;
             unplacedBySite[sid] = config._unplacedLinks || [];
+            tourCompareInfo[sid] = config._locCompare || null;
+            updateTourCompareButton(sid);
           }
           if (config.mode === 'flat') {
             showFlatStop(sid, config, fallbackLabel);

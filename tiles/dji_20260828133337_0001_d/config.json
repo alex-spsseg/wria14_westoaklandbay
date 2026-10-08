@@ -12,7 +12,7 @@
   "autorotate": false,
   "hotspots_1": [
     {
-      "yaw": -2.043673801873755,
+      "yaw": 4.249690413563754,
       "pitch": -0.14254680195278624,
       "title": "West Lobe - High Berm",
       "text": "",
@@ -22,7 +22,7 @@
       "target": "dji_20260828133527_0001_d"
     },
     {
-      "yaw": 3.077993226956071,
+      "yaw": 3.1083223371784534,
       "pitch": 0.08815736602260316,
       "title": "ELJs",
       "text": "",
@@ -32,7 +32,7 @@
       "target": "dji_20260828133132_0001_d"
     },
     {
-      "yaw": 1.5027304410416056,
+      "yaw": 1.478646627439294,
       "pitch": -0.08272904377735912,
       "title": "South Lobe",
       "text": "",
@@ -62,7 +62,7 @@
       "target": ""
     },
     {
-      "yaw": 0.11777837039432981,
+      "yaw": 0.08777376976517556,
       "pitch": -0.06283288002483545,
       "title": "Yacht Club",
       "text": "",
@@ -72,7 +72,7 @@
       "target": "dji_20260828134146_0001_d"
     },
     {
-      "yaw": -0.19450876285005947,
+      "yaw": 6.014267094874529,
       "pitch": -0.09944740680812814,
       "title": "North Lobe",
       "text": "",
@@ -82,7 +82,7 @@
       "target": "dji_20260828133959_0001_d"
     },
     {
-      "yaw": -0.9447064693935587,
+      "yaw": 5.479355712586455,
       "pitch": -0.08121096805608019,
       "title": "Shelton Creek",
       "text": "",
@@ -109,5 +109,7 @@
   "basemap_type": "esri_tile",
   "basemap_url": "https://tiles.arcgis.com/tiles/buuvDFFARQiOEbVZ/arcgis/rest/services/WOB_Ortho_20250530/MapServer/tile/{z}/{y}/{x}",
   "mobile_1": 5000,
-  "mobile_2": 0
+  "mobile_2": 0,
+  "platform": "aerial",
+  "heading_offset": 36.87562039629097
 }

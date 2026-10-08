@@ -1,0 +1,78 @@
+{
+  "mode": "location",
+  "schema": 1,
+  "lat": 47.212814111111115,
+  "lng": -123.09098558333334,
+  "pin_style": "dot",
+  "autorotate": false,
+  "basemap_type": "xyz_tile",
+  "basemap_url": "http://mt0.google.com/vt/lyrs=s&hl=en&x={x}&y={y}&z={z}",
+  "overlays": [
+    {
+      "label": "Ortho (9/30/2026)",
+      "url": "https://tiles.arcgis.com/tiles/buuvDFFARQiOEbVZ/arcgis/rest/services/WOB_20260930_plus5p8ft_ortho/MapServer/tile/{z}/{y}/{x}",
+      "opacity": 1.0,
+      "default_on": true,
+      "type": "tile"
+    },
+    {
+      "label": "Ortho (9/7/2026, -0.7ft)",
+      "url": "https://tiles.arcgis.com/tiles/buuvDFFARQiOEbVZ/arcgis/rest/services/WOB_20260909_minus0p7_ortho/MapServer/tile/{z}/{y}/{x}",
+      "opacity": 1.0,
+      "default_on": false,
+      "type": "tile"
+    },
+    {
+      "label": "Ortho (8/28/2026, -0.5ft)",
+      "url": "https://tiles.arcgis.com/tiles/buuvDFFARQiOEbVZ/arcgis/rest/services/WOB_20260828_minus0p5ft_ortho_tif/MapServer/tile/{z}/{y}/{x}",
+      "opacity": 1.0,
+      "default_on": false,
+      "type": "tile"
+    },
+    {
+      "label": "Ortho (5/30/2025, -0.02ft)",
+      "url": "https://tiles.arcgis.com/tiles/buuvDFFARQiOEbVZ/arcgis/rest/services/WOB_Ortho_20250530/MapServer/tile/{z}/{y}/{x}",
+      "opacity": 1.0,
+      "default_on": true,
+      "type": "tile"
+    }
+  ],
+  "default_photo": "p2",
+  "hotspots": [],
+  "photos": [
+    {
+      "id": "p1",
+      "date": "2026-08-28",
+      "label": "2026-08-28",
+      "path": "img1",
+      "format": "raw",
+      "levels": [],
+      "mobile": 5000,
+      "heading_offset": 325.6,
+      "yaw": 0.0,
+      "pitch": 0.0,
+      "lat": 47.212814111111115,
+      "lng": -123.09098558333334,
+      "hotspots": [],
+      "source": "img1"
+    },
+    {
+      "id": "p2",
+      "date": "2026-09-09",
+      "label": "2026-09-09",
+      "path": "img2",
+      "format": "raw",
+      "levels": [],
+      "mobile": 5000,
+      "heading_offset": 325.1,
+      "yaw": 0.0,
+      "pitch": 0.0,
+      "lat": 47.212814111111115,
+      "lng": -123.09098436111111,
+      "hotspots": [],
+      "source": "img2"
+    }
+  ],
+  "platform": "aerial",
+  "listed": false
+}

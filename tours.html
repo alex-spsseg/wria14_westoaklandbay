@@ -70,8 +70,8 @@
   </header>
   <h2 class="section-heading" id="tours-heading" style="display:none;">Tours</h2>
   <div id="tours-grid" class="grid"></div>
-  <h2 class="section-heading" id="sites-heading" style="display:none;">Sites</h2>
-  <div id="sites-grid" class="grid"></div>
+  <h2 class="section-heading" id="locations-heading" style="display:none;">Site Comparison</h2>
+  <div id="locations-grid" class="grid"></div>
   <div id="empty" style="display:none;">Nothing published yet.</div>
   <div id="error" style="display:none;">Could not load the tour list.</div>
 
@@ -92,12 +92,12 @@
       fetch('tours/_index.json', { cache: 'no-store' })
         .then(res => res.ok ? res.json() : [])
         .catch(() => []),
-      fetch('tiles/_index.json', { cache: 'no-store' })
+      fetch('tiles/_locations.json', { cache: 'no-store' })
         .then(res => res.ok ? res.json() : [])
         .catch(() => []),
-    ]).then(([tours, sites]) => {
+    ]).then(([tours, locations]) => {
       tours = Array.isArray(tours) ? tours : [];
-      sites = (Array.isArray(sites) ? sites : []).filter(s => s.listed);
+      locations = Array.isArray(locations) ? locations : [];
 
       renderCards(document.getElementById('tours-grid'), document.getElementById('tours-heading'), tours, t => {
         var a = document.createElement('a');
@@ -120,18 +120,28 @@
         return a;
       });
 
-      renderCards(document.getElementById('sites-grid'), document.getElementById('sites-heading'), sites, s => {
+      // Places photographed on more than one date: opens the compare page
+      // (side by side, swipe or toggle between any two dates).
+      renderCards(document.getElementById('locations-grid'), document.getElementById('locations-heading'), locations, l => {
         var a = document.createElement('a');
         a.className = 'tour-card';
-        a.href = 'index.html?site=' + encodeURIComponent(s.site_id);
-        var updated = s.updated ? new Date(s.updated).toLocaleDateString() : '';
+        a.href = 'index.html?site=' + encodeURIComponent(l.site_id) + '&view=compare';
+        var n = l.photos || (l.dates ? l.dates.length : 0);
+        // First and last date, e.g. "8/28/2026 to 9/30/2026". Dates are YYYY-MM-DD,
+        // read as local midnight so the day shown is the day typed.
+        var fmt = function (d) { return new Date(d + 'T00:00:00').toLocaleDateString(); };
+        var ds = (l.dates || []).filter(Boolean).slice().sort();
+        var range = '';
+        if (ds.length >= 2 && ds[0] !== ds[ds.length - 1]) range = fmt(ds[0]) + ' to ' + fmt(ds[ds.length - 1]);
+        else if (ds.length === 1) range = fmt(ds[0]);
         a.innerHTML =
-          '<h2>' + escapeHtml(s.name || s.site_id) + '</h2>' +
-          '<div class="meta">' + (updated ? 'updated ' + escapeHtml(updated) : '') + '</div>';
+          '<h2>' + escapeHtml(l.name || l.site_id) + '</h2>' +
+          '<div class="meta">' + n + ' dates' + (range ? ' &middot; ' + escapeHtml(range) : '') +
+          (l.aerial ? ' &middot; drone' : '') + '</div>';
         return a;
       });
 
-      if (!tours.length && !sites.length) {
+      if (!tours.length && !locations.length) {
         document.getElementById('empty').style.display = 'block';
       }
     }).catch(() => {

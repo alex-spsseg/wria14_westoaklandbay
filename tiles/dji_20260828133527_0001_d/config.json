@@ -22,7 +22,7 @@
       "target": "img_20260828_122223_00_970"
     },
     {
-      "yaw": 1.6552388716962065,
+      "yaw": 1.6798638027028037,
       "pitch": -0.06703471710962461,
       "title": "Shelton Creek",
       "text": "",
@@ -32,7 +32,7 @@
       "target": "dji_20260828133753_0001_d"
     },
     {
-      "yaw": 2.112552668396316,
+      "yaw": 2.006174256717635,
       "pitch": -0.06651062400217,
       "title": "North Lobe",
       "text": "",
@@ -42,7 +42,7 @@
       "target": "dji_20260828133959_0001_d"
     },
     {
-      "yaw": 2.379252323628851,
+      "yaw": 2.256714262989016,
       "pitch": -0.05396661591241525,
       "title": "Yacht Club",
       "text": "",
@@ -52,7 +52,7 @@
       "target": "dji_20260828134146_0001_d"
     },
     {
-      "yaw": -2.9029578793709234,
+      "yaw": 3.323430522296114,
       "pitch": -0.057110525627798836,
       "title": "South Lobe",
       "text": "",
@@ -62,7 +62,7 @@
       "target": "dji_20260828132858_0001_d"
     },
     {
-      "yaw": -2.079578032847726,
+      "yaw": 4.343295789852517,
       "pitch": 0.064414143538702,
       "title": "ELJs",
       "text": "",
@@ -73,7 +73,7 @@
       "images": []
     },
     {
-      "yaw": 3.1402461425232673,
+      "yaw": 3.058706979531471,
       "pitch": -0.14563532220630293,
       "title": "West Lobe - East",
       "text": "",
@@ -110,5 +110,7 @@
   "basemap_type": "esri_tile",
   "basemap_url": "https://tiles.arcgis.com/tiles/buuvDFFARQiOEbVZ/arcgis/rest/services/WOB_Ortho_20250530/MapServer/tile/{z}/{y}/{x}",
   "mobile_1": 5000,
-  "mobile_2": 0
+  "mobile_2": 0,
+  "platform": "aerial",
+  "heading_offset": 285.11299018678824
 }

@@ -1,5 +1,5 @@
 {
-  "name": "WOB Site Visit (8/28/2026, -0.02ft)",
+  "name": "Site Visit (-0.02ft)",
   "sites": [
     {
       "site_id": "dji_20260828132858_0001_d",
@@ -62,8 +62,17 @@
       "lng": -123.08764775
     }
   ],
-  "basemap_type": "esri_tile",
-  "basemap_url": "https://tiles.arcgis.com/tiles/buuvDFFARQiOEbVZ/arcgis/rest/services/WOB_Ortho_20250530/MapServer/tile/{z}/{y}/{x}",
+  "basemap_type": "xyz_tile",
+  "basemap_url": "http://mt0.google.com/vt/lyrs=s&hl=en&x={x}&y={y}&z={z}",
+  "overlays": [
+    {
+      "label": "Ortho (5/30/2025)",
+      "url": "https://tiles.arcgis.com/tiles/buuvDFFARQiOEbVZ/arcgis/rest/services/WOB_Ortho_20250530/MapServer/tile/{z}/{y}/{x}",
+      "opacity": 1.0,
+      "default_on": true,
+      "type": "tile"
+    }
+  ],
   "forward_label": "Forward",
   "backward_label": "Back"
 }

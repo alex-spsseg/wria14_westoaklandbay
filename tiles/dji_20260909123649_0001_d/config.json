@@ -1,34 +1,60 @@
 {
-  "mode": "single",
-  "format": "raw",
-  "yaw_1": -0.4328215265640196,
-  "pitch_1": 0.5932220714531624,
-  "yaw_2": 0.0,
-  "pitch_2": 0.0,
+  "mode": "location",
+  "schema": 1,
+  "migrated_from": "single",
+  "platform": "aerial",
   "lat": 47.21002547222223,
   "lng": -123.09168627777777,
-  "label_1": "DJI_20260909123649_0001_D (2026/09/09)",
-  "label_2": "",
+  "pin_style": "dot",
   "autorotate": false,
-  "hotspots_1": [
+  "basemap_type": "esri_tile",
+  "basemap_url": "https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}",
+  "overlays": null,
+  "default_photo": "p2",
+  "hotspots": [
     {
-      "yaw": 1.9635782426013886,
       "pitch": -0.42046226918955476,
       "title": "Overview",
       "text": "",
       "link": "",
       "category": "link",
       "pin_style": "label_always",
-      "target": "dji_20260909124244_0001_d"
+      "target": "dji_20260909124244_0001_d",
+      "id": "h1",
+      "bearing": 34.64951015245265
     }
   ],
-  "hotspots_2": [],
-  "levels_1": [],
-  "levels_2": [],
-  "pin_style": "dot",
-  "basemap_type": "esri_tile",
-  "basemap_url": "https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}",
-  "mobile_1": 5000,
-  "mobile_2": 0,
-  "heading_offset": 282.1447641076778
+  "photos": [
+    {
+      "id": "p1",
+      "date": "2026-09-09",
+      "label": "DJI_20260909123649_0001_D (2026/09/09)",
+      "path": "img1",
+      "format": "raw",
+      "levels": [],
+      "mobile": 5000,
+      "heading_offset": 282.1447641076778,
+      "yaw": -0.4328215265640196,
+      "pitch": 0.5932220714531624,
+      "lat": 47.21002547222223,
+      "lng": -123.09168627777777,
+      "hotspots": []
+    },
+    {
+      "id": "p2",
+      "date": "2026-09-30",
+      "label": "2026-09-30",
+      "path": "img2",
+      "format": "raw",
+      "levels": [],
+      "mobile": 5000,
+      "heading_offset": 271.9,
+      "yaw": 0.0,
+      "pitch": 0.0,
+      "lat": 47.21002738888889,
+      "lng": -123.09168691666666,
+      "hotspots": [],
+      "source": "dji_20260930162151_0001_d"
+    }
+  ]
 }

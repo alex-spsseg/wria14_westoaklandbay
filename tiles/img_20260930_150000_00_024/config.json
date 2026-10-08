@@ -1,0 +1,36 @@
+{
+  "mode": "single",
+  "format": "raw",
+  "yaw_1": 2.001892389377415,
+  "pitch_1": -0.009831901988823333,
+  "yaw_2": 0.0,
+  "pitch_2": 0.0,
+  "lat": 47.213386619911994,
+  "lng": -123.08969176993962,
+  "label_1": "IMG_20260930_150000_00_024 (2026/09/30)",
+  "label_2": "",
+  "autorotate": false,
+  "hotspots_1": [
+    {
+      "yaw": 5.694589206549406,
+      "pitch": -0.6238935587571124,
+      "title": "Overview",
+      "text": "",
+      "link": "",
+      "category": "link",
+      "pin_style": "label_always",
+      "target": "dji_20260909124244_0001_d",
+      "link_icon": "aerial"
+    }
+  ],
+  "hotspots_2": [],
+  "levels_1": [],
+  "levels_2": [],
+  "pin_style": "dot",
+  "basemap_type": "xyz_tile",
+  "basemap_url": "https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}",
+  "mobile_1": 5000,
+  "mobile_2": 0,
+  "heading_offset": 219.09827786469293,
+  "overlays": []
+}

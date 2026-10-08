@@ -1,35 +1,40 @@
 {
-  "name": "WOB Site Imagery (9/9/2026, -0.7ft)",
+  "name": "WOB Site Imagery (-0.7ft)",
   "sites": [
     {
       "site_id": "dji_20260909124244_0001_d",
       "display_name": "Overview",
       "lat": 47.21176508333333,
-      "lng": -123.08991633333333
+      "lng": -123.08991633333333,
+      "photo": "p1"
     },
     {
       "site_id": "dji_20260909123432_0001_d",
       "display_name": "South Lobe",
       "lat": 47.20993666666667,
-      "lng": -123.08778997222221
+      "lng": -123.08778997222221,
+      "photo": "p1"
     },
     {
       "site_id": "dji_20260909123649_0001_d",
       "display_name": "ELJs on Goldsborough",
       "lat": 47.21002547222223,
-      "lng": -123.09168627777777
+      "lng": -123.09168627777777,
+      "photo": "p1"
     },
     {
       "site_id": "dji_20260909124045_0001_d",
       "display_name": "West Lobe - High Berm View",
       "lat": 47.21126463888889,
-      "lng": -123.09188036111111
+      "lng": -123.09188036111111,
+      "photo": "p1"
     },
     {
       "site_id": "dji_20260909123847_0001_d",
       "display_name": "West Lobe - East View",
       "lat": 47.211100638888894,
-      "lng": -123.09057949999999
+      "lng": -123.09057949999999,
+      "photo": "p1"
     },
     {
       "site_id": "img_20260909_115426_00_975",
@@ -65,23 +70,49 @@
       "site_id": "dji_20260909124449_0001_d",
       "display_name": "Shelton Creek",
       "lat": 47.212814111111115,
-      "lng": -123.09098436111111
+      "lng": -123.09098436111111,
+      "photo": "p1"
     },
     {
       "site_id": "dji_20260909124644_0001_d",
       "display_name": "North Lobe",
       "lat": 47.2133745,
-      "lng": -123.0892648611111
+      "lng": -123.0892648611111,
+      "photo": "p1"
     },
     {
       "site_id": "dji_20260909124850_0001_d",
       "display_name": "Yacht Club",
       "lat": 47.213319444444444,
-      "lng": -123.0876486111111
+      "lng": -123.0876486111111,
+      "photo": "p1"
     }
   ],
-  "basemap_type": "esri_tile",
-  "basemap_url": "https://tiles.arcgis.com/tiles/buuvDFFARQiOEbVZ/arcgis/rest/services/WOB_20260909_minus0p7_ortho/MapServer/tile/{z}/{y}/{x}",
+  "basemap_type": "xyz_tile",
+  "basemap_url": "http://mt0.google.com/vt/lyrs=s&hl=en&x={x}&y={y}&z={z}",
+  "overlays": [
+    {
+      "label": "Ortho (9/7/2026, -0.7ft)",
+      "url": "https://tiles.arcgis.com/tiles/buuvDFFARQiOEbVZ/arcgis/rest/services/WOB_20260909_minus0p7_ortho/MapServer/tile/{z}/{y}/{x}",
+      "opacity": 1.0,
+      "default_on": true,
+      "type": "tile"
+    },
+    {
+      "label": "Ortho (8/28/2026, -0.5ft)",
+      "url": "https://tiles.arcgis.com/tiles/buuvDFFARQiOEbVZ/arcgis/rest/services/WOB_20260828_minus0p5ft_ortho_tif/MapServer/tile/{z}/{y}/{x}",
+      "opacity": 1.0,
+      "default_on": false,
+      "type": "tile"
+    },
+    {
+      "label": "Ortho (5/30/2025, -0.02ft)",
+      "url": "https://tiles.arcgis.com/tiles/buuvDFFARQiOEbVZ/arcgis/rest/services/WOB_Ortho_20250530/MapServer/tile/{z}/{y}/{x}",
+      "opacity": 1.0,
+      "default_on": true,
+      "type": "tile"
+    }
+  ],
   "forward_label": "Forward",
   "backward_label": "Back"
 }

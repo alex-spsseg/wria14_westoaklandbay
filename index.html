@@ -128,6 +128,70 @@
     still distinguishes the two panels in Compare/Curtain tour stops. */
     body.is-tour #label-left { display: none; }
 
+    #flat-stop-viewer {
+      display: none; position: absolute; inset: 0; z-index: 600;
+      background: #0e1b33; flex-direction: column;
+    }
+    #flat-stop-viewer.visible { display: flex; }
+    #flat-stop-caption {
+      flex: none; padding: 14px 20px; font-size: 15px; font-weight: 600; color: #ffffff;
+      background: rgba(14, 27, 51, 0.9); border-bottom: 1px solid #1b3f95;
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    }
+    #flat-stop-caption-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    #flat-stop-zoom-hint { flex: none; font-size: 11px; font-weight: 400; color: #9fb2cc; }
+    /* Hidden by default -- shown (display:flex) only for a PDF with
+    more than one page, see renderFlatPdf/updatePageNavUI. */
+    #flat-stop-page-nav {
+      display: none; flex: none; align-items: center; gap: 8px;
+      font-size: 12px; font-weight: 400; color: #cbd8ec;
+    }
+    #flat-stop-page-nav button {
+      background: #1b3f95; color: #ffffff; border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 4px; width: 24px; height: 24px; cursor: pointer; font-size: 13px; line-height: 1;
+    }
+    /* Local preview only: rotate the PDF and save the choice to the stop's config.json. */
+    #flat-stop-rotate-tools { display: none; flex: none; align-items: center; gap: 6px; }
+    #flat-stop-rotate-tools button {
+      background: #1b3f95; color: #ffffff; border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 4px; min-width: 24px; height: 24px; padding: 0 8px; cursor: pointer;
+      font-size: 13px; line-height: 1;
+    }
+    #flat-stop-rotate-tools button:hover { background: #019fc4; }
+    #flat-stop-page-nav button:hover { background: #019fc4; }
+    #flat-stop-page-nav button:disabled { opacity: 0.4; cursor: default; background: #1b3f95; }
+    /* The pdf.js-rendered canvas (or the plain image) is panned and
+    zoomed by transforming #flat-stop-zoom-wrap itself, not by
+    scrolling -- see wirePanZoom. #flat-stop-body is the fixed
+    viewport window onto it and clips anything panned outside it. */
+    #flat-stop-body {
+      flex: 1; min-height: 0; position: relative; overflow: hidden;
+      cursor: grab; touch-action: none;
+    }
+    #flat-stop-body.dragging { cursor: grabbing; }
+    #flat-stop-zoom-wrap {
+      position: absolute; top: 0; left: 0; transform-origin: 0 0;
+      display: flex; align-items: center; justify-content: center;
+    }
+    #flat-stop-image, #flat-stop-canvas { display: none; max-width: none; }
+    #flat-stop-canvas { box-shadow: 0 0 24px rgba(0,0,0,0.5); }
+    #flat-stop-pdf-wrap { display: none; width: 100%; height: 100%; flex-direction: column; }
+    #flat-stop-pdf { flex: 1; border: none; background: #ffffff; }
+    /* A PDF iframe just renders blank (no error, nothing to catch) on
+    a browser without a built-in PDF viewer, mobile Safari being the
+    common case -- so this link is always shown alongside it, not
+    just as a fallback, rather than leaving a dead-looking blank pane
+    as the only option there. This iframe path is now only a
+    fallback for when pdf.js itself fails to load or render (see
+    showFlatStop/renderFlatPdf) -- the normal path renders the page
+    onto #flat-stop-canvas instead, so it can be rotated to landscape
+    and panned/zoomed the same way an image is. */
+    #flat-stop-pdf-link {
+      flex: none; text-align: center; padding: 10px; background: rgba(14, 27, 51, 0.9);
+      color: #7fd4ea; font-size: 13px; text-decoration: none; border-top: 1px solid #1b3f95;
+    }
+    #flat-stop-pdf-link:hover { text-decoration: underline; }
+
     #status-banner {
       position: absolute; top: 0; left: 0; width: 100%; z-index: 2000;
       background: rgba(180, 40, 40, 0.92); color: #ffffff; text-align: center;
@@ -170,6 +234,12 @@
     #site-map-zoomto-btn { right: 44px; }
     #site-map-basemap-btn { right: 80px; font-size: 16px; display: none; }
     #site-map-fit-btn:hover, #site-map-basemap-btn:hover, #site-map-zoomto-btn:hover { background: #f4f4f4; }
+    /* Leaflet's own layers control (added for overlays -- see
+    ensureMapInitialized) defaults to the same top-right corner as the
+    fit/zoom/basemap buttons above, sitting directly behind them.
+    Pushing the whole top-right Leaflet control stack down clears
+    that row instead of the two overlapping. */
+    #site-map-panel .leaflet-top.leaflet-right { margin-top: 42px; }
     /* Armed state (waiting for the map click that picks the zoom
     point) gets a highlighted border so it reads as "active tool"
     rather than a plain hover, and the cursor change over the map
@@ -193,24 +263,115 @@
     .ctrl-btn:hover { background: #019fc4; color: #0e1b33; }
     .ctrl-btn:active, .ctrl-btn.active { background: #019fc4; color: #0e1b33; border-color: #ffffff; }
 
+    /* -- help card: step by step walkthrough, shown once on a visitor's
+    first open and any time via the Help button. Sits above the tour
+    nav buttons (4001) but below the image lightbox (6000). */
     #info-overlay {
-      display: none; position: fixed; inset: 0; background: rgba(9, 17, 36, 0.75);
-      z-index: 3000; align-items: center; justify-content: center; padding: 20px;
+      display: none; position: fixed; inset: 0; z-index: 5000;
+      background: rgba(9, 17, 36, 0.55);
+      -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+      align-items: center; justify-content: center; padding: 20px;
     }
-    #info-overlay.visible { display: flex; }
+    #info-overlay.visible { display: flex; animation: info-fade 0.25s ease-out; }
     #info-panel {
-      background: #132447; border: 1px solid #1b3f95; border-radius: 10px;
-      max-width: 420px; width: 100%; max-height: 80vh; overflow-y: auto;
-      padding: 22px 24px; color: #e8eef7; position: relative;
+      background: linear-gradient(180deg, #162a52 0%, #132447 100%);
+      border: 1px solid #1b3f95; border-radius: 14px;
+      width: 100%; max-width: 400px; max-height: 90vh; overflow-y: auto;
+      padding: 14px 14px 16px; color: #e8eef7; position: relative;
+      box-shadow: 0 18px 50px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(1, 159, 196, 0.12);
     }
-    #info-panel h2 { font-size: 16px; font-weight: 700; color: #ffffff; margin-bottom: 14px; padding-right: 20px; }
-    #info-list { padding-left: 18px; margin: 0; }
-    #info-list li { margin-bottom: 10px; font-size: 13px; line-height: 1.5; color: #cbd8ec; }
+    #info-overlay.visible #info-panel { animation: info-pop 0.3s cubic-bezier(0.2, 0.9, 0.3, 1.1); }
+    @keyframes info-fade { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes info-pop { from { opacity: 0; transform: translateY(10px) scale(0.96); } to { opacity: 1; transform: none; } }
+
     #info-close-btn {
-      position: absolute; top: 10px; right: 12px; background: none; border: none;
-      color: #9fb2cc; font-size: 22px; line-height: 1; cursor: pointer; padding: 4px;
+      position: absolute; top: 20px; right: 20px; z-index: 3;
+      width: 28px; height: 28px; border-radius: 50%; border: none;
+      background: rgba(9, 17, 36, 0.6); color: #cbd8ec;
+      font-size: 18px; line-height: 1; cursor: pointer;
     }
-    #info-close-btn:hover { color: #ffffff; }
+    #info-close-btn:hover { background: rgba(9, 17, 36, 0.9); color: #ffffff; }
+
+    #info-stage {
+      height: 124px; border-radius: 10px; overflow: hidden; position: relative;
+      background: linear-gradient(180deg, #1d3566 0%, #0e1b33 100%);
+      border: 1px solid rgba(1, 159, 196, 0.25);
+      display: flex; align-items: center; justify-content: center;
+    }
+    #info-stage > svg { width: 100%; height: 100%; display: block; }
+    #info-content { padding: 14px 8px 0; }
+    #info-step-count {
+      font-size: 11px; font-weight: 700; letter-spacing: 0.08em;
+      text-transform: uppercase; color: #019fc4; margin-bottom: 4px;
+    }
+    #info-title-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+    #info-icon {
+      flex: 0 0 auto; width: 32px; height: 32px; border-radius: 50%;
+      background: rgba(1, 159, 196, 0.18); border: 1px solid rgba(1, 159, 196, 0.5);
+      display: flex; align-items: center; justify-content: center;
+    }
+    #info-icon svg { width: 17px; height: 17px; stroke: #019fc4; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    #info-title { font-size: 18px; font-weight: 700; color: #ffffff; margin: 0; }
+    #info-step-count .tour-name { color: #ffffff; }
+    .info-intro {
+      margin: 0 0 10px; padding: 9px 12px; border-radius: 8px;
+      background: rgba(1, 159, 196, 0.12); border-left: 3px solid #019fc4;
+      font-size: 13px; line-height: 1.5; color: #e8eef7;
+    }
+    #info-body p { font-size: 13.5px; line-height: 1.55; color: #cbd8ec; margin: 0 0 8px; }
+    #info-body b { color: #ffffff; font-weight: 600; }
+    #info-body.swap { animation: info-swap 0.28s ease-out; }
+    @keyframes info-swap { from { opacity: 0; transform: translateX(14px); } to { opacity: 1; transform: none; } }
+
+    #info-footer {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 8px 0;
+    }
+    #info-dots { display: flex; gap: 7px; }
+    .info-dot {
+      width: 8px; height: 8px; border-radius: 50%; border: none; padding: 0;
+      background: #2c4a86; cursor: pointer; transition: all 0.2s ease;
+    }
+    .info-dot.active { background: #019fc4; width: 22px; border-radius: 4px; }
+    #info-actions { display: flex; gap: 8px; }
+    .info-act {
+      font-family: inherit; font-size: 13px; font-weight: 700; cursor: pointer;
+      padding: 8px 16px; border-radius: 6px; border: 1px solid #019fc4;
+      background: transparent; color: #ffffff; transition: all 0.15s ease;
+    }
+    .info-act:hover { background: rgba(1, 159, 196, 0.25); }
+    .info-act.primary { background: #019fc4; color: #0e1b33; }
+    .info-act.primary:hover { background: #2bb8dc; }
+    .info-act[hidden] { display: none; }
+
+    /* illustration pieces */
+    .hp-pan { animation: hp-pan 4.5s ease-in-out infinite; }
+    @keyframes hp-pan { 0%, 100% { transform: translateX(-34px); } 50% { transform: translateX(34px); } }
+    .hp-grow { transform-box: fill-box; transform-origin: 100% 100%; animation: hp-grow 3.6s ease-in-out infinite; }
+    @keyframes hp-grow { 0%, 15% { transform: scale(0.72); } 55%, 80% { transform: scale(1.5); } 100% { transform: scale(0.72); } }
+    .hp-layer-a { animation: hp-layer 3.6s ease-in-out infinite; }
+    @keyframes hp-layer { 0%, 40% { opacity: 0.15; } 60%, 100% { opacity: 0.85; } }
+    .hp-stepper { animation: hp-stepper 5s steps(1, end) infinite; }
+    @keyframes hp-stepper {
+      0% { transform: translateY(0); } 20% { transform: translateY(16px); }
+      40% { transform: translateY(32px); } 60% { transform: translateY(48px); }
+      80% { transform: translateY(64px); } 100% { transform: translateY(0); }
+    }
+    .hp-pulse { animation: hp-pulse 1.8s ease-in-out infinite; }
+    @keyframes hp-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }
+    .hp-spin { transform-box: fill-box; transform-origin: 50% 50%; animation: hp-spin 3s linear infinite; }
+    @keyframes hp-spin { to { transform: rotate(360deg); } }
+    .hp-chips { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; padding: 0 12px; }
+    .hp-chip {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: #1b3f95; border: 1px solid #019fc4; color: #fff;
+      font-size: 12px; font-weight: 700; padding: 7px 10px; border-radius: 4px;
+    }
+    .hp-chip svg { width: 14px; height: 14px; stroke: #019fc4; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    @media (prefers-reduced-motion: reduce) {
+      #info-overlay.visible, #info-overlay.visible #info-panel, #info-body.swap { animation: none; }
+      .hp-pan, .hp-grow, .hp-layer-a, .hp-stepper, .hp-pulse, .hp-spin { animation: none; }
+    }
 
     #edit-tools-panel {
       position: absolute; top: 60px; right: 12px; z-index: 1000;
@@ -307,6 +468,12 @@
     .hotspot-pin.hotspot-cat-issue::after { content: '!'; }
     .hotspot-pin.hotspot-cat-measurement::after { content: 'M'; font-size: 12px; }
     .hotspot-pin.hotspot-cat-link::after { content: '\2197'; font-size: 15px; }
+    /* Overridden per-pin below when spot.link_icon === 'aerial' (see
+    the Icon field in the hotspot form) -- ground stays the plain
+    arrow above, chosen explicitly rather than inferred, so it never
+    changes on its own just because a target site gets reprocessed. */
+    .hotspot-pin.hotspot-cat-link.hotspot-link-aerial::after { content: '\2708'; font-size: 13px; }
+    .hotspot-pin.hotspot-cat-link.hotspot-link-overview::after { content: '\2302'; font-size: 15px; }
     .hotspot-pin.hotspot-cat-photo::after {
       content: '';
       width: 100%; height: 100%;
@@ -484,6 +651,8 @@
     }
     .tour-stop-link:hover { background: rgba(1, 159, 196, 0.3); }
     .tour-stop-link.active { background: #019fc4; font-weight: bold; }
+    /* Local preview: this stop has hotspot edits not yet written to disk. */
+    .tour-stop-link.unsaved::after { content: ' \25CF'; color: #ffb84d; }
     .tour-sidebar-error { color: #e0a5a5; font-size: 12px; line-height: 1.4; }
 
     /* -- Mobile -- without the viewport meta tag above, none of this
@@ -535,7 +704,7 @@
 </head>
 <body>
 
-  <div id="build-timestamp">Built 2026-09-10 15:05:44</div>
+  <div id="build-timestamp">Built 2026-10-08 12:06:22</div>
 
   <div id="status-banner"></div>
 
@@ -554,6 +723,33 @@
     </div>
     <div class="pano-label" id="label-right">Comparison View</div>
 
+    <div id="flat-stop-viewer">
+      <div id="flat-stop-caption">
+        <span id="flat-stop-caption-text"></span>
+        <span id="flat-stop-page-nav">
+          <button id="flat-stop-prev-page" type="button" title="Previous page">&#8592;</button>
+          <span id="flat-stop-page-label"></span>
+          <button id="flat-stop-next-page" type="button" title="Next page">&#8594;</button>
+        </span>
+        <span id="flat-stop-rotate-tools">
+          <button id="flat-stop-rotate-left" type="button" title="Rotate 90 degrees counterclockwise and save">&#8634;</button>
+          <button id="flat-stop-rotate-right" type="button" title="Rotate 90 degrees clockwise and save">&#8635;</button>
+          <button id="flat-stop-rotate-auto" type="button" title="Go back to automatic orientation">Auto</button>
+        </span>
+        <span id="flat-stop-zoom-hint">Drag to pan &middot; scroll to zoom &middot; double-click to reset</span>
+      </div>
+      <div id="flat-stop-body">
+        <div id="flat-stop-zoom-wrap">
+          <img id="flat-stop-image" alt="">
+          <canvas id="flat-stop-canvas"></canvas>
+        </div>
+        <div id="flat-stop-pdf-wrap">
+          <iframe id="flat-stop-pdf" title="Plan"></iframe>
+          <a id="flat-stop-pdf-link" target="_blank" rel="noopener">Open in a new tab &#8599;</a>
+        </div>
+      </div>
+    </div>
+
     <div id="curtain-slider"><div id="curtain-slider-handle">↔</div></div>
 
     <div id="timeseries-strip"></div>
@@ -571,11 +767,22 @@
       </div>
     </div>
 
-    <div id="info-overlay">
+    <div id="info-overlay" role="dialog" aria-modal="true" aria-labelledby="info-title">
       <div id="info-panel">
         <button id="info-close-btn" type="button" title="Close" aria-label="Close">&times;</button>
-        <h2>Navigating this viewer</h2>
-        <ul id="info-list"></ul>
+        <div id="info-stage"></div>
+        <div id="info-content">
+          <div id="info-step-count"></div>
+          <div id="info-title-row"><span id="info-icon"></span><h2 id="info-title"></h2></div>
+          <div id="info-body"></div>
+        </div>
+        <div id="info-footer">
+          <div id="info-dots"></div>
+          <div id="info-actions">
+            <button id="info-back-btn" class="info-act" type="button">Back</button>
+            <button id="info-next-btn" class="info-act primary" type="button">Next</button>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -623,7 +830,7 @@
 
   <script>
     const urlParams = new URLSearchParams(window.location.search);
-    let rawSiteId = urlParams.get('site') || urlParams.get('well') || '20260909_sheltoncreek_swipe';
+    let rawSiteId = urlParams.get('site') || urlParams.get('well') || 'dji_20260909124244_0001_d';
     const siteId = rawSiteId.trim().toLowerCase().replace(/[\s-]+/g, '_');
 
     const tourParam = urlParams.get('tour');
@@ -631,6 +838,22 @@
     var tourLoadStopFn = null; // set inside renderTourPage; lets a "link" hotspot
                                 // jump to another stop in the current tour, in place,
                                 // the same way the sidebar does.
+    // Locations only: which photo (index) of a location the stop on screen
+    // is showing, so saves land on that photo; and the shared links a photo
+    // has no heading for yet, so the aim-and-click calibration can list them.
+    var locPhotoBySite = {};
+    var unplacedBySite = {};
+    function locPhotoFor(sid) {
+      return (sid != null && locPhotoBySite[sid] != null) ? locPhotoBySite[sid] : null;
+    }
+    var tourReloadStopFn = function () {}; // real implementation assigned inside renderTourPage
+    // After a heading is saved on a photo whose shared links were waiting for
+    // it, rebuild the stop so those links appear. Delayed a moment so the
+    // calibration's own follow up save finishes first.
+    function reloadStopIfLinksWaiting(sid) {
+      if (!(unplacedBySite[sid] || []).length) return;
+      setTimeout(function () { tourReloadStopFn(sid); }, 900);
+    }
     var syncSceneCacheHeading = function () {}; // real implementation assigned inside
                                                  // renderTourPage, where sceneCache actually
                                                  // lives -- a no-op until then so calling it
@@ -659,7 +882,7 @@
       fetch('/__save_view', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ site_id: targetSiteId, yaw: yawDeg, pitch: pitchDeg, photo_index: photoIndex }),
+        body: JSON.stringify({ site_id: targetSiteId, yaw: yawDeg, pitch: pitchDeg, photo_index: photoIndex, loc_photo: locPhotoFor(targetSiteId) }),
       }).then(res => {
         useViewBtn.textContent = res.ok ? 'Captured!' : 'Failed, try again';
         setTimeout(() => { useViewBtn.textContent = original; }, 1400);
@@ -822,6 +1045,20 @@
         btn.textContent = 'Preview server not reachable';
         setTimeout(() => { btn.textContent = original; }, 1800);
       });
+    }
+
+    // A Link hotspot's icon comes from the Icon field in the hotspot
+    // form (spot.link_icon). "Overview" and an explicit "Aerial" are
+    // always honored. A link left on the default ("ground" or unset)
+    // switches to the airplane by itself when its target stop is a
+    // drone photo, as flagged in the tour manifest, so existing links
+    // pick it up without being edited. Only known inside a tour.
+    function applyLinkHotspotIcon(el, spot) {
+      var isLink = spot.category === 'link';
+      var autoAerial = isLink && spot.target && (!spot.link_icon || spot.link_icon === 'ground') &&
+                       isAerialSite(spot.target);
+      el.classList.toggle('hotspot-link-aerial', isLink && (spot.link_icon === 'aerial' || !!autoAerial));
+      el.classList.toggle('hotspot-link-overview', isLink && spot.link_icon === 'overview');
     }
 
     var container = document.getElementById('container');
@@ -1009,54 +1246,255 @@
     document.getElementById('fullscreen-btn').addEventListener('click', () => toggleFullscreen());
     document.getElementById('reset-btn').addEventListener('click', () => resetViews());
 
-    // -- help / info panel ---------------------------------------------
-    // For site visitors, not the local-preview editing tools -- always
-    // visible regardless of isLocalPreview. Built by checking which
-    // control-bar buttons are actually shown/hidden and whether the
-    // curtain-mode class is on the container, all read straight off
-    // the DOM at open-time, rather than needing mode/isCurtainMode
-    // (declared later, inside the per-site config fetch callback) in
-    // scope up here alongside the other control-bar wiring.
+    // -- help / info card ----------------------------------------------
+    // Step cards for site visitors (not the local preview editing tools).
+    // Which steps appear is decided at open time by reading the DOM
+    // (which control bar buttons are shown, curtain mode, whether the
+    // time series strip is in use), so the same text works for every
+    // tour and a step that does not apply to a tour is simply left out.
+    // First visit: opens itself once the imagery has loaded, then a flag
+    // in localStorage keeps it from reappearing. The Help button always
+    // reopens it.
     (function () {
       var overlay = document.getElementById('info-overlay');
-      var list = document.getElementById('info-list');
+      var stageEl = document.getElementById('info-stage');
+      var countEl = document.getElementById('info-step-count');
+      var titleEl = document.getElementById('info-title');
+      var bodyEl = document.getElementById('info-body');
+      var dotsEl = document.getElementById('info-dots');
+      var backBtn = document.getElementById('info-back-btn');
+      var nextBtn = document.getElementById('info-next-btn');
+      var SEEN_KEY = 'viewer_help_seen_v1';
+      var steps = [];
+      var idx = 0;
+
       function isShown(id) {
         var el = document.getElementById(id);
         return !!el && el.style.display !== 'none';
       }
-      function buildTips() {
-        var tips = ['Click and drag to look around. Scroll, or pinch on mobile, to zoom in and out.'];
+      function hasSeen() {
+        try { return localStorage.getItem(SEEN_KEY) === '1'; } catch (e) { return false; }
+      }
+      function markSeen() {
+        try { localStorage.setItem(SEEN_KEY, '1'); } catch (e) { /* private mode, ignore */ }
+      }
+
+      var CHIP_ICONS = {
+        rotate: '<svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v5h-5"/></svg>',
+        full: '<svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>',
+        reset: '<svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>'
+      };
+
+      var STEP_ICONS = {
+        look: '<svg viewBox="0 0 24 24"><path d="M12 3v18M3 12h18M12 3l-3 3M12 3l3 3M12 21l-3-3M12 21l3-3M3 12l3-3M3 12l3 3M21 12l-3-3M21 12l-3 3"/></svg>',
+        map: '<svg viewBox="0 0 24 24"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.3"/></svg>',
+        stops: '<svg viewBox="0 0 24 24"><path d="M4 12h16M14 6l6 6-6 6"/></svg>',
+        controls: '<svg viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg>'
+      };
+
+      var STAGES = {
+        look:
+          '<svg viewBox="0 0 320 124" preserveAspectRatio="xMidYMid slice" aria-hidden="true">' +
+          '<defs><linearGradient id="hpsky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2a4a86"/><stop offset="1" stop-color="#16294f"/></linearGradient></defs>' +
+          '<rect width="320" height="124" fill="url(#hpsky)"/>' +
+          '<g class="hp-pan">' +
+          '<path d="M-60 90 L-20 52 L10 74 L50 36 L92 80 L130 48 L170 78 L214 40 L252 76 L290 54 L330 84 L380 60 L380 124 L-60 124 Z" fill="#0e1b33" opacity="0.9"/>' +
+          '<path d="M-60 104 L-10 88 L40 100 L100 86 L160 102 L220 88 L280 100 L340 90 L380 98 L380 124 L-60 124 Z" fill="#0a1428"/>' +
+          '</g>' +
+          '<g class="hp-pan" stroke="#019fc4" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none" transform="translate(160 62)">' +
+          '<circle r="11" fill="rgba(1,159,196,0.25)"/><circle r="3.5" fill="#019fc4" stroke="none"/>' +
+          '<path d="M-24 0 L-18 -5 M-24 0 L-18 5 M24 0 L18 -5 M24 0 L18 5"/>' +
+          '</g></svg>',
+        map:
+          '<svg viewBox="0 0 320 124" preserveAspectRatio="xMidYMid slice" aria-hidden="true">' +
+          '<rect width="320" height="124" fill="#16294f"/>' +
+          '<path d="M0 84 L40 56 L74 76 L116 44 L160 78 L204 52 L246 80 L290 58 L320 74 L320 124 L0 124 Z" fill="#0e1b33" opacity="0.8"/>' +
+          '<g class="hp-grow">' +
+          '<rect x="196" y="58" width="114" height="56" rx="6" fill="#0e1b33" stroke="#019fc4" stroke-width="1.5"/>' +
+          '<rect x="204" y="68" width="98" height="38" rx="3" fill="#1b3f95" opacity="0.5"/>' +
+          '<path d="M206 98 C226 84 240 100 258 86 S290 80 300 74" stroke="#7fd4ea" stroke-width="1.5" fill="none" opacity="0.8"/>' +
+          '<rect class="hp-layer-a" x="214" y="72" width="62" height="26" rx="2" fill="#019fc4"/>' +
+          '<path d="M200 62 h12 M200 62 v12 M203 71 L211 63" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round" fill="none"/>' +
+          '<g transform="translate(292 66)" stroke="#ffffff" stroke-width="1.4" fill="none" stroke-linejoin="round">' +
+          '<path d="M0 -4 L6 -1 L0 2 L-6 -1 Z"/><path d="M-6 2 L0 5 L6 2" opacity="0.8"/></g>' +
+          '</g></svg>',
+        stops:
+          '<svg viewBox="0 0 320 124" preserveAspectRatio="xMinYMid slice" aria-hidden="true">' +
+          '<rect width="320" height="124" fill="#16294f"/>' +
+          '<g font-family="-apple-system, Segoe UI, Roboto, sans-serif" font-size="11" font-weight="700">' +
+          '<rect x="14" y="10" width="26" height="24" rx="4" fill="#0e1b33" stroke="#019fc4"/>' +
+          '<path d="M21 17 h12 M21 22 h12 M21 27 h12" stroke="#ffffff" stroke-width="1.6" stroke-linecap="round"/>' +
+          '<rect x="46" y="10" width="54" height="24" rx="4" fill="#0e1b33" stroke="#019fc4"/>' +
+          '<text x="73" y="26" fill="#ffffff" text-anchor="middle">&#8592; Prev</text>' +
+          '<rect class="hp-pulse" x="106" y="10" width="54" height="24" rx="4" fill="#0e1b33" stroke="#019fc4"/>' +
+          '<text x="133" y="26" fill="#ffffff" text-anchor="middle">Next &#8594;</text></g>' +
+          '<rect class="hp-stepper" x="14" y="44" width="170" height="14" rx="3" fill="#019fc4" opacity="0.35"/>' +
+          '<circle cx="28" cy="51" r="3.5" fill="#2c4a86"/><rect x="40" y="49" width="96" height="4" rx="2" fill="#2c4a86"/>' +
+          '<circle cx="28" cy="67" r="3.5" fill="#2c4a86"/><rect x="40" y="65" width="78" height="4" rx="2" fill="#2c4a86"/>' +
+          '<circle cx="28" cy="83" r="3.5" fill="#2c4a86"/><rect x="40" y="81" width="110" height="4" rx="2" fill="#2c4a86"/>' +
+          '<circle cx="28" cy="99" r="3.5" fill="#2c4a86"/><rect x="40" y="97" width="70" height="4" rx="2" fill="#2c4a86"/>' +
+          '<circle cx="28" cy="115" r="3.5" fill="#2c4a86"/><rect x="40" y="113" width="90" height="4" rx="2" fill="#2c4a86"/>' +
+          '<g class="hp-stepper"><circle cx="28" cy="51" r="3.5" fill="#019fc4"/><rect x="40" y="49" width="96" height="4" rx="2" fill="#019fc4"/></g>' +
+          '</svg>',
+        controls:
+          '<div class="hp-chips">' +
+          '<span class="hp-chip"><span class="hp-spin" style="display:inline-flex;">' + CHIP_ICONS.rotate + '</span>Auto-Rotate</span>' +
+          '<span class="hp-chip">' + CHIP_ICONS.full + 'Full Screen</span>' +
+          '<span class="hp-chip">' + CHIP_ICONS.reset + 'Reset View</span>' +
+          '</div>'
+      };
+
+      function buildSteps() {
+        var out = [];
+
+        var look = ['<p>Click and drag to pan around the scene. Scroll, or pinch on mobile, to zoom in and out.</p>'];
         if (container.classList.contains('curtain-mode')) {
-          tips.push('Drag the divider in the middle left or right to compare the two photos.');
+          look.push('<p>Drag the divider in the middle left or right to compare the two photos.</p>');
         } else if (isShown('toggle-btn')) {
-          tips.push('Use the Toggle button to switch between the two photos.');
+          look.push('<p>Use <b>Toggle</b> to switch between the two photos.</p>');
         } else if (!document.getElementById('pano-right-wrapper').classList.contains('hidden')) {
-          tips.push('The two photos are shown side by side for comparison.');
+          look.push('<p>The two photos are shown side by side for comparison.</p>');
         }
-        if (isShown('map-toggle-btn')) tips.push('Show Map displays this location on a map.');
+        var strip = document.getElementById('timeseries-strip');
+        if (strip && strip.style.display !== 'none' && strip.children.length > 1) {
+          look.push('<p>The thumbnails along the bottom switch between photos taken on different dates.</p>');
+        }
         if (isShown('hotspots-toggle-btn')) {
-          tips.push('Colored pins in the photo are hotspots -- click one for more detail. Hide/Show Hotspots toggles them.');
+          look.push('<p>Colored pins in the photo are hotspots. Click one for more detail, or use <b>Hide Hotspots</b> and <b>Show Hotspots</b> to clear them from the view and bring them back.</p>');
         }
-        tips.push('Auto-Rotate slowly pans the view on its own. Full Screen expands the viewer. Reset View returns to the starting position.');
-        if (isShown('prev-stop-btn')) tips.push('Use Prev / Next to move between stops on this tour.');
-        return tips;
-      }
-      function openInfo() {
-        list.innerHTML = '';
-        buildTips().forEach(t => {
-          var li = document.createElement('li');
-          li.textContent = t;
-          list.appendChild(li);
+        var intro = (window.helpTourIntro || '');
+        if (intro) look.unshift('<p class="info-intro"></p>');
+        out.push({ title: 'Look around', icon: STEP_ICONS.look, stage: STAGES.look, body: look.join(''), intro: intro });
+
+        if (isShown('map-toggle-btn')) {
+          out.push({
+            title: 'Explore the map',
+            icon: STEP_ICONS.map,
+            stage: STAGES.map,
+            body:
+              '<p><b>Show Map</b> opens an inset map of this location.</p>' +
+              '<p>Use the layers control on the map to switch between orthoimagery from different dates and, where available, project design elements.</p>' +
+              '<p><b>Resize it:</b> drag the grip in the map\u2019s top left corner to make the map larger or smaller.</p>'
+          });
+        }
+
+        if (isShown('prev-stop-btn')) {
+          out.push({
+            title: 'Move between stops',
+            icon: STEP_ICONS.stops,
+            stage: STAGES.stops,
+            body:
+              '<p>Use <b>Prev</b> and <b>Next</b> at the top left to step through the tour in order.</p>' +
+              '<p>The menu button beside them lists every stop, so you can jump straight to any one.</p>'
+          });
+        }
+
+        out.push({
+          title: 'Viewer controls',
+          icon: STEP_ICONS.controls,
+          stage: STAGES.controls,
+          body:
+            '<p>On stops with hotspots, <b>Hide Hotspots</b> and <b>Show Hotspots</b> turn the colored pins off and on.</p>' +
+            '<p><b>Auto-Rotate</b> slowly pans the view on its own. <b>Full Screen</b> expands the viewer. <b>Reset View</b> returns to the starting position.</p>' +
+            '<p>On a phone these live under the \u22EE menu. Reopen this guide any time with <b>Help</b>.</p>'
         });
-        overlay.classList.add('visible');
+        return out;
       }
-      function closeInfo() { overlay.classList.remove('visible'); }
+
+      function renderStep(animate) {
+        var s = steps[idx];
+        stageEl.innerHTML = s.stage;
+        countEl.textContent = '';
+        if (window.helpTourName) {
+          var nm = document.createElement('span');
+          nm.className = 'tour-name';
+          nm.textContent = window.helpTourName;
+          countEl.appendChild(nm);
+          countEl.appendChild(document.createTextNode(' \u00B7 '));
+        }
+        countEl.appendChild(document.createTextNode('Step ' + (idx + 1) + ' of ' + steps.length));
+        document.getElementById('info-icon').innerHTML = s.icon || '';
+        titleEl.textContent = s.title;
+        bodyEl.innerHTML = s.body;
+        var introEl = bodyEl.querySelector('.info-intro');
+        if (introEl) introEl.textContent = s.intro;
+        bodyEl.classList.remove('swap');
+        if (animate) { void bodyEl.offsetWidth; bodyEl.classList.add('swap'); }
+        Array.from(dotsEl.children).forEach(function (d, i) { d.classList.toggle('active', i === idx); });
+        backBtn.hidden = idx === 0;
+        nextBtn.textContent = idx === steps.length - 1 ? 'Got it' : 'Next';
+      }
+      function goTo(i, animate) {
+        idx = Math.max(0, Math.min(steps.length - 1, i));
+        renderStep(animate);
+      }
+
+      function openInfo() {
+        steps = buildSteps();
+        dotsEl.innerHTML = '';
+        steps.forEach(function (_, i) {
+          var d = document.createElement('button');
+          d.type = 'button';
+          d.className = 'info-dot';
+          d.setAttribute('aria-label', 'Go to step ' + (i + 1));
+          d.addEventListener('click', function () { goTo(i, true); });
+          dotsEl.appendChild(d);
+        });
+        idx = 0;
+        renderStep(false);
+        overlay.classList.add('visible');
+        nextBtn.focus();
+      }
+      function closeInfo() {
+        overlay.classList.remove('visible');
+        markSeen();
+      }
+      function isOpen() { return overlay.classList.contains('visible'); }
+
+      nextBtn.addEventListener('click', function () {
+        if (idx >= steps.length - 1) closeInfo(); else goTo(idx + 1, true);
+      });
+      backBtn.addEventListener('click', function () { goTo(idx - 1, true); });
       document.getElementById('info-btn').addEventListener('click', openInfo);
       document.getElementById('info-close-btn').addEventListener('click', closeInfo);
-      overlay.addEventListener('click', (e) => { if (e.target === overlay) closeInfo(); });
-      document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && overlay.classList.contains('visible')) closeInfo();
+      overlay.addEventListener('click', function (e) { if (e.target === overlay) closeInfo(); });
+      document.addEventListener('keydown', function (e) {
+        if (!isOpen()) return;
+        if (e.key === 'Escape') closeInfo();
+        else if (e.key === 'ArrowRight' && idx < steps.length - 1) goTo(idx + 1, true);
+        else if (e.key === 'ArrowLeft' && idx > 0) goTo(idx - 1, true);
       });
+
+      // Swipe left or right on the card to change steps on touch screens.
+      var touchX = null;
+      document.getElementById('info-panel').addEventListener('touchstart', function (e) {
+        touchX = e.touches[0] ? e.touches[0].clientX : null;
+      }, { passive: true });
+      document.getElementById('info-panel').addEventListener('touchend', function (e) {
+        if (touchX === null || !e.changedTouches[0]) return;
+        var dx = e.changedTouches[0].clientX - touchX;
+        touchX = null;
+        if (Math.abs(dx) < 50) return;
+        if (dx < 0 && idx < steps.length - 1) goTo(idx + 1, true);
+        else if (dx > 0 && idx > 0) goTo(idx - 1, true);
+      }, { passive: true });
+
+      // First visit: wait for the first pano to finish loading (the
+      // control bar buttons are set up by then), with a hard cap so a
+      // slow or failed load never blocks the guide. Skipped in the local
+      // editing preview.
+      if (!hasSeen() && !isLocalPreview) {
+        var waited = 0;
+        var timer = setInterval(function () {
+          waited += 400;
+          var loading = document.getElementById('pano-loading-left');
+          var ready = loading && loading.classList.contains('hidden');
+          if (ready || waited >= 10000) {
+            clearInterval(timer);
+            setTimeout(function () { if (!isOpen() && !hasSeen()) openInfo(); }, 700);
+          }
+        }, 400);
+      }
     })();
 
     if (!tourParam) {
@@ -1066,6 +1504,11 @@
         throw new Error('missing-config');
       })
       .then(config => {
+        config = normalizeLocationConfig(config, null, false);
+        if (config._location && config._photoIndex != null) {
+          locPhotoBySite[siteId] = config._photoIndex;
+          unplacedBySite[siteId] = config._unplacedLinks || [];
+        }
         const mode = config.mode || 'single';
         siteDefaultPinStyle = config.pin_style === 'label' ? 'label' : 'dot';
         currentHeadingOffset = config.heading_offset || 0;
@@ -1080,6 +1523,7 @@
           pendingMapData = {
             type: 'single', lat: config.lat, lng: config.lng, label: pageTitle,
             basemapType: config.basemap_type || 'osm', basemapUrl: config.basemap_url || '',
+            overlays: config.overlays || [],
           };
           mapToggleBtn.style.display = 'inline-block';
         }
@@ -1089,7 +1533,7 @@
           wrapperR.classList.add('hidden');
           document.getElementById('label-right').style.display = 'none';
 
-          const isTiledTs = config.format === 'tiled';
+          const isTiledTs = config.format === 'tiled'; // fallback; each photo may override (locations)
           const defaultLevelsTs = [{ tileSize: 256, size: 256, fallbackOnly: true }, { tileSize: 512, size: 512 }, { tileSize: 512, size: 1024 }, { tileSize: 512, size: 2048 }];
           tsPhotos = config.photos || [];
           var strip = document.getElementById('timeseries-strip');
@@ -1098,7 +1542,7 @@
           tsPhotos.forEach((p, idx) => {
             var view = new Marzipano.RectilinearView({ yaw: p.yaw || 0, pitch: p.pitch || 0, fov: Math.PI / 4 }, limiter);
             var geometry, source, thumbUrl;
-            if (isTiledTs) {
+            if ((p.format || (isTiledTs ? 'tiled' : 'raw')) === 'tiled') {
               geometry = new Marzipano.CubeGeometry((p.levels && p.levels.length) ? p.levels : defaultLevelsTs);
               source = Marzipano.ImageUrlSource.fromString('tiles/' + siteId + '/img' + (idx + 1) + '/scene/{z}/{f}/{y}/{x}.jpg');
               thumbUrl = 'tiles/' + siteId + '/img' + (idx + 1) + '/scene/1/f/0/0.jpg';
@@ -1186,7 +1630,7 @@
         if (isTiled) {
           geometryL = new Marzipano.CubeGeometry(
               (config.levels_1 && config.levels_1.length) ? config.levels_1 : defaultLevels);
-          sourceL = Marzipano.ImageUrlSource.fromString('tiles/' + siteId + '/img1/scene/{z}/{f}/{y}/{x}.jpg');
+          sourceL = Marzipano.ImageUrlSource.fromString('tiles/' + siteId + '/' + (config._imgName || 'img1') + '/scene/{z}/{f}/{y}/{x}.jpg');
           if (!isSingleMode) {
             geometryR = new Marzipano.CubeGeometry(
                 (config.levels_2 && config.levels_2.length) ? config.levels_2 : defaultLevels);
@@ -1198,7 +1642,7 @@
         } else {
           geometryL = new Marzipano.EquirectGeometry([{ width: rawEquirectWidth(config.mobile_1) }]);
           geometryR = geometryL;
-          var img1Url = rawImageUrl('tiles/' + siteId + '/img1.jpg', config.mobile_1);
+          var img1Url = rawImageUrl('tiles/' + siteId + '/' + (config._imgName || 'img1') + '.jpg', config.mobile_1);
           sourceL = Marzipano.ImageUrlSource.fromString(img1Url);
           preloadPanoThenRun(img1Url, 'left', function () {});
           if (!isSingleMode) {
@@ -1580,6 +2024,7 @@
     function buildHotspotPin(spot) {
       var el = document.createElement('div');
       el.className = 'hotspot-pin hotspot-cat-' + (spot.category || 'note') + pinStyleClass(spot);
+      applyLinkHotspotIcon(el, spot);
       el.setAttribute('data-title', spot.title || '');
 
       var tip = document.createElement('div');
@@ -1668,6 +2113,7 @@
         spot.yaw = coords.yaw;
         spot.pitch = coords.pitch;
         ctx.hotspotObj.setPosition({ yaw: coords.yaw, pitch: coords.pitch });
+        markHotspotsDirty(ctx.slotId);
       });
 
       window.addEventListener('mouseup', () => {
@@ -1748,7 +2194,21 @@
     // degradation as the esri-leaflet basemap support already has).
     var markerClusterGroup = null;
 
-    function buildMarkerIcon(active) {
+    // Airplane glyph (Material "flight", 24 unit box) marking drone photos
+    // in the stop list and on the tour map.
+    var AIRPLANE_PATH = 'M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z';
+    function airplaneSvg(px, color) {
+      return '<svg width="' + px + '" height="' + px + '" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" ' +
+             'style="vertical-align:-3px;margin-right:6px;flex:none;" aria-label="Drone photo">' +
+             '<path d="' + AIRPLANE_PATH + '" fill="' + color + '"/></svg>';
+    }
+    function isAerialSite(sid) {
+      var norm = function (x) { return String(x).trim().toLowerCase().replace(/[\s-]+/g, '_'); };
+      var opt = (tourSiteOptions || []).find(function (s) { return norm(s.site_id) === norm(sid); });
+      return !!(opt && opt.platform === 'aerial');
+    }
+
+    function buildMarkerIcon(active, aerial) {
       var size = active ? 30 : 22;
       var color = active ? '#019fc4' : '#3f5a78';
       return L.divIcon({
@@ -1757,7 +2217,9 @@
               'xmlns="http://www.w3.org/2000/svg">' +
               '<path d="M12 0C5.4 0 0 5.4 0 12c0 9 12 20 12 20s12-11 12-20c0-6.6-5.4-12-12-12z" ' +
               'fill="' + color + '" stroke="#fff" stroke-width="1.5"/>' +
-              '<circle cx="12" cy="12" r="4.5" fill="#fff"/></svg>',
+              (aerial
+                ? '<path transform="translate(5.5 5.5) scale(0.55)" d="' + AIRPLANE_PATH + '" fill="#fff"/>'
+                : '<circle cx="12" cy="12" r="4.5" fill="#fff"/>') + '</svg>',
         iconSize: [size, Math.round(size * 1.33)],
         iconAnchor: [size / 2, Math.round(size * 1.33)],
         popupAnchor: [0, -Math.round(size * 1.1)],
@@ -1773,6 +2235,10 @@
     var viewConeLayer = null;
     var viewConePolygons = [];
     var VIEWCONE_HALF_ANGLE = 30, VIEWCONE_RADIUS_M = 35;
+    // Flat stops (drone candids) have a fixed camera direction and a
+    // narrower field of view than a pano, so the cone is static and tighter.
+    var VIEWCONE_FLAT_HALF_ANGLE = 20;
+    var flatConeActive = false;
 
     function destinationPoint(lat, lng, bearingDeg, distanceMeters) {
       var R = 6371000;
@@ -1784,6 +2250,114 @@
           Math.sin(brng) * Math.sin(distanceMeters / R) * Math.cos(lat1),
           Math.cos(distanceMeters / R) - Math.sin(lat1) * Math.sin(lat2));
       return [lat2 * 180 / Math.PI, lng2 * 180 / Math.PI];
+    }
+
+    // -- locations (mode "location") ---------------------------------
+    // One site per place with many dated photos. Everything below this
+    // block was written for the older shapes, so a location is turned
+    // into one of them in memory right after its config.json loads:
+    // one photo (or any stop inside a tour) becomes a "single" config,
+    // several photos become a "timeseries" config. Shared hotspots are
+    // stored as compass bearings and get their yaw here, from the
+    // heading_offset of the photo being shown. Each one is tagged
+    // _shared/_sid so the preview server can tell it from a hotspot
+    // that belongs to just that photo when it saves.
+    function locationPhotoIndex(cfg, photoId) {
+      var photos = cfg.photos || [];
+      var wanted = photoId || cfg.default_photo;
+      for (var i = 0; i < photos.length; i++) {
+        if (photos[i].id === wanted) return i;
+      }
+      return Math.max(photos.length - 1, 0);
+    }
+
+    function resolveLocationHotspots(cfg, photo) {
+      var out = [];
+      var ho = photo.heading_offset;
+      if (ho != null) {
+        (cfg.hotspots || []).forEach(function (h) {
+          if (h.bearing == null) return;
+          var item = Object.assign({}, h);
+          delete item.bearing;
+          item.yaw = (((h.bearing - ho) % 360 + 360) % 360) * Math.PI / 180;
+          if (item.pitch == null) item.pitch = 0;
+          item._shared = true;
+          item._sid = h.id;
+          out.push(item);
+        });
+      }
+      (photo.hotspots || []).forEach(function (h) { out.push(Object.assign({}, h)); });
+      return out;
+    }
+
+    function normalizeLocationConfig(cfg, photoId, forceSingle) {
+      if (!cfg || cfg.mode !== 'location' || !(cfg.photos && cfg.photos.length)) return cfg;
+      var base = {
+        pin_style: cfg.pin_style, lat: cfg.lat, lng: cfg.lng, autorotate: cfg.autorotate,
+        basemap_type: cfg.basemap_type, basemap_url: cfg.basemap_url, overlays: cfg.overlays,
+        _location: true, _platform: cfg.platform,
+      };
+      if (cfg.photos.length === 1 || forceSingle) {
+        var idx = locationPhotoIndex(cfg, photoId);
+        var p = cfg.photos[idx];
+        return Object.assign(base, {
+          mode: 'single', format: p.format || 'raw', levels_1: p.levels || [], mobile_1: p.mobile || 0,
+          yaw_1: p.yaw || 0, pitch_1: p.pitch || 0, label_1: p.label || '',
+          hotspots_1: resolveLocationHotspots(cfg, p),
+          heading_offset: p.heading_offset == null ? null : p.heading_offset,
+          _unplacedLinks: p.heading_offset == null
+              ? (cfg.hotspots || []).filter(function (h) { return h.category === 'link' && h.target; })
+              : [],
+          _photoIndex: idx, _imgName: p.path || ('img' + (idx + 1)),
+        });
+      }
+      return Object.assign(base, {
+        mode: 'timeseries', format: cfg.photos[0].format || 'raw', heading_offset: null,
+        photos: cfg.photos.map(function (p) {
+          return {
+            label: p.label || p.date || '', yaw: p.yaw || 0, pitch: p.pitch || 0, format: p.format || 'raw',
+            levels: p.levels || [], mobile: p.mobile || 0, hotspots: resolveLocationHotspots(cfg, p),
+          };
+        }),
+      });
+    }
+
+    // The tours landing page already shows "visited <date>" on each card, so
+    // tour names are saved without a date. Inside a tour the date is added
+    // to the name here: "Site Visit (+5.8ft)" becomes "Site Visit (9/30/2026, +5.8ft)".
+    function tourNameWithDate(name, dateStr) {
+      if (!dateStr) return name;
+      var d = new Date(dateStr + 'T00:00:00');
+      if (isNaN(d.getTime())) return name;
+      var shown = d.toLocaleDateString();
+      var m = String(name).match(/^(.*?)\s*\(([^()]*)\)\s*$/);
+      if (m) {
+        if (m[2].indexOf(shown) !== -1 || m[2].indexOf(dateStr) !== -1) return name;
+        return m[1] + ' (' + shown + ', ' + m[2] + ')';
+      }
+      if (String(name).indexOf(shown) !== -1) return name;
+      return name + ' (' + shown + ')';
+    }
+
+    // Tours published before the date was saved in the manifest get it from
+    // tours/_index.json instead.
+    function withTourDate(manifest, sanitizedTour) {
+      if (manifest.field_visit_date) return Promise.resolve(manifest);
+      return fetch('tours/_index.json', { cache: 'no-store' })
+        .then(function (res) { return res.ok ? res.json() : []; })
+        .then(function (list) {
+          var e = (Array.isArray(list) ? list : []).find(function (x) { return x.tour_id === sanitizedTour; });
+          if (e && e.field_visit_date) manifest.field_visit_date = e.field_visit_date;
+          return manifest;
+        })
+        .catch(function () { return manifest; });
+    }
+
+    function tourPhotoIdFor(sid) {
+      var opt = (tourSiteOptions || []).find(function (s) {
+        return s.site_id.trim().toLowerCase().replace(/[\s-]+/g, '_') === sid;
+      });
+      return opt ? opt.photo : null;
     }
 
     function computeBearingJs(lat1, lng1, lat2, lng2) {
@@ -1837,7 +2411,12 @@
       container.innerHTML = '';
       if (!tourParam || !activeTourSiteId) return;
       var slotId = getCurrentPrimarySlotId();
-      var links = (pendingSlotHotspots[slotId] || []).filter(h => h.category === 'link' && h.target);
+      var links = (pendingSlotHotspots[slotId] || []).filter(h => h.category === 'link' && h.target && !linkOutsideTour(h));
+      var haveTargets = {};
+      links.forEach(h => { haveTargets[h.target] = true; });
+      (unplacedBySite[activeTourSiteId] || []).forEach(h => {
+        if (!haveTargets[h.target] && !linkOutsideTour(h)) links.push({ category: 'link', target: h.target, title: h.title });
+      });
       if (!links.length) return;
       var label = document.createElement('div');
       label.className = 'heading-calibrate-label';
@@ -1869,13 +2448,14 @@
       btn.textContent = 'Calibrating\u2026';
       fetch('/__save_heading', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ site_id: activeTourSiteId, heading: heading }),
+        body: JSON.stringify({ site_id: activeTourSiteId, heading: heading, loc_photo: locPhotoFor(activeTourSiteId) }),
       }).then(res => {
         if (!res.ok) throw new Error('save-failed');
         currentHeadingOffset = heading;
         headingIsKnown = true;
         updateHeadingDialDisplay();
         syncSceneCacheHeading(activeTourSiteId, heading, true);
+        reloadStopIfLinksWaiting(activeTourSiteId);
         // Snap every link hotspot at this site to its real bearing now,
         // including the one just used -- its position was never
         // dragged this time, only inferred, so there's nothing "already
@@ -1897,10 +2477,12 @@
           snapped++;
         });
         if (snapped) {
+          var snapSid = activeTourSiteId;
+          markHotspotsDirty(snapSid);
           fetch('/__save_hotspots', {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ site_id: activeTourSiteId, slots: { '1': pendingSlotHotspots[slotId] || [] } }),
-          });
+            body: JSON.stringify({ site_id: snapSid, slots: { '1': pendingSlotHotspots[slotId] || [] }, loc_photo: locPhotoFor(snapSid) }),
+          }).then(res => { if (res.ok) markHotspotsClean(snapSid); }).catch(() => {});
         }
         btn.textContent = 'Calibrated! Snapped ' + snapped + ' pin(s)';
         setTimeout(() => { btn.textContent = original; }, 2200);
@@ -1932,8 +2514,9 @@
         if (viewConeLayer) { siteMap.removeLayer(viewConeLayer); viewConeLayer = null; viewConePolygons = []; }
         return;
       }
-      var liveYawDeg = viewL ? (viewL.parameters().yaw * 180 / Math.PI) : 0;
+      var liveYawDeg = (!flatConeActive && viewL) ? (viewL.parameters().yaw * 180 / Math.PI) : 0;
       var heading = (currentHeadingOffset + liveYawDeg + 360) % 360;
+      var halfAngle = flatConeActive ? VIEWCONE_FLAT_HALF_ANGLE : VIEWCONE_HALF_ANGLE;
 
       // A fade-with-distance look (solid near the marker, see-through
       // toward the far edge, like a flashlight beam) purely from
@@ -1944,19 +2527,24 @@
       // single outermost, faintest one. No raw SVG gradient defs
       // needed, which would otherwise have to be recomputed by hand
       // every update just to stay aligned as the cone rotates.
-      var fractions = [1.0, 0.66, 0.35];
+      // Index 0 is a dark casing under the outline, index 1 the outlined
+      // cone itself, then the two fading inner bands. The casing plus a
+      // white outline keeps the cone readable over both light and dark imagery.
+      var fractions = [1.0, 1.0, 0.66, 0.35];
       var pointSets = fractions.map(frac => [
         center,
-        destinationPoint(center[0], center[1], heading - VIEWCONE_HALF_ANGLE, VIEWCONE_RADIUS_M * frac),
-        destinationPoint(center[0], center[1], heading + VIEWCONE_HALF_ANGLE, VIEWCONE_RADIUS_M * frac),
+        destinationPoint(center[0], center[1], heading - halfAngle, VIEWCONE_RADIUS_M * frac),
+        destinationPoint(center[0], center[1], heading + halfAngle, VIEWCONE_RADIUS_M * frac),
       ]);
 
       if (viewConeLayer) {
         viewConePolygons.forEach((poly, i) => poly.setLatLngs(pointSets[i]));
       } else {
-        viewConePolygons = pointSets.map((points, i) => L.polygon(points, {
-          color: '#019fc4', weight: i === 0 ? 1 : 0, fillColor: '#019fc4',
-          fillOpacity: 0.22, interactive: false,
+        viewConePolygons = pointSets.map((points, i) => L.polygon(points, i === 0 ? {
+          color: '#0a1428', weight: 4, opacity: 0.6, fill: false, interactive: false,
+        } : {
+          color: '#ffffff', weight: i === 1 ? 2 : 0, opacity: 0.95, fillColor: '#019fc4',
+          fillOpacity: 0.34, interactive: false,
         }));
         viewConeLayer = L.layerGroup(viewConePolygons).addTo(siteMap);
       }
@@ -1973,7 +2561,7 @@
       Object.keys(tourMarkersBySite).forEach(sid => {
         var m = tourMarkersBySite[sid];
         var active = sid === activeTourSiteId;
-        m.setIcon(buildMarkerIcon(active));
+        m.setIcon(buildMarkerIcon(active, isAerialSite(sid)));
         if (active) m.setZIndexOffset(1000);
       });
       // Cluster icons are separate from the child markers' own icons,
@@ -2023,6 +2611,80 @@
         basemapToggleBtn.title = 'Switch to OpenStreetMap';
       } else {
         osmLayer.addTo(siteMap);
+      }
+      // Overlays sit independently of the base layer above (e.g. a
+      // georeferenced site plan over satellite imagery, or two
+      // different flight dates to compare), so they get Leaflet's own
+      // layers control rather than the single-layer toggle button
+      // above, which only ever swaps between exactly two base layers.
+      // Passing null for the base-layer argument keeps that control
+      // out of this list, so there's no second, conflicting way to
+      // switch basemaps.
+      // Which ones start checked is the GUI's own "On by default"
+      // choice per overlay (see _build_overlay_editor), not something
+      // decided here -- several full-coverage overlays defaulting on
+      // at once (e.g. two orthophoto dates covering the same area)
+      // just show whichever was added last, making the others look
+      // like they "aren't showing up" when they're really just fully
+      // covered, so leaving that call to whoever set the overlay up
+      // avoids that by default while still allowing it deliberately.
+      var overlays = (pendingMapData && pendingMapData.overlays) || [];
+      if (overlays.length) {
+        var overlayLayers = {};
+        overlays.forEach((o, idx) => {
+          if (!o.url) return;
+          var opacity = typeof o.opacity === 'number' ? o.opacity : 1;
+          var layer;
+          // Each overlay gets its own dedicated Leaflet pane with an
+          // explicit, unambiguous z-index, rather than relying on a
+          // tile layer's own zIndex option -- that option has to sit
+          // correctly relative to the base map layer sharing the
+          // same default pane, and evidently that interaction wasn't
+          // reliable. A custom pane per layer sidesteps that
+          // entirely: each one is its own isolated stacking context,
+          // so there's nothing left for it to conflict with. Panes
+          // between 210 and 399 sit above the base map (tilePane,
+          // 200) and below markers/popups (600+), and higher list
+          // position gets a higher number here, same top-of-list-on-
+          // top convention as the Move Up/Move Down help text.
+          var paneName = 'overlay-pane-' + idx;
+          if (!siteMap.getPane(paneName)) {
+            var pane = siteMap.createPane(paneName);
+            pane.style.zIndex = 210 + (overlays.length - idx);
+            pane.style.pointerEvents = 'none'; // re-enabled below only for feature layers (need clicks)
+          }
+          if (o.type === 'feature' && window.L && L.esri && L.esri.featureLayer) {
+            // Real geometry (points/lines/polygons) from a Hosted
+            // Feature Layer, not pixels -- stays sharp at any zoom
+            // and is clickable, unlike a rasterized version of the
+            // same data would be. One flat color per layer (no
+            // per-attribute styling) keeps this a lightweight
+            // reference layer rather than a second copy of AGOL's
+            // own Map Viewer.
+            siteMap.getPane(paneName).style.pointerEvents = 'auto';
+            var color = o.color || '#019fc4';
+            layer = L.esri.featureLayer({
+              url: o.url, pane: paneName,
+              style: function () { return { color: color, weight: 2, fillColor: color, fillOpacity: opacity * 0.35, opacity: opacity }; },
+            });
+            layer.bindPopup(l => {
+              var props = (l.feature && l.feature.properties) || {};
+              var rows = Object.keys(props)
+                  .filter(k => props[k] !== null && props[k] !== '')
+                  .map(k => '<tr><td style="font-weight:600;padding-right:10px;">' + escapeHtml(k) +
+                             '</td><td>' + escapeHtml(String(props[k])) + '</td></tr>')
+                  .join('');
+              return rows ? '<table style="font-size:12px;">' + rows + '</table>' : '(no attributes)';
+            });
+          } else {
+            layer = L.tileLayer(o.url, { maxZoom: 22, opacity: opacity, attribution: 'Imagery: SPSSEG', pane: paneName });
+          }
+          overlayLayers[o.label || 'Overlay'] = layer;
+          if (o.default_on !== false) layer.addTo(siteMap);
+        });
+        if (Object.keys(overlayLayers).length) {
+          L.control.layers(null, overlayLayers, { collapsed: true }).addTo(siteMap);
+        }
       }
       // Resizing the panel (see the CSS `resize: both`) changes
       // #site-map's dimensions, but Leaflet only measures its
@@ -2139,7 +2801,7 @@
         if (useCluster) markerClusterGroup = L.markerClusterGroup({ maxClusterRadius: 40 });
         pendingMapData.sites.forEach(s => {
           var isActive = s.site_id === activeTourSiteId;
-          var m = L.marker([s.lat, s.lng], { icon: buildMarkerIcon(isActive) });
+          var m = L.marker([s.lat, s.lng], { icon: buildMarkerIcon(isActive, s.platform === 'aerial') });
           m.bindPopup(escapeHtml(s.display_name || s.site_id));
           if (isActive) m.setZIndexOffset(1000);
           m.on('click', () => {
@@ -2182,6 +2844,16 @@
       }
     });
 
+    // Links belong to a stop, not to a tour, so a stop reused in a newer tour
+    // brings along links to places that tour doesn't include. In a tour those
+    // links are kept (so saving never deletes them) but not drawn or listed.
+    function linkOutsideTour(spot) {
+      if (!tourParam || !tourSiteOptions || !spot || spot.category !== 'link' || !spot.target) return false;
+      var norm = function (x) { return String(x).trim().toLowerCase().replace(/[\s-]+/g, '_'); };
+      var t = norm(spot.target);
+      return !tourSiteOptions.some(function (s) { return norm(s.site_id) === t; });
+    }
+
     function renderHotspots(scene, hotspots, slotId, panelEl, view, viewerRef) {
       if (!hotspots || !Array.isArray(hotspots) || !hotspots.length) return;
       hotspotsToggleBtn.style.display = 'inline-block';
@@ -2195,6 +2867,7 @@
       // every pre-existing hotspot for that slot.
       if (!pendingSlotHotspots[slotId]) pendingSlotHotspots[slotId] = hotspots.slice();
       hotspots.forEach(spot => {
+        if (linkOutsideTour(spot)) return;
         var pin = buildHotspotPin(spot);
         var hotspotObj = scene.hotspotContainer().createHotspot(pin.el, { yaw: spot.yaw, pitch: spot.pitch });
         wireHotspotInteractions(pin, spot, {
@@ -2208,6 +2881,31 @@
     var editingHotspots = false;
     var placingHotspot = false;
     var pendingSlotHotspots = {};
+    // Tour mode only: which stops (keyed by site id, same as
+    // pendingSlotHotspots) have hotspot edits not yet saved. Save Hotspots
+    // writes exactly these stops, and the sidebar marks them.
+    var dirtyHotspotSlots = {};
+    function markHotspotsDirty(slotId) {
+      if (!tourParam || !slotId || dirtyHotspotSlots[slotId]) return;
+      dirtyHotspotSlots[slotId] = true;
+      var el = document.querySelector('.tour-stop-link[data-site-id="' + slotId + '"]');
+      if (el) el.classList.add('unsaved');
+      updateSaveHotspotsLabel();
+    }
+    function markHotspotsClean(slotId) {
+      if (!dirtyHotspotSlots[slotId]) return;
+      delete dirtyHotspotSlots[slotId];
+      var el = document.querySelector('.tour-stop-link[data-site-id="' + slotId + '"]');
+      if (el) el.classList.remove('unsaved');
+      updateSaveHotspotsLabel();
+    }
+    function updateSaveHotspotsLabel() {
+      var n = Object.keys(dirtyHotspotSlots).length;
+      saveHotspotsBtn.textContent = n > 1 ? 'Save Hotspots (' + n + ' stops)' : 'Save Hotspots';
+    }
+    window.addEventListener('beforeunload', (e) => {
+      if (Object.keys(dirtyHotspotSlots).length) { e.preventDefault(); e.returnValue = ''; }
+    });
     var lastUsedCategory = 'note'; // sticky across pins placed this session
     // spot object -> { ctx, pin } for existing hotspots, so the list
     // panel's Edit button can reuse the exact same edit-form code path
@@ -2228,7 +2926,7 @@
       var content = document.getElementById('hotspot-list-content');
       if (content.style.display === 'none') return; // don't do the work while collapsed
       var slotId = getCurrentPrimarySlotId();
-      var spots = pendingSlotHotspots[slotId] || [];
+      var spots = (pendingSlotHotspots[slotId] || []).filter(s => !linkOutsideTour(s));
       if (!spots.length) {
         content.innerHTML = '<div class="hotspot-list-empty">No hotspots on this view.</div>';
         return;
@@ -2320,9 +3018,9 @@
         var original = saveBtn.textContent;
         fetch('/__save_heading', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ site_id: targetSite, heading: currentHeadingOffset }),
+          body: JSON.stringify({ site_id: targetSite, heading: currentHeadingOffset, loc_photo: locPhotoFor(targetSite) }),
         }).then(res => {
-          if (res.ok) syncSceneCacheHeading(targetSite, currentHeadingOffset, true);
+          if (res.ok) { syncSceneCacheHeading(targetSite, currentHeadingOffset, true); reloadStopIfLinksWaiting(targetSite); }
           saveBtn.textContent = res.ok ? 'Saved!' : 'Failed, try again';
           setTimeout(() => { saveBtn.textContent = original; }, 1400);
         }).catch(() => {
@@ -2371,20 +3069,39 @@
     });
 
     saveHotspotsBtn.addEventListener('click', () => {
-      var original = saveHotspotsBtn.textContent;
-      var payloadSiteId, payloadSlots;
+      var restoreLabel = () => { updateSaveHotspotsLabel(); };
       if (tourParam) {
         if (!activeTourSiteId) return;
-        payloadSiteId = activeTourSiteId;
-        payloadSlots = { '1': pendingSlotHotspots[activeTourSiteId] || [] };
-      } else {
-        payloadSiteId = siteId;
-        payloadSlots = pendingSlotHotspots;
+        // Every stop with unsaved edits, plus the stop on screen (saved
+        // even if nothing flagged it, as this button always did).
+        var ids = Object.keys(dirtyHotspotSlots);
+        if (ids.indexOf(activeTourSiteId) === -1) ids.push(activeTourSiteId);
+        Promise.all(ids.map(sid =>
+          fetch('/__save_hotspots', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ site_id: sid, slots: { '1': pendingSlotHotspots[sid] || [] }, loc_photo: locPhotoFor(sid) }),
+          }).then(res => ({ sid: sid, ok: res.ok })).catch(() => ({ sid: sid, ok: false, unreachable: true }))
+        )).then(results => {
+          var okList = results.filter(r => r.ok), failed = results.filter(r => !r.ok);
+          okList.forEach(r => markHotspotsClean(r.sid));
+          if (failed.length) {
+            saveHotspotsBtn.textContent = failed.some(r => r.unreachable)
+                ? 'Preview server not reachable'
+                : 'Failed on ' + failed.length + ' stop' + (failed.length > 1 ? 's' : '') + ', try again';
+            setTimeout(restoreLabel, 2200);
+          } else {
+            saveHotspotsBtn.textContent = okList.length > 1 ? 'Saved ' + okList.length + ' stops!' : 'Saved!';
+            setTimeout(restoreLabel, 1400);
+          }
+        });
+        return;
       }
+      var original = saveHotspotsBtn.textContent;
       fetch('/__save_hotspots', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ site_id: payloadSiteId, slots: payloadSlots }),
+        body: JSON.stringify({ site_id: siteId, slots: pendingSlotHotspots, loc_photo: locPhotoFor(siteId) }),
       }).then(res => {
         saveHotspotsBtn.textContent = res.ok ? 'Saved!' : 'Failed, try again';
         setTimeout(() => { saveHotspotsBtn.textContent = original; }, 1400);
@@ -2486,6 +3203,10 @@
       fetch('tiles/' + targetSiteId + '/config.json', { cache: 'no-store' })
         .then(res => { if (!res.ok) throw new Error('missing-config'); return res.json(); })
         .then(cfg => {
+          // A location is shown as a single photo here; remember which one
+          // so the preview server saves the new link onto that photo.
+          var locPhotoIndex = cfg.mode === 'location' ? locationPhotoIndex(cfg, null) : null;
+          cfg = normalizeLocationConfig(cfg, null, true);
           var isTs = cfg.mode === 'timeseries';
           var slotId = isTs ? '0' : '1';
           var existing = isTs
@@ -2499,7 +3220,7 @@
           slots[slotId] = existing;
           return fetch('/__save_hotspots', {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ site_id: targetSiteId, slots: slots }),
+            body: JSON.stringify({ site_id: targetSiteId, slots: slots, loc_photo: locPhotoIndex }),
           });
         })
         .then(res => {
@@ -2532,6 +3253,12 @@
         '</select>' +
         '<div class="hf-target-row" style="display:none;">' +
         '<label>Target Site ID</label>' + targetFieldMarkup() +
+        '<label>Icon</label>' +
+        '<select class="hf-link-icon">' +
+        '<option value="ground">Ground-level (arrow)</option>' +
+        '<option value="aerial">Aerial / drone (plane)</option>' +
+        '<option value="overview">Overview (birds-eye)</option>' +
+        '</select>' +
         '<label class="hf-return-link-label" style="display:none;">' +
         '<input type="checkbox" class="hf-return-link" checked> Also add a return link back here</label>' +
         '</div>' +
@@ -2601,6 +3328,7 @@
         if (category === 'link') {
           spot.target = form.querySelector('.hf-target').value.trim()
               .toLowerCase().replace(/[\s-]+/g, '_');
+          spot.link_icon = form.querySelector('.hf-link-icon').value;
           wantsReturnLink = canReturnLink && spot.target &&
               form.querySelector('.hf-return-link').checked;
         }
@@ -2650,6 +3378,12 @@
         '</select>' +
         '<div class="hf-target-row" style="display:none;">' +
         '<label>Target Site ID</label>' + targetFieldMarkup() +
+        '<label>Icon</label>' +
+        '<select class="hf-link-icon">' +
+        '<option value="ground">Ground-level (arrow)</option>' +
+        '<option value="aerial">Aerial / drone (plane)</option>' +
+        '<option value="overview">Overview (birds-eye)</option>' +
+        '</select>' +
         '<button type="button" class="hf-calibrate-heading" style="display:none; margin-top:8px;">' +
         'Calibrate Heading From This Position</button>' +
         '</div>' +
@@ -2670,6 +3404,7 @@
       form.querySelector('.hf-link').value = spot.link || '';
       form.querySelector('.hf-cat').value = spot.category || 'note';
       form.querySelector('.hf-target').value = spot.target || '';
+      form.querySelector('.hf-link-icon').value = spot.link_icon || 'ground';
       form.querySelector('.hf-pinstyle').value = spot.pin_style || 'label_hover';
       var currentImages = spotImages(spot).slice(); // local working copy; only committed on Save
       var imageListEl = form.querySelector('.hf-image-list');
@@ -2721,13 +3456,14 @@
         calibrateBtn.textContent = 'Calibrating\u2026';
         fetch('/__save_heading', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ site_id: activeTourSiteId, heading: heading }),
+          body: JSON.stringify({ site_id: activeTourSiteId, heading: heading, loc_photo: locPhotoFor(activeTourSiteId) }),
         }).then(res => {
           if (!res.ok) throw new Error('save-failed');
           currentHeadingOffset = heading;
           headingIsKnown = true;
           updateHeadingDialDisplay();
           syncSceneCacheHeading(activeTourSiteId, heading, true);
+          reloadStopIfLinksWaiting(activeTourSiteId);
           // The pin just dragged into place is now correct by
           // definition and is left alone -- every *other* link
           // hotspot at this same site can now be auto-snapped to its
@@ -2750,10 +3486,12 @@
             snapped++;
           });
           if (snapped) {
+            var snapSid2 = activeTourSiteId;
+            markHotspotsDirty(snapSid2);
             fetch('/__save_hotspots', {
               method: 'POST', headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ site_id: activeTourSiteId, slots: { '1': pendingSlotHotspots[activeTourSiteId] || [] } }),
-            });
+              body: JSON.stringify({ site_id: snapSid2, slots: { '1': pendingSlotHotspots[snapSid2] || [] }, loc_photo: locPhotoFor(snapSid2) }),
+            }).then(res => { if (res.ok) markHotspotsClean(snapSid2); }).catch(() => {});
           }
           calibrateBtn.textContent = snapped ? ('Calibrated! Snapped ' + snapped + ' other pin(s)') : 'Calibrated!';
           setTimeout(() => { calibrateBtn.textContent = original; }, 2200);
@@ -2776,14 +3514,18 @@
         if (category === 'link') {
           spot.target = form.querySelector('.hf-target').value.trim()
               .toLowerCase().replace(/[\s-]+/g, '_');
+          spot.link_icon = form.querySelector('.hf-link-icon').value;
         } else {
           delete spot.target;
+          delete spot.link_icon;
         }
 
         function finish() {
           pin.el.setAttribute('data-title', spot.title);
           pin.el.className = 'hotspot-pin hotspot-cat-' + spot.category + pinStyleClass(spot);
+          applyLinkHotspotIcon(pin.el, spot);
           updateHotspotTooltipBody(pin.body, spot);
+          markHotspotsDirty(ctx.slotId);
           close();
           refreshHotspotList();
         }
@@ -2816,6 +3558,7 @@
           if (idx !== -1) arr.splice(idx, 1);
         }
         hotspotUiMap.delete(spot);
+        markHotspotsDirty(ctx.slotId);
         close();
         refreshHotspotList();
       });
@@ -2829,6 +3572,7 @@
         var spot = Object.assign({ yaw: coords.yaw, pitch: coords.pitch }, spotInfo);
         if (!pendingSlotHotspots[slotId]) pendingSlotHotspots[slotId] = [];
         pendingSlotHotspots[slotId].push(spot);
+        markHotspotsDirty(slotId);
         var pin = buildHotspotPin(spot);
         var hotspotObj = scene.hotspotContainer().createHotspot(pin.el, { yaw: spot.yaw, pitch: spot.pitch });
         wireHotspotInteractions(pin, spot, {
@@ -2911,7 +3655,380 @@
       var siteLinkElements = {}; // site_id -> its sidebar link element, if it has one
       var tourNameForTitle = tourId; // updated once the manifest loads, used to keep
                                       // the browser tab title showing "Tour \u2014 Stop"
+      // The map button/panel are tour-wide, not per-stop -- one map
+      // plots every stop's pin together, shown once when the tour
+      // manifest loads (see the sitesWithGps block below), never
+      // touched again by ordinary per-stop navigation. hideFlatStop
+      // needs this to restore the button correctly after a flat stop
+      // force-hides it, since there's no per-stop logic that would
+      // otherwise ever turn it back on.
+      var tourHasMap = false;
       var activeLink = null;
+
+      // -- flat (non-pano) tour stops -----------------------------------
+      // A stop published via "Flat image or PDF" (see write_flat_config
+      // in the publisher) has mode: "flat" in its config.json instead of
+      // any of the usual pano fields. Both call sites in loadStop below
+      // check that before touching Marzipano at all -- these two
+      // functions just show/hide the overlay and leave the pano
+      // viewer's own state alone underneath it. Nested here (not at
+      // the top level) so they can close over sceneCache and
+      // tourNameForTitle, both local to this tour instance.
+      function hideFlatStop() {
+        document.getElementById('flat-stop-viewer').classList.remove('visible');
+        document.getElementById('flat-stop-image').style.display = 'none';
+        document.getElementById('flat-stop-image').src = '';
+        document.getElementById('flat-stop-canvas').style.display = 'none';
+        document.getElementById('flat-stop-pdf-wrap').style.display = 'none';
+        document.getElementById('flat-stop-pdf').src = '';
+        document.getElementById('flat-stop-page-nav').style.display = 'none';
+        document.getElementById('pano-left').style.visibility = '';
+        document.getElementById('pano-right-wrapper').style.visibility = '';
+        document.getElementById('autorotate-btn').style.display = '';
+        document.getElementById('reset-btn').style.display = '';
+        // isLocalPreview is false in tour mode (it excludes ?tour=), so
+        // it can't be used here: check the host directly, same as
+        // renderTourPage does when it first shows the toolbar.
+        if (location.hostname === '127.0.0.1' || location.hostname === 'localhost') {
+          document.getElementById('edit-tools-panel').style.display = 'flex';
+        }
+        // The map is tour-wide (see tourHasMap above), not per-stop,
+        // so it's restored directly here rather than left for
+        // per-stop loading to handle -- there is no such per-stop
+        // logic for it in tour mode. hotspots-toggle-btn, by
+        // contrast, genuinely is per-stop (each stop has its own
+        // hotspots), and IS correctly reset by the normal per-stop
+        // loading that runs right after this, for whatever pano
+        // comes next -- so it's deliberately left alone here.
+        if (tourHasMap) mapToggleBtn.style.display = 'inline-block';
+        flatConeActive = false;
+      }
+
+      function showFlatStop(sid, config, fallbackLabel) {
+        var label = config.label || fallbackLabel;
+        document.getElementById('flat-stop-caption-text').textContent = label;
+        document.getElementById('label-left').innerText = label;
+        document.title = tourNameForTitle + ' \u2014 ' + label;
+
+        var fileUrl = 'tiles/' + sid + '/' + (config.file || '');
+        var imgEl = document.getElementById('flat-stop-image');
+        var canvasEl = document.getElementById('flat-stop-canvas');
+        var pdfWrap = document.getElementById('flat-stop-pdf-wrap');
+        imgEl.style.display = 'none';
+        canvasEl.style.display = 'none';
+        pdfWrap.style.display = 'none';
+        document.getElementById('flat-stop-page-nav').style.display = 'none';
+        // Marked visible before rendering starts, not after: renderFlatPdf
+        // measures #flat-stop-body's width to decide render resolution, and
+        // that's 0 while the container is still display:none.
+        document.getElementById('flat-stop-viewer').classList.add('visible');
+        flatStopSid = sid;
+        var isPdfStop = /\.pdf$/i.test(config.file || '');
+        var isLocalHost = (location.hostname === '127.0.0.1' || location.hostname === 'localhost');
+        document.getElementById('flat-stop-rotate-tools').style.display = (isPdfStop && isLocalHost) ? 'inline-flex' : 'none';
+        if (/\.pdf$/i.test(config.file || '')) {
+          document.getElementById('flat-stop-pdf-link').href = fileUrl;
+          renderFlatPdf(fileUrl, config.rotate);
+        } else {
+          imgEl.src = fileUrl;
+          imgEl.onload = () => { imgEl.style.display = 'block'; wirePanZoom(imgEl.naturalWidth, imgEl.naturalHeight); };
+          document.getElementById('flat-stop-pdf').src = '';
+        }
+
+        // Pano panels stay underneath (visibility, not display, so
+        // Marzipano's own size math never sees a zero-size container),
+        // fully covered by the flat overlay above them. Editing tools,
+        // the site map, hotspots, and the pano-only controls don't
+        // apply to a flat file, so they're hidden rather than left
+        // sitting there doing nothing -- or in the map's case,
+        // floating on top of the PDF/image since it's an absolutely
+        // positioned panel that doesn't know a flat stop replaced the
+        // pano underneath it.
+        document.getElementById('pano-left').style.visibility = 'hidden';
+        document.getElementById('pano-right-wrapper').style.visibility = 'hidden';
+        document.getElementById('autorotate-btn').style.display = 'none';
+        document.getElementById('reset-btn').style.display = 'none';
+        document.getElementById('edit-tools-panel').style.display = 'none';
+        document.getElementById('hotspots-toggle-btn').style.display = 'none';
+        // The map is tour wide, so it stays available for flat stops
+        // (its panel floats above the flat overlay). A flat stop with a
+        // stored heading gets a fixed view cone; without one, no cone.
+        if (tourHasMap) mapToggleBtn.style.display = 'inline-block';
+        flatConeActive = true;
+        currentHeadingOffset = config.heading != null ? config.heading : 0;
+        headingIsKnown = config.heading != null;
+        updateHeadingDialDisplay();
+        updateViewCone();
+
+        sceneCache[sid] = { flat: true, config: config, label: label };
+      }
+
+      // -- pdf.js: render page 1 onto a canvas, auto-rotated to landscape ----
+      // Handing the PDF to Chrome's own built-in viewer (a plain iframe src)
+      // works, but that viewer is a separate app UI bolted on top of this
+      // one, and it has no way to default to a rotated, panned, zoomed view
+      // -- the person has to fix all of that by hand, every time, through a
+      // toolbar menu. Rendering the page ourselves with pdf.js instead means
+      // the result is just a plain image (a canvas) that the exact same
+      // pan/zoom code below already knows how to handle for a flat image
+      // stop, and it means the auto-rotate-to-landscape heuristic below is
+      // possible at all, which an iframe can't do.
+      var pdfjsLoadPromise = null;
+      function loadPdfJs() {
+        if (pdfjsLoadPromise) return pdfjsLoadPromise;
+        var PDFJS_VERSION = '3.11.174';
+        pdfjsLoadPromise = new Promise((resolve, reject) => {
+          if (window.pdfjsLib) { resolve(window.pdfjsLib); return; }
+          var script = document.createElement('script');
+          script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/' + PDFJS_VERSION + '/pdf.min.js';
+          script.onload = () => {
+            if (!window.pdfjsLib) { reject(new Error('pdfjsLib missing after load')); return; }
+            window.pdfjsLib.GlobalWorkerOptions.workerSrc =
+                'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/' + PDFJS_VERSION + '/pdf.worker.min.js';
+            resolve(window.pdfjsLib);
+          };
+          script.onerror = () => reject(new Error('failed to load pdf.js'));
+          document.head.appendChild(script);
+        });
+        return pdfjsLoadPromise;
+      }
+      function showFlatPdfFallback(fileUrl) {
+        // pdf.js failed to load or render (offline, CORS on the tile
+        // host, a malformed PDF, whatever) -- fall back to the plain
+        // iframe approach rather than showing nothing. No rotation
+        // control here beyond what the browser's own viewer offers,
+        // but "readable, if a bit clunky" beats "blank."
+        document.getElementById('flat-stop-pdf').src = fileUrl + '#navpanes=0';
+        document.getElementById('flat-stop-pdf-wrap').style.display = 'flex';
+        document.getElementById('flat-stop-canvas').style.display = 'none';
+      }
+      var flatPdfRenderToken = 0;
+      var flatPdfDoc = null;    // the currently loaded multi-page PDFDocumentProxy, if any
+      var flatPdfPage = 1;      // 1-based, current page within flatPdfDoc
+      var flatPdfCurrentExtra = 0; // extra clockwise rotation applied to the page now on screen
+      var flatStopSid = null;      // which flat stop is showing, for saving its rotation
+      var flatPdfForcedRotate = null; // optional per stop override (config.rotate), extra clockwise degrees
+      function renderFlatPdf(fileUrl, forcedRotate) {
+        flatPdfForcedRotate = (forcedRotate === 0 || forcedRotate === 90 || forcedRotate === 180 || forcedRotate === 270) ? forcedRotate : null;
+        var myToken = ++flatPdfRenderToken; // stale-response guard if stops are switched quickly
+        flatPdfDoc = null;
+        flatPdfPage = 1;
+        loadPdfJs().then(pdfjsLib => pdfjsLib.getDocument(fileUrl).promise)
+            .then(pdf => {
+              if (myToken !== flatPdfRenderToken) return;
+              flatPdfDoc = pdf;
+              updatePageNavUI();
+              return renderFlatPdfPage(myToken);
+            })
+            .catch(err => {
+              if (myToken !== flatPdfRenderToken) return;
+              console.warn('pdf.js render failed, falling back to iframe:', err);
+              showFlatPdfFallback(fileUrl);
+            });
+      }
+      function renderFlatPdfPage(myToken) {
+        var canvasEl = document.getElementById('flat-stop-canvas');
+        return flatPdfDoc.getPage(flatPdfPage).then(page => {
+          if (myToken !== flatPdfRenderToken) return;
+          // Rotation is decided by which way the page's TEXT runs, not
+          // by page shape. Plan sheets are often authored portrait with
+          // the drawing (and its text) turned 90 degrees, and those need
+          // rotating to read; ordinary portrait documents (forms, memos,
+          // reports) have upright text and must stay portrait. So: count
+          // characters running horizontally vs vertically in the page as
+          // displayed, and turn the page by whatever makes the majority
+          // upright. Pages with almost no text (scans, pure drawings)
+          // fall back to the old page shape rule (portrait = rotate).
+          // A stop can override all of this with "rotate": 0/90/180/270
+          // (extra clockwise degrees) in its config.json.
+          var base = page.getViewport({ scale: 1 });
+          var extraPromise;
+          if (flatPdfForcedRotate != null) {
+            extraPromise = Promise.resolve(flatPdfForcedRotate);
+          } else {
+            extraPromise = page.getTextContent().then(tc => {
+              var horiz = 0, up = 0, down = 0;
+              tc.items.forEach(item => {
+                var n = (item.str || '').trim().length;
+                if (!n) return;
+                var m = window.pdfjsLib.Util.transform(base.transform, item.transform);
+                if (Math.abs(m[0]) >= Math.abs(m[1])) { horiz += n; }
+                else if (m[1] < 0) { up += n; }   // text runs bottom to top
+                else { down += n; }               // text runs top to bottom
+              });
+              var total = horiz + up + down;
+              var result;
+              if (total < 20) result = base.width < base.height ? 90 : 0; // too little text: old rule
+              else if (horiz >= up && horiz >= down) result = 0;
+              else result = up >= down ? 90 : 270;
+              // Shown in the browser console (F12) to diagnose a PDF that
+              // opens turned the wrong way: characters counted by direction.
+              console.info('flat pdf rotation', { horizontal: horiz, bottomToTop: up, topToBottom: down,
+                                                 pageRotate: base.rotation, extraRotate: result });
+              return result;
+            }).catch(err => {
+              console.warn('flat pdf text check failed, using page shape rule:', err);
+              return base.width < base.height ? 90 : 0;
+            });
+          }
+          return extraPromise.then(extra => {
+          if (myToken !== flatPdfRenderToken) return;
+          flatPdfCurrentExtra = extra;
+          var rotate = (base.rotation + extra) % 360;
+          var targetPixelWidth = Math.min(3000, (flatStopBody().clientWidth || 1200) * 2.5);
+          var unscaled = page.getViewport({ scale: 1, rotation: rotate });
+          var scale = targetPixelWidth / unscaled.width;
+          var viewport = page.getViewport({ scale: scale, rotation: rotate });
+          canvasEl.width = viewport.width;
+          canvasEl.height = viewport.height;
+          return page.render({ canvasContext: canvasEl.getContext('2d'), viewport: viewport }).promise;
+          });
+        }).then(() => {
+          if (myToken !== flatPdfRenderToken) return;
+          canvasEl.style.display = 'block';
+          wirePanZoom(canvasEl.width, canvasEl.height);
+        });
+      }
+      function updatePageNavUI() {
+        var nav = document.getElementById('flat-stop-page-nav');
+        var numPages = flatPdfDoc ? flatPdfDoc.numPages : 1;
+        if (numPages <= 1) { nav.style.display = 'none'; return; }
+        nav.style.display = 'flex';
+        document.getElementById('flat-stop-page-label').textContent = 'Page ' + flatPdfPage + ' of ' + numPages;
+        document.getElementById('flat-stop-prev-page').disabled = flatPdfPage <= 1;
+        document.getElementById('flat-stop-next-page').disabled = flatPdfPage >= numPages;
+      }
+      function goToFlatPdfPage(delta) {
+        if (!flatPdfDoc) return;
+        var next = flatPdfPage + delta;
+        if (next < 1 || next > flatPdfDoc.numPages) return;
+        flatPdfPage = next;
+        updatePageNavUI();
+        renderFlatPdfPage(flatPdfRenderToken);
+      }
+      document.getElementById('flat-stop-prev-page').addEventListener('click', () => goToFlatPdfPage(-1));
+      document.getElementById('flat-stop-next-page').addEventListener('click', () => goToFlatPdfPage(1));
+
+      // -- rotate tools (local preview only) ----------------------------------
+      // Turns the PDF and writes the choice into that stop's config.json as
+      // "rotate" (extra clockwise degrees), which every later load honours
+      // in place of the automatic check. "Auto" removes the saved value.
+      function saveFlatRotate(value) {
+        var sid = flatStopSid;
+        if (!sid) return;
+        fetch('/__save_flat_rotate', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ site_id: sid, rotate: value }),
+        }).then(res => {
+          if (!res.ok) throw new Error('save failed');
+          var cfg = sceneCache[sid] && sceneCache[sid].config;
+          if (cfg) { if (value == null) delete cfg.rotate; else cfg.rotate = value; }
+        }).catch(err => console.warn('could not save PDF rotation:', err));
+      }
+      function rotateFlatPdf(delta) {
+        if (!flatPdfDoc) return;
+        var next = (((flatPdfCurrentExtra + delta) % 360) + 360) % 360;
+        flatPdfForcedRotate = next;
+        renderFlatPdfPage(flatPdfRenderToken);
+        saveFlatRotate(next);
+      }
+      document.getElementById('flat-stop-rotate-left').addEventListener('click', () => rotateFlatPdf(-90));
+      document.getElementById('flat-stop-rotate-right').addEventListener('click', () => rotateFlatPdf(90));
+      document.getElementById('flat-stop-rotate-auto').addEventListener('click', () => {
+        if (!flatPdfDoc) return;
+        flatPdfForcedRotate = null;
+        renderFlatPdfPage(flatPdfRenderToken);
+        saveFlatRotate(null);
+      });
+
+      // -- pan and zoom for the rendered canvas or a plain flat image --------
+      function flatStopBody() { return document.getElementById('flat-stop-body'); }
+      var panZoomState = null; // { scale, minScale, tx, ty } -- rebuilt fresh per stop by wirePanZoom
+      var panZoomWired = false;
+      function wirePanZoom(contentWidth, contentHeight) {
+        var body = flatStopBody();
+        var wrap = document.getElementById('flat-stop-zoom-wrap');
+        wrap.style.width = contentWidth + 'px';
+        wrap.style.height = contentHeight + 'px';
+        // The canvas (or image) is often rendered well above the
+        // container's own CSS size on purpose -- renderFlatPdf
+        // deliberately oversamples so zooming in later still looks
+        // sharp instead of blurry -- so a starting scale of 1 (1
+        // content pixel = 1 CSS pixel) showed only a small cropped
+        // corner of the page, not the whole thing. minScale is
+        // "whole page visible, either edge just touching the
+        // container," and that's the actual starting point and the
+        // floor for zooming back out, not a bare 1.
+        var fitScale = Math.min(body.clientWidth / contentWidth, body.clientHeight / contentHeight);
+        // Never start zoomed further IN than native resolution just
+        // because the container happens to be huge relative to a
+        // small source image -- 1 is still a sensible ceiling for
+        // the starting view, only the floor moves.
+        fitScale = Math.min(fitScale, 1);
+        // tx/ty are the wrap's own top-left corner, in CSS pixels
+        // from #flat-stop-body's top-left -- centering the scaled
+        // content means that corner sits inward from the container's
+        // corner by half of whatever blank space is left over on
+        // each axis.
+        panZoomState = {
+          scale: fitScale, minScale: fitScale,
+          tx: (body.clientWidth - contentWidth * fitScale) / 2,
+          ty: (body.clientHeight - contentHeight * fitScale) / 2,
+        };
+        applyPanZoom(wrap);
+        if (panZoomWired) return; // listeners are on #flat-stop-body itself, only need wiring once
+        panZoomWired = true;
+
+        function applyPanZoom(el) {
+          el.style.transform = 'translate(' + panZoomState.tx + 'px,' + panZoomState.ty + 'px) scale(' + panZoomState.scale + ')';
+        }
+        function resetView() {
+          var w = parseFloat(wrap.style.width), h = parseFloat(wrap.style.height);
+          panZoomState.scale = panZoomState.minScale;
+          panZoomState.tx = (body.clientWidth - w * panZoomState.minScale) / 2;
+          panZoomState.ty = (body.clientHeight - h * panZoomState.minScale) / 2;
+          applyPanZoom(wrap);
+        }
+        body.addEventListener('wheel', e => {
+          if (!panZoomState) return;
+          e.preventDefault();
+          // Cursor position relative to #flat-stop-body's own
+          // top-left, matching tx/ty's frame of reference (see
+          // above) -- this is the standard zoom-toward-a-point
+          // formula for a translate-then-scale-from-(0,0) transform.
+          var rect = body.getBoundingClientRect();
+          var mx = e.clientX - rect.left, my = e.clientY - rect.top;
+          var factor = e.deltaY < 0 ? 1.2 : 1 / 1.2;
+          var next = Math.min(panZoomState.minScale * 10, Math.max(panZoomState.minScale, panZoomState.scale * factor));
+          panZoomState.tx = mx - (mx - panZoomState.tx) * (next / panZoomState.scale);
+          panZoomState.ty = my - (my - panZoomState.ty) * (next / panZoomState.scale);
+          panZoomState.scale = next;
+          if (panZoomState.scale <= panZoomState.minScale * 1.001) { resetView(); return; }
+          applyPanZoom(wrap);
+        }, { passive: false });
+        var dragging = false, lastX = 0, lastY = 0;
+        body.addEventListener('pointerdown', e => {
+          if (!panZoomState) return;
+          dragging = true; lastX = e.clientX; lastY = e.clientY;
+          body.setPointerCapture(e.pointerId);
+          body.classList.add('dragging');
+        });
+        body.addEventListener('pointermove', e => {
+          if (!dragging || !panZoomState) return;
+          panZoomState.tx += e.clientX - lastX;
+          panZoomState.ty += e.clientY - lastY;
+          lastX = e.clientX; lastY = e.clientY;
+          applyPanZoom(wrap);
+        });
+        ['pointerup', 'pointercancel', 'pointerleave'].forEach(ev => body.addEventListener(ev, () => {
+          dragging = false;
+          body.classList.remove('dragging');
+        }));
+        body.addEventListener('dblclick', () => {
+          if (!panZoomState) return;
+          resetView();
+        });
+      }
 
       function loadStop(rawId) {
         var sid = rawId.trim().toLowerCase().replace(/[\s-]+/g, '_');
@@ -2929,6 +4046,12 @@
         activeTourSiteId = sid;
         updateActiveMapMarker();
 
+        if (sceneCache[sid] && sceneCache[sid].flat) {
+          showFlatStop(sid, sceneCache[sid].config, fallbackLabel);
+          return;
+        }
+        hideFlatStop();
+
         if (sceneCache[sid]) {
           var cached = sceneCache[sid];
           viewL = cached.view;
@@ -2942,6 +4065,8 @@
           currentHeadingOffset = cached.heading || 0;
           headingIsKnown = !!cached.headingKnown;
           updateHeadingDialDisplay();
+          mapToggleBtn.style.display = cached.hasMap ? 'inline-block' : 'none';
+          hotspotsToggleBtn.style.display = cached.hasHotspots ? 'inline-block' : 'none';
           refreshHotspotList();
           return;
         }
@@ -2954,6 +4079,15 @@
             }).then(cfg => { configCache[sid] = cfg; return cfg; });
 
         configPromise.then(config => {
+          config = normalizeLocationConfig(config, tourPhotoIdFor(sid), true);
+          if (config._location) {
+            locPhotoBySite[sid] = config._photoIndex;
+            unplacedBySite[sid] = config._unplacedLinks || [];
+          }
+          if (config.mode === 'flat') {
+            showFlatStop(sid, config, fallbackLabel);
+            return;
+          }
           var isTiled = config.format === 'tiled';
           defaultViewL = { yaw: config.yaw_1 || 0, pitch: config.pitch_1 || 0, fov: Math.PI / 4 };
           // Only ever a fallback for a stop that's still at its
@@ -2970,11 +4104,11 @@
           if (isTiled) {
             geometry = new Marzipano.CubeGeometry(
                 (config.levels_1 && config.levels_1.length) ? config.levels_1 : [{ tileSize: 256, size: 256, fallbackOnly: true }, { tileSize: 512, size: 512 }, { tileSize: 512, size: 1024 }, { tileSize: 512, size: 2048 }]);
-            source = Marzipano.ImageUrlSource.fromString('tiles/' + sid + '/img1/scene/{z}/{f}/{y}/{x}.jpg');
+            source = Marzipano.ImageUrlSource.fromString('tiles/' + sid + '/' + (config._imgName || 'img1') + '/scene/{z}/{f}/{y}/{x}.jpg');
             document.getElementById('pano-loading-left').classList.add('hidden');
           } else {
             geometry = new Marzipano.EquirectGeometry([{ width: rawEquirectWidth(config.mobile_1) }]);
-            var stopImgUrl = rawImageUrl('tiles/' + sid + '/img1.jpg', config.mobile_1);
+            var stopImgUrl = rawImageUrl('tiles/' + sid + '/' + (config._imgName || 'img1') + '.jpg', config.mobile_1);
             source = Marzipano.ImageUrlSource.fromString(stopImgUrl);
             preloadPanoThenRun(stopImgUrl, 'left', function () {});
           }
@@ -3006,12 +4140,27 @@
             scene: scene, view: viewL, defaultView: defaultViewL,
             label: resolvedLabel, pinStyle: config.pin_style, heading: config.heading_offset || 0,
             headingKnown: config.heading_offset != null,
+            // A flat stop force-hides both these buttons (see
+            // showFlatStop) and the cache-hit branch above didn't
+            // restore them, so a previously-visited stop's map or
+            // hotspots button stayed hidden after visiting even one
+            // PDF/image stop, permanently, until that stop got
+            // reloaded fresh (uncached) -- looked exactly like "the
+            // map is gone now" rather than what it actually was.
+            hasMap: mapToggleBtn.style.display !== 'none',
+            hasHotspots: hotspotsToggleBtn.style.display !== 'none',
           };
         }).catch(() => {
           showBanner('Could not load "' + sid + '" for this tour.');
         });
       }
       tourLoadStopFn = loadStop;
+      tourReloadStopFn = function (sid) {
+        delete configCache[sid];
+        delete sceneCache[sid];
+        delete pendingSlotHotspots[sid];
+        loadStop(sid);
+      };
       syncSceneCacheHeading = function (sid, heading, known) {
         if (sceneCache[sid]) {
           sceneCache[sid].heading = heading;
@@ -3029,18 +4178,24 @@
           if (res.ok) return res.json();
           throw new Error('missing-tour');
         })
+        .then(manifest => withTourDate(manifest, sanitizedTour))
         .then(manifest => {
-          titleEl.textContent = manifest.name || tourId;
-          document.title = manifest.name || tourId;
-          tourNameForTitle = manifest.name || tourId;
+          var shownName = tourNameWithDate(manifest.name || tourId, manifest.field_visit_date);
+          titleEl.textContent = shownName;
+          document.title = shownName;
+          tourNameForTitle = shownName;
+          window.helpTourName = shownName;
+          window.helpTourIntro = (manifest.intro_note || '').toString().trim();
           var sites = manifest.sites || [];
           tourSiteOptions = sites;
 
           var sitesWithGps = sites.filter(s => s.lat != null && s.lng != null);
+          tourHasMap = sitesWithGps.length > 0;
           if (sitesWithGps.length) {
             pendingMapData = {
               type: 'tour', sites: sitesWithGps,
               basemapType: manifest.basemap_type || 'osm', basemapUrl: manifest.basemap_url || '',
+              overlays: manifest.overlays || [],
             };
             mapToggleBtn.style.display = 'inline-block';
             openSiteMap();
@@ -3055,8 +4210,13 @@
             var link = document.createElement('div');
             link.className = 'tour-stop-link';
             var label = s.display_name || s.site_id;
-            link.textContent = label;
+            if (s.platform === 'aerial') {
+              link.innerHTML = airplaneSvg(14, 'currentColor') + escapeHtml(label);
+            } else {
+              link.textContent = label;
+            }
             var sidKey = s.site_id.trim().toLowerCase().replace(/[\s-]+/g, '_');
+            link.setAttribute('data-site-id', sidKey);
             siteLinkElements[sidKey] = link;
             link.addEventListener('click', () => loadStop(s.site_id));
             listEl.appendChild(link);

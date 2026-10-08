@@ -1,58 +1,62 @@
 {
-  "mode": "single",
-  "format": "raw",
-  "yaw_1": -0.9253860034887325,
-  "pitch_1": 0.7060782581399964,
-  "yaw_2": 0.0,
-  "pitch_2": 0.0,
+  "mode": "location",
+  "schema": 1,
+  "migrated_from": "single",
+  "platform": "aerial",
   "lat": 47.21176508333333,
   "lng": -123.08991633333333,
-  "label_1": "DJI_20260909124244_0001_D (2026/09/09)",
-  "label_2": "",
+  "pin_style": "dot",
   "autorotate": false,
-  "hotspots_1": [
+  "basemap_type": "esri_tile",
+  "basemap_url": "https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}",
+  "overlays": null,
+  "default_photo": "p2",
+  "hotspots": [
     {
-      "yaw": 2.548129410064563,
       "pitch": 0.8854159502381016,
       "title": "West Lobe - East View",
       "text": "",
       "link": "",
       "category": "link",
       "pin_style": "label_always",
-      "target": "dji_20260909123847_0001_d"
+      "target": "dji_20260909123847_0001_d",
+      "id": "h1",
+      "bearing": 214.8972563456162
     },
     {
-      "yaw": 3.0784266749391946,
       "pitch": 0.48310141428367537,
       "title": "West Lobe - High Berm View",
       "text": "",
       "link": "",
       "category": "link",
       "pin_style": "label_always",
-      "target": "dji_20260909124045_0001_d"
+      "target": "dji_20260909124045_0001_d",
+      "id": "h2",
+      "bearing": 245.2810515102637
     },
     {
-      "yaw": 1.3388139558567431,
       "pitch": 0.28774249294130705,
       "title": "South Lobe",
       "text": "",
       "link": "",
       "category": "link",
       "pin_style": "label_always",
-      "target": "dji_20260909123432_0001_d"
+      "target": "dji_20260909123432_0001_d",
+      "id": "h3",
+      "bearing": 145.60858471956192
     },
     {
-      "yaw": 2.5460130022236482,
       "pitch": 0.432122237722961,
       "title": "ELJs on Goldsborough",
       "text": "",
       "link": "",
       "category": "link",
       "pin_style": "label_always",
-      "target": "dji_20260909123649_0001_d"
+      "target": "dji_20260909123649_0001_d",
+      "id": "h4",
+      "bearing": 214.77599510860335
     },
     {
-      "yaw": 2.702311446774357,
       "pitch": 0.5421449485649852,
       "title": "West Lobe - South View 3 (ground)",
       "text": "",
@@ -60,70 +64,77 @@
       "category": "link",
       "pin_style": "label_hover",
       "target": "img_20260909_120210_00_979",
-      "images": []
+      "images": [],
+      "id": "h5",
+      "bearing": 223.73123632581854
     },
     {
-      "yaw": 3.137598245183014,
       "pitch": 0.7331543535464942,
       "title": "West Lobe - BEZEs (ground)",
       "text": "",
       "link": "",
       "category": "link",
       "pin_style": "label_always",
-      "target": "img_20260909_115426_00_975"
+      "target": "img_20260909_115426_00_975",
+      "id": "h6",
+      "bearing": 248.67133275239638
     },
     {
-      "yaw": 2.5772796250189494,
       "pitch": 1.0343200569269975,
       "title": "West Lobe - East End (ground)",
       "text": "",
       "link": "",
       "category": "link",
       "pin_style": "label_hover",
-      "target": "img_20260909_115721_00_976"
+      "target": "img_20260909_115721_00_976",
+      "id": "h7",
+      "bearing": 216.56744063440163
     },
     {
-      "yaw": 2.451851686651784,
       "pitch": 0.8164460365521222,
       "title": "West Lobe - South View 1 (ground)",
       "text": "",
       "link": "",
       "category": "link",
       "pin_style": "label_hover",
-      "target": "img_20260909_115811_00_977"
+      "target": "img_20260909_115811_00_977",
+      "id": "h8",
+      "bearing": 209.38094913293605
     },
     {
-      "yaw": 2.5506132999785827,
       "pitch": 0.7070106975563615,
       "title": "West Lobe - South View 2 (ground)",
       "text": "",
       "link": "",
       "category": "link",
       "pin_style": "label_hover",
-      "target": "img_20260909_115850_00_978"
+      "target": "img_20260909_115850_00_978",
+      "id": "h9",
+      "bearing": 215.03957275446464
     },
     {
-      "yaw": -1.655360059206533,
       "pitch": 0.45515332835999267,
       "title": "Shelton Creek",
       "text": "",
       "link": "",
       "category": "link",
       "pin_style": "label_always",
-      "target": "dji_20260909124449_0001_d"
+      "target": "dji_20260909124449_0001_d",
+      "id": "h10",
+      "bearing": 334.055050528696
     },
     {
-      "yaw": -0.9628080492980047,
-      "pitch": 0.5501998747387145,
+      "pitch": 0.4316048914096875,
       "title": "North Lobe",
       "text": "",
       "link": "",
       "category": "link",
       "pin_style": "label_always",
-      "target": "dji_20260909124644_0001_d"
+      "target": "dji_20260909124644_0001_d",
+      "id": "h11",
+      "bearing": 13.039485865151086
     },
     {
-      "yaw": -0.44422326717736027,
       "pitch": 0.38070109391881957,
       "title": "Yacht Club",
       "text": "",
@@ -131,16 +142,78 @@
       "category": "link",
       "pin_style": "label_always",
       "target": "dji_20260909124850_0001_d",
-      "images": []
+      "images": [],
+      "id": "h12",
+      "bearing": 43.44807712498135
+    },
+    {
+      "pitch": 0.5893229738821688,
+      "title": "North Lobe: Well",
+      "text": "",
+      "link": "",
+      "category": "link",
+      "pin_style": "label_hover",
+      "target": "img_20260930_145903_00_023",
+      "link_icon": "ground",
+      "id": "h13",
+      "bearing": 19.028063448259104
+    },
+    {
+      "pitch": 0.5839481083405254,
+      "title": "North Lobe: Bulkhead View",
+      "text": "",
+      "link": "",
+      "category": "link",
+      "pin_style": "label_hover",
+      "target": "img_20260930_150000_00_024",
+      "link_icon": "ground",
+      "id": "h14",
+      "bearing": 6.953062916255703
+    },
+    {
+      "pitch": 0.523256252354722,
+      "title": "North Lobe: Boat Ramp View",
+      "text": "",
+      "link": "",
+      "category": "link",
+      "pin_style": "label_hover",
+      "target": "img_20260930_150552_00_025",
+      "link_icon": "ground",
+      "id": "h15",
+      "bearing": 33.239234332021795
     }
   ],
-  "hotspots_2": [],
-  "levels_1": [],
-  "levels_2": [],
-  "pin_style": "dot",
-  "basemap_type": "esri_tile",
-  "basemap_url": "https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}",
-  "mobile_1": 5000,
-  "mobile_2": 0,
-  "heading_offset": 68.90019549575646
+  "photos": [
+    {
+      "id": "p1",
+      "date": "2026-09-09",
+      "label": "DJI_20260909124244_0001_D (2026/09/09)",
+      "path": "img1",
+      "format": "raw",
+      "levels": [],
+      "mobile": 5000,
+      "heading_offset": 68.90019549575646,
+      "yaw": -0.9253860034887325,
+      "pitch": 0.7060782581399964,
+      "lat": 47.21176508333333,
+      "lng": -123.08991633333333,
+      "hotspots": []
+    },
+    {
+      "id": "p2",
+      "date": "2026-09-30",
+      "label": "2026-09-30",
+      "path": "img2",
+      "format": "raw",
+      "levels": [],
+      "mobile": 5000,
+      "heading_offset": 69.2,
+      "yaw": -0.9397401082503728,
+      "pitch": 0.6653511843253739,
+      "lat": 47.21176505555556,
+      "lng": -123.08991619444444,
+      "hotspots": [],
+      "source": "dji_20260930162913_0001_d"
+    }
+  ]
 }

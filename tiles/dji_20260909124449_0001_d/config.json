@@ -1,34 +1,60 @@
 {
-  "mode": "single",
-  "format": "raw",
-  "yaw_1": 1.0609166371807373,
-  "pitch_1": 0.41591860930499003,
-  "yaw_2": 0.0,
-  "pitch_2": 0.0,
+  "mode": "location",
+  "schema": 1,
+  "migrated_from": "single",
+  "platform": "aerial",
   "lat": 47.212814111111115,
   "lng": -123.09098436111111,
-  "label_1": "DJI_20260909124449_0001_D (2026/09/09)",
-  "label_2": "",
+  "pin_style": "dot",
   "autorotate": false,
-  "hotspots_1": [
+  "basemap_type": "esri_tile",
+  "basemap_url": "https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}",
+  "overlays": null,
+  "default_photo": "p2",
+  "hotspots": [
     {
-      "yaw": 3.2151999776187585,
       "pitch": -0.4998381744524245,
       "title": "Overview",
       "text": "",
       "link": "",
       "category": "link",
       "pin_style": "label_always",
-      "target": "dji_20260909124244_0001_d"
+      "target": "dji_20260909124244_0001_d",
+      "id": "h1",
+      "bearing": 145.33237377207274
     }
   ],
-  "hotspots_2": [],
-  "levels_1": [],
-  "levels_2": [],
-  "pin_style": "dot",
-  "basemap_type": "esri_tile",
-  "basemap_url": "https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}",
-  "mobile_1": 5000,
-  "mobile_2": 0,
-  "heading_offset": 321.11498476396116
+  "photos": [
+    {
+      "id": "p1",
+      "date": "2026-09-09",
+      "label": "DJI_20260909124449_0001_D (2026/09/09)",
+      "path": "img1",
+      "format": "raw",
+      "levels": [],
+      "mobile": 5000,
+      "heading_offset": 321.11498476396116,
+      "yaw": 1.0609166371807373,
+      "pitch": 0.41591860930499003,
+      "lat": 47.212814111111115,
+      "lng": -123.09098436111111,
+      "hotspots": []
+    },
+    {
+      "id": "p2",
+      "date": "2026-09-30",
+      "label": "2026-09-30",
+      "path": "img2",
+      "format": "raw",
+      "levels": [],
+      "mobile": 5000,
+      "heading_offset": 325.0,
+      "yaw": 1.4396441757428597,
+      "pitch": 0.2720628984741893,
+      "lat": 47.21281338888889,
+      "lng": -123.09098647222221,
+      "hotspots": [],
+      "source": "dji_20260930163109_0001_d"
+    }
+  ]
 }

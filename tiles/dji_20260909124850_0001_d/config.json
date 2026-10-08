@@ -1,34 +1,60 @@
 {
-  "mode": "single",
-  "format": "raw",
-  "yaw_1": 3.0642749672209177,
-  "pitch_1": 0.26358365713102394,
-  "yaw_2": 0.0,
-  "pitch_2": 0.0,
+  "mode": "location",
+  "schema": 1,
+  "migrated_from": "single",
+  "platform": "aerial",
   "lat": 47.213319444444444,
   "lng": -123.0876486111111,
-  "label_1": "DJI_20260909124850_0001_D (2026/09/09)",
-  "label_2": "",
+  "pin_style": "dot",
   "autorotate": false,
-  "hotspots_1": [
+  "basemap_type": "esri_tile",
+  "basemap_url": "https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}",
+  "overlays": null,
+  "default_photo": "p2",
+  "hotspots": [
     {
-      "yaw": 2.280179662366729,
       "pitch": -0.3287670267958145,
       "title": "Overview",
       "text": "",
       "link": "",
       "category": "link",
       "pin_style": "label_hover",
-      "target": "dji_20260909124244_0001_d"
+      "target": "dji_20260909124244_0001_d",
+      "id": "h1",
+      "bearing": 224.74273029568656
     }
   ],
-  "hotspots_2": [],
-  "levels_1": [],
-  "levels_2": [],
-  "pin_style": "dot",
-  "basemap_type": "esri_tile",
-  "basemap_url": "https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}",
-  "mobile_1": 5000,
-  "mobile_2": 0,
-  "heading_offset": 94.09805911050796
+  "photos": [
+    {
+      "id": "p1",
+      "date": "2026-09-09",
+      "label": "DJI_20260909124850_0001_D (2026/09/09)",
+      "path": "img1",
+      "format": "raw",
+      "levels": [],
+      "mobile": 5000,
+      "heading_offset": 94.09805911050796,
+      "yaw": 3.0642749672209177,
+      "pitch": 0.26358365713102394,
+      "lat": 47.213319444444444,
+      "lng": -123.0876486111111,
+      "hotspots": []
+    },
+    {
+      "id": "p2",
+      "date": "2026-09-30",
+      "label": "2026-09-30",
+      "path": "img2",
+      "format": "raw",
+      "levels": [],
+      "mobile": 5000,
+      "heading_offset": 92.7,
+      "yaw": 2.893455188617874,
+      "pitch": 0.3279813359452426,
+      "lat": 47.21332022222222,
+      "lng": -123.08764724999999,
+      "hotspots": [],
+      "source": "dji_20260930163451_0001_d"
+    }
+  ]
 }

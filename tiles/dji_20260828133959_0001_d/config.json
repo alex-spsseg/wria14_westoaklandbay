@@ -33,7 +33,9 @@
       "link": "",
       "category": "link",
       "pin_style": "label_hover",
-      "target": "dji_20260828132858_0001_d"
+      "target": "dji_20260828132858_0001_d",
+      "link_icon": "aerial",
+      "images": []
     },
     {
       "yaw": 1.959188551739735,
@@ -43,7 +45,9 @@
       "link": "",
       "category": "link",
       "pin_style": "label_hover",
-      "target": "dji_20260828133337_0001_d"
+      "target": "dji_20260828133337_0001_d",
+      "link_icon": "aerial",
+      "images": []
     },
     {
       "yaw": 2.9169337291920607,
@@ -53,7 +57,9 @@
       "link": "",
       "category": "link",
       "pin_style": "label_hover",
-      "target": "dji_20260828133753_0001_d"
+      "target": "dji_20260828133753_0001_d",
+      "link_icon": "aerial",
+      "images": []
     },
     {
       "yaw": -0.1608513246890535,
@@ -63,7 +69,9 @@
       "link": "",
       "category": "link",
       "pin_style": "label_hover",
-      "target": "dji_20260828134146_0001_d"
+      "target": "dji_20260828134146_0001_d",
+      "link_icon": "aerial",
+      "images": []
     }
   ],
   "hotspots_2": [],

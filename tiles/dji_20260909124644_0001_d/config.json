@@ -1,34 +1,60 @@
 {
-  "mode": "single",
-  "format": "raw",
-  "yaw_1": 1.8779841150651724,
-  "pitch_1": 0.4369765083678683,
-  "yaw_2": 0.0,
-  "pitch_2": 0.0,
+  "mode": "location",
+  "schema": 1,
+  "migrated_from": "single",
+  "platform": "aerial",
   "lat": 47.2133745,
   "lng": -123.0892648611111,
-  "label_1": "DJI_20260909124644_0001_D (2026/09/09)",
-  "label_2": "",
+  "pin_style": "dot",
   "autorotate": false,
-  "hotspots_1": [
+  "basemap_type": "esri_tile",
+  "basemap_url": "https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}",
+  "overlays": null,
+  "default_photo": "p2",
+  "hotspots": [
     {
-      "yaw": 2.181845280100588,
       "pitch": -0.438833914352184,
       "title": "Overview",
       "text": "",
       "link": "",
       "category": "link",
       "pin_style": "label_always",
-      "target": "dji_20260909124244_0001_d"
+      "target": "dji_20260909124244_0001_d",
+      "id": "h1",
+      "bearing": 195.37459300027024
     }
   ],
-  "hotspots_2": [],
-  "levels_1": [],
-  "levels_2": [],
-  "pin_style": "dot",
-  "basemap_type": "esri_tile",
-  "basemap_url": "https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}",
-  "mobile_1": 5000,
-  "mobile_2": 0,
-  "heading_offset": 70.36406689996761
+  "photos": [
+    {
+      "id": "p1",
+      "date": "2026-09-09",
+      "label": "DJI_20260909124644_0001_D (2026/09/09)",
+      "path": "img1",
+      "format": "raw",
+      "levels": [],
+      "mobile": 5000,
+      "heading_offset": 70.36406689996761,
+      "yaw": 1.8779841150651724,
+      "pitch": 0.4369765083678683,
+      "lat": 47.2133745,
+      "lng": -123.0892648611111,
+      "hotspots": []
+    },
+    {
+      "id": "p2",
+      "date": "2026-09-30",
+      "label": "2026-09-30",
+      "path": "img2",
+      "format": "raw",
+      "levels": [],
+      "mobile": 5000,
+      "heading_offset": 64.2,
+      "yaw": 1.5687433242924333,
+      "pitch": 0.5742765059798103,
+      "lat": 47.21337541666667,
+      "lng": -123.08926613888889,
+      "hotspots": [],
+      "source": "dji_20260930163301_0001_d"
+    }
+  ]
 }

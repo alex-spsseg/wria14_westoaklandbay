@@ -704,7 +704,7 @@
 </head>
 <body>
 
-  <div id="build-timestamp">Built 2026-10-08 13:39:59</div>
+  <div id="build-timestamp">Built 2026-10-08 14:13:44</div>
 
   <div id="status-banner"></div>
 
@@ -830,7 +830,7 @@
 
   <script>
     const urlParams = new URLSearchParams(window.location.search);
-    let rawSiteId = urlParams.get('site') || urlParams.get('well') || 'sheltoncreek_location';
+    let rawSiteId = urlParams.get('site') || urlParams.get('well') || 'dji_20260909124244_0001_d';
     const siteId = rawSiteId.trim().toLowerCase().replace(/[\s-]+/g, '_');
 
     const tourParam = urlParams.get('tour');
@@ -1520,6 +1520,7 @@
           locPhotoBySite[siteId] = config._photoIndex;
           unplacedBySite[siteId] = config._unplacedLinks || [];
         }
+        if (config._location) hideLinksInComparison = true;
         if (config._locSlots) locSlotsBySite[siteId] = config._locSlots;
         if (config._locTs) locTsBySite[siteId] = true;
         if (config._locDates && config._locDates.length >= 2) buildLocationToolbar(config);
@@ -2547,7 +2548,9 @@
     // location's compare page with this tour's photo on the left.
     var tourCompareInfo = {};
     var tourCompareBtn = null;
+    var SHOW_TOUR_COMPARE_BUTTON = false; // switched off: comparisons are opened from the tours page
     function updateTourCompareButton(sid) {
+      if (!SHOW_TOUR_COMPARE_BUTTON) return;
       var info = sid ? tourCompareInfo[sid] : null;
       if (!tourCompareBtn) {
         tourCompareBtn = document.createElement('button');
@@ -3063,7 +3066,9 @@
     // Links belong to a stop, not to a tour, so a stop reused in a newer tour
     // brings along links to places that tour doesn't include. In a tour those
     // links are kept (so saving never deletes them) but not drawn or listed.
+    var hideLinksInComparison = false; // set for a location's own page, so nobody clicks away from it
     function linkOutsideTour(spot) {
+      if (hideLinksInComparison && spot && spot.category === 'link') return true;
       if (!tourParam || !tourSiteOptions || !spot || spot.category !== 'link' || !spot.target) return false;
       var norm = function (x) { return String(x).trim().toLowerCase().replace(/[\s-]+/g, '_'); };
       var t = norm(spot.target);

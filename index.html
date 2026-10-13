@@ -224,7 +224,7 @@
       background-repeat: no-repeat;
     }
 
-    #site-map-fit-btn, #site-map-basemap-btn, #site-map-zoomto-btn {
+    #site-map-fit-btn, #site-map-basemap-btn, #site-map-zoomto-btn, #site-map-follow-btn {
       position: absolute; z-index: 1600; top: 8px;
       width: 30px; height: 30px; border-radius: 4px; border: 2px solid rgba(0,0,0,0.2);
       background: #fff; color: #333; font-size: 15px; line-height: 1;
@@ -232,8 +232,11 @@
     }
     #site-map-fit-btn { right: 8px; }
     #site-map-zoomto-btn { right: 44px; }
+    #site-map-follow-btn { right: 116px; font-size: 17px; }
+    #site-map-follow-btn.armed { background: #019fc4; color: #fff; border-color: #019fc4; }
     #site-map-basemap-btn { right: 80px; font-size: 16px; display: none; }
-    #site-map-fit-btn:hover, #site-map-basemap-btn:hover, #site-map-zoomto-btn:hover { background: #f4f4f4; }
+    #site-map-fit-btn:hover, #site-map-basemap-btn:hover, #site-map-zoomto-btn:hover, #site-map-follow-btn:hover { background: #f4f4f4; }
+    #site-map-follow-btn.armed:hover { background: #019fc4; }
     /* Leaflet's own layers control (added for overlays -- see
     ensureMapInitialized) defaults to the same top-right corner as the
     fit/zoom/basemap buttons above, sitting directly behind them.
@@ -648,10 +651,35 @@
     .tour-stop-link {
       color: #ffffff; padding: 8px 10px; border-radius: 4px; cursor: pointer;
       font-size: 13px; margin-bottom: 4px; transition: background 0.15s ease;
+      display: flex; align-items: center;
     }
+    /* Fixed width icon slot (airplane = drone photo, page = PDF) so every name lines up. */
+    .tour-stop-link .stop-icon { display: inline-flex; flex: none; width: 20px; justify-content: center; margin-right: 6px; }
+    .tour-stop-link.unsaved::after { margin-left: 6px; }
     .tour-stop-link:hover { background: rgba(1, 159, 196, 0.3); }
     .tour-stop-link.active { background: #019fc4; font-weight: bold; }
     /* Local preview: this stop has hotspot edits not yet written to disk. */
+    .leaflet-popup-content-wrapper { background: #132447; color: #e8eef7; border: 1px solid #1b3f95;
+      border-radius: 8px; box-shadow: 0 4px 14px rgba(0,0,0,0.45); }
+    .leaflet-popup-tip { background: #132447; border: 1px solid #1b3f95; }
+    .leaflet-popup-content { margin: 10px 14px; font-size: 12px; line-height: 1.45; }
+    .leaflet-container a.leaflet-popup-close-button { color: #9fb2cc; }
+    .overlay-popup-title { font-weight: 700; color: #fff; margin-bottom: 4px; font-size: 13px; }
+    .overlay-popup table td { padding: 1px 0; vertical-align: top; }
+    .overlay-popup table td:first-child { color: #9fb2cc; padding-right: 12px; white-space: nowrap; }
+    .esri-pt { background: none; border: none; display: flex; align-items: center; justify-content: center; }
+    .esri-label { background: none; border: none; box-shadow: none; padding: 0; font-weight: 600; font-size: 12px; }
+    .esri-label::before { display: none; }
+    /* Local preview only: a fixed slot ahead of the icon, so a check mark never shifts the names. */
+    body.hdg-local .tour-stop-link::before { content: ''; display: inline-block; flex: none; width: 16px; }
+    body.hdg-local .tour-stop-link.hdg-done::before { content: '\2713'; color: #7CFC9A; font-weight: bold; text-align: center; }
+    #hdg-fast { margin-top: 10px; border-top: 1px solid rgba(179,102,255,0.35); padding-top: 8px; }
+    #hdg-fast button { display: block; width: 100%; margin-bottom: 6px; }
+    #hdg-fast label { color: #d9b3ff; font-size: 12px; display: block; margin-bottom: 6px; cursor: pointer; }
+    #hdg-bar { height: 8px; border-radius: 4px; background: rgba(255,255,255,0.15); overflow: hidden; margin-bottom: 8px; }
+    #hdg-bar-fill { height: 100%; width: 0%; background: #7CFC9A; transition: width 0.25s ease; }
+    #hdg-progress { color: #b9a3d9; font-size: 11px; margin-bottom: 6px; }
+    #hdg-keys { color: #b9a3d9; font-size: 10.5px; line-height: 1.4; margin-top: 4px; }
     .tour-stop-link.unsaved::after { content: ' \25CF'; color: #ffb84d; }
     .tour-sidebar-error { color: #e0a5a5; font-size: 12px; line-height: 1.4; }
 
@@ -704,7 +732,7 @@
 </head>
 <body>
 
-  <div id="build-timestamp">Built 2026-10-08 14:13:44</div>
+  <div id="build-timestamp">Built 2026-10-13 09:22:03</div>
 
   <div id="status-banner"></div>
 
@@ -795,6 +823,7 @@
       <button id="site-map-fit-btn" type="button" title="Zoom to fit all points">&#10021;</button>
       <button id="site-map-zoomto-btn" type="button" title="Zoom to point (click, then click the map)">&#8982;</button>
       <button id="site-map-basemap-btn" type="button" title="Toggle basemap">&#128506;</button>
+      <button id="site-map-follow-btn" type="button" title="Zoom the map to each stop when it is selected (click to turn on or off)">&#9678;</button>
     </div>
 
     <div id="edit-tools-panel" style="display:none;">
@@ -823,6 +852,16 @@
           <button id="heading-plus5" type="button">+5</button>
         </div>
         <button id="save-heading-btn" class="edit-tool-btn" type="button">Save Heading</button>
+        <div id="hdg-fast">
+          <div id="hdg-progress"></div>
+          <div id="hdg-bar"><div id="hdg-bar-fill"></div></div>
+          <button id="hdg-map-btn" class="edit-tool-btn" type="button">Aim at Map Point (M)</button>
+          <button id="hdg-aim-btn" class="edit-tool-btn" type="button">Aim at Next Stop (A)</button>
+          <button id="hdg-saveadv-btn" class="edit-tool-btn" type="button">Save Dial Heading (Enter)</button>
+          <button id="hdg-nextunset-btn" class="edit-tool-btn" type="button">Jump to Next Unset Stop (U)</button>
+          <label><input type="checkbox" id="hdg-autoadv" checked> Auto jump to next stop after saving</label>
+          <div id="hdg-keys">Center a landmark in the photo, press M, click that landmark on the map. Each of these saves the heading and shows the cone. [ ] nudge 1, { } nudge 5 (then Enter). Esc cancels.</div>
+        </div>
         <div id="heading-calibrate-list"></div>
       </div>
     </div>
@@ -1383,6 +1422,9 @@
             body:
               '<p><b>Show Map</b> opens an inset map of this location.</p>' +
               '<p>Use the layers control on the map to switch between orthoimagery from different dates and, where available, project design elements.</p>' +
+              (isShown('prev-stop-btn')
+                ? '<p>Picking a stop zooms the map in to it. <b>\u25CE</b> turns that on or off, and <b>\u2725</b> zooms back out to the whole site.</p>'
+                : '') +
               '<p><b>Resize it:</b> drag the grip in the map\u2019s top left corner to make the map larger or smaller.</p>'
           });
         }
@@ -2230,6 +2272,12 @@
              'style="vertical-align:-3px;margin-right:6px;flex:none;" aria-label="Drone photo">' +
              '<path d="' + AIRPLANE_PATH + '" fill="' + color + '"/></svg>';
     }
+    // Page glyph (Material "description") marking PDF stops in the stop list.
+    var DOC_PATH = 'M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z';
+    function stopIconSvg(path, px, aria) {
+      return '<svg width="' + px + '" height="' + px + '" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" ' +
+             'aria-label="' + aria + '"><path d="' + path + '" fill="currentColor"/></svg>';
+    }
     function isAerialSite(sid) {
       var norm = function (x) { return String(x).trim().toLowerCase().replace(/[\s-]+/g, '_'); };
       var opt = (tourSiteOptions || []).find(function (s) { return norm(s.site_id) === norm(sid); });
@@ -2794,9 +2842,38 @@
       // someone who does.
       var activeMarker = tourMarkersBySite[activeTourSiteId];
       if (siteMap && activeMarker && siteMapPanel.style.display !== 'none') {
-        siteMap.panTo(activeMarker.getLatLng());
+        var firstStop = lastFollowedSiteId === null;
+        var changed = activeTourSiteId !== lastFollowedSiteId;
+        lastFollowedSiteId = activeTourSiteId;
+        // The first stop shown keeps the whole site view for orientation; after
+        // that, picking a stop zooms the map in to it (never zooms back out).
+        if (changed && !firstStop && autoZoomStops) zoomMapToStop(activeMarker.getLatLng());
+        else siteMap.panTo(activeMarker.getLatLng());
       }
     }
+
+    // -- zoom the map to each stop as it is selected -----------------------
+    var STOP_ZOOM = 18;            // the one number to change for a tighter or wider view
+    var autoZoomStops = true;
+    var lastFollowedSiteId = null;
+    try { if (localStorage.getItem('mapAutoZoomStops') === '0') autoZoomStops = false; } catch (e) {}
+    function zoomMapToStop(latlng) {
+      var z = Math.min(Math.max(siteMap.getZoom(), STOP_ZOOM), siteMap.getMaxZoom());
+      if (Math.abs(z - siteMap.getZoom()) > 1) siteMap.flyTo(latlng, z, { duration: 0.6 });
+      else siteMap.setView(latlng, z, { animate: true });
+    }
+    (function () {
+      var btn = document.getElementById('site-map-follow-btn');
+      btn.classList.toggle('armed', autoZoomStops);
+      btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        autoZoomStops = !autoZoomStops;
+        btn.classList.toggle('armed', autoZoomStops);
+        try { localStorage.setItem('mapAutoZoomStops', autoZoomStops ? '1' : '0'); } catch (err) {}
+        var m = tourMarkersBySite[activeTourSiteId];
+        if (autoZoomStops && siteMap && m) zoomMapToStop(m.getLatLng());
+      });
+    })();
 
     // -- basemap toggle (only shown when a tour/site actually has a
     // non-OSM basemap configured -- nothing to toggle to otherwise) --
@@ -2815,6 +2892,83 @@
       usingCustomBasemap = !usingCustomBasemap;
       basemapToggleBtn.title = usingCustomBasemap ? 'Switch to OpenStreetMap' : 'Switch to site imagery';
     });
+
+    // ---- minimal ArcGIS renderer reader (simple / unique value / class breaks) ----
+    // Turns the drawingInfo.renderer saved on a feature service into a Leaflet
+    // style object per feature. Own code instead of a plugin, no extra scripts.
+    function esriRgba(c, fallbackA) {
+      if (!c || c.length < 3) return null;
+      var a = c.length > 3 ? c[3] / 255 : (fallbackA == null ? 1 : fallbackA);
+      return { css: 'rgb(' + c[0] + ',' + c[1] + ',' + c[2] + ')', a: a };
+    }
+    function esriSymbolToStyle(sym, baseOpacity) {
+      if (!sym) return null;
+      var st = {};
+      var main = esriRgba(sym.color);
+      var ol = sym.outline || null;
+      var olc = ol ? esriRgba(ol.color) : null;
+      if (sym.type === 'esriSLS') {
+        st.color = main ? main.css : '#019fc4';
+        st.opacity = (main ? main.a : 1) * baseOpacity;
+        st.weight = Math.max(1, (sym.width || 1) * 1.333);
+        st.fill = false;
+      } else {
+        // esriSFS (polygon) and esriSMS (point marker)
+        st.fill = !!main && main.a > 0;
+        st.fillColor = main ? main.css : '#019fc4';
+        st.fillOpacity = (main ? main.a : 0) * baseOpacity;
+        st.color = olc ? olc.css : (main ? main.css : '#019fc4');
+        st.opacity = (olc ? olc.a : 1) * baseOpacity;
+        st.weight = ol && ol.width != null ? Math.max(ol.width > 0 ? 1 : 0, ol.width * 1.333) : 1;
+        if (olc && olc.a === 0) st.weight = 0;
+        if (sym.type === 'esriSMS') st.radius = Math.max(3, (sym.size || 8) / 2 * 1.333);
+      }
+      return st;
+    }
+    function esriPickSymbol(renderer, props) {
+      if (!renderer) return null;
+      var sym = null;
+      if (renderer.type === 'simple') {
+        sym = renderer.symbol;
+      } else if (renderer.type === 'uniqueValue') {
+        var v = props ? props[renderer.field1] : null;
+        var hit = (renderer.uniqueValueInfos || []).find(function (i) { return String(i.value) === String(v); });
+        sym = hit ? hit.symbol : renderer.defaultSymbol;
+      } else if (renderer.type === 'classBreaks') {
+        var n = props ? Number(props[renderer.field]) : NaN;
+        var infos = renderer.classBreakInfos || [];
+        for (var k = 0; k < infos.length; k++) {
+          if (n <= infos[k].classMaxValue) { sym = infos[k].symbol; break; }
+        }
+        if (!sym) sym = renderer.defaultSymbol;
+      }
+      return sym;
+    }
+    function esriRendererStyle(renderer, props, baseOpacity) {
+      return esriSymbolToStyle(esriPickSymbol(renderer, props), baseOpacity);
+    }
+    // Point marker symbol as a small HTML icon (diamond, square, circle, triangle).
+    function esriMarkerIcon(sym, baseOpacity) {
+      var size = Math.max(6, (sym.size || 8) * 1.333);
+      var fill = esriRgba(sym.color);
+      var ol = sym.outline || {};
+      var olc = esriRgba(ol.color);
+      var bw = ol.width != null ? Math.max(ol.width > 0 ? 1 : 0, ol.width * 1.333) : 1;
+      var bg = fill && fill.a > 0
+          ? fill.css.replace('rgb(', 'rgba(').replace(')', ',' + (fill.a * baseOpacity) + ')') : 'transparent';
+      var bc = olc ? olc.css.replace('rgb(', 'rgba(').replace(')', ',' + (olc.a * baseOpacity) + ')') : 'transparent';
+      var shape = '';
+      var inner = size;
+      if (sym.style === 'esriSMSDiamond') { shape = 'transform:rotate(45deg);'; inner = size * 0.72; }
+      else if (sym.style === 'esriSMSSquare') { shape = ''; }
+      else if (sym.style === 'esriSMSTriangle') { shape = 'clip-path:polygon(50% 0,100% 100%,0 100%);'; }
+      else { shape = 'border-radius:50%;'; }
+      var html = '<div style="width:' + inner + 'px;height:' + inner + 'px;box-sizing:border-box;background:' + bg +
+                 ';border:' + bw + 'px solid ' + bc + ';' + shape + '"></div>';
+      return L.divIcon({
+        className: 'esri-pt', html: html, iconSize: [size, size], iconAnchor: [size / 2, size / 2],
+      });
+    }
 
     function ensureMapInitialized() {
       if (siteMap || typeof L === 'undefined') return;
@@ -2881,20 +3035,107 @@
             // reference layer rather than a second copy of AGOL's
             // own Map Viewer.
             siteMap.getPane(paneName).style.pointerEvents = 'auto';
-            var color = o.color || '#019fc4';
-            layer = L.esri.featureLayer({
-              url: o.url, pane: paneName,
-              style: function () { return { color: color, weight: 2, fillColor: color, fillOpacity: opacity * 0.35, opacity: opacity }; },
-            });
-            layer.bindPopup(l => {
-              var props = (l.feature && l.feature.properties) || {};
-              var rows = Object.keys(props)
-                  .filter(k => props[k] !== null && props[k] !== '')
-                  .map(k => '<tr><td style="font-weight:600;padding-right:10px;">' + escapeHtml(k) +
-                             '</td><td>' + escapeHtml(String(props[k])) + '</td></tr>')
-                  .join('');
-              return rows ? '<table style="font-size:12px;">' + rows + '</table>' : '(no attributes)';
-            });
+            // Typed color in the overlay settings = one flat color. Blank color =
+            // use the symbology and labels saved on the service (read from its metadata).
+            var layerOpts = { url: o.url, pane: paneName };
+            var serviceRenderer = null;
+            var labelInfo = null; // { expr, color, halo }
+            var flatColor = o.color || '#019FC4';
+            var styleFn = function (feature) {
+              if (!o.color && serviceRenderer) {
+                var st = esriRendererStyle(serviceRenderer, feature && feature.properties, opacity);
+                if (st) return st;
+              }
+              return { color: flatColor, weight: 2, fillColor: flatColor, fillOpacity: opacity * 0.35, opacity: opacity };
+            };
+            layerOpts.style = styleFn;
+            var markerFor = function (feature, latlng) {
+              if (!o.color && serviceRenderer) {
+                var sym = esriPickSymbol(serviceRenderer, feature && feature.properties);
+                if (sym && sym.type === 'esriSMS') {
+                  return L.marker(latlng, { icon: esriMarkerIcon(sym, opacity), pane: paneName, keyboard: false });
+                }
+              }
+              return L.circleMarker(latlng, Object.assign({ radius: 6, pane: paneName }, styleFn(feature)));
+            };
+            layerOpts.pointToLayer = markerFor;
+            layer = L.esri.featureLayer(layerOpts);
+            var featLayer = layer;
+            // Field aliases, field types, and (when no flat color) renderer + labels.
+            var aliasFor = {}, typeFor = {};
+            // System and GNSS bookkeeping fields: OBJECTID, OBJECTID_1, GlobalID_2, Shape__Area,
+            // truncated Shape_Leng, esrignss_* receiver metadata, editor tracking.
+            var HIDDEN_FIELD_RE = /^(objectid|fid$|globalid|shape|st_area|st_length|esrignss|gnss_|created_(user|date)|last_edited_(user|date)|creationdate|creator|editdate|editor)/i;
+            var labelText = function (props) {
+              if (!labelInfo || !props) return '';
+              var t = labelInfo.expr.replace(/\[([^\]]+)\]|\$feature\.([A-Za-z0-9_]+)/g, function (m, f1, f2) {
+                var v = props[f1 || f2];
+                return v == null ? '' : String(v);
+              });
+              return t.trim();
+            };
+            var attachLabel = function (l) {
+              if (!labelInfo || !l || !l.feature) return;
+              var txt = labelText(l.feature.properties);
+              if (l.unbindTooltip) l.unbindTooltip();
+              if (!txt) return;
+              var halo = labelInfo.halo || 'rgba(0,0,0,0.8)';
+              var content = '<span style="color:' + (labelInfo.color || '#fff') + ';text-shadow:-1px -1px 0 ' + halo +
+                            ',1px -1px 0 ' + halo + ',-1px 1px 0 ' + halo + ',1px 1px 0 ' + halo + ';">' + escapeHtml(txt) + '</span>';
+              l.bindTooltip(content, { permanent: true, direction: 'right', offset: [8, 0], className: 'esri-label', pane: 'tooltipPane' });
+            };
+            try {
+              featLayer.on('createfeature', function (e) {
+                try { attachLabel(featLayer.getFeature(e.feature.id)); } catch (e3) {}
+              });
+              featLayer.metadata(function (err, meta) {
+                if (err || !meta) return;
+                (meta.fields || []).forEach(function (f) { aliasFor[f.name] = f.alias || f.name; typeFor[f.name] = f.type; });
+                var di = meta.drawingInfo;
+                if (!o.color && di && di.renderer) {
+                  serviceRenderer = di.renderer;
+                  try { featLayer.setStyle(styleFn); } catch (e2) { console.error('Restyle failed', e2); }
+                  // Point layers were built before the renderer arrived: swap their icons now.
+                  try {
+                    featLayer.eachFeature(function (l) {
+                      if (l.setIcon && l.feature) {
+                        var sym = esriPickSymbol(serviceRenderer, l.feature.properties);
+                        if (sym && sym.type === 'esriSMS') l.setIcon(esriMarkerIcon(sym, opacity));
+                      }
+                    });
+                  } catch (e4) {}
+                }
+                var li = !o.color && di && di.labelingInfo && di.labelingInfo[0];
+                if (li) {
+                  var expr = li.labelExpression || (li.labelExpressionInfo && (li.labelExpressionInfo.value || li.labelExpressionInfo.expression)) || '';
+                  if (/\[[^\]]+\]|\$feature\.[A-Za-z0-9_]+/.test(expr) && !/[()+]/.test(expr.replace(/\[[^\]]+\]/g, ''))) {
+                    var lc = li.symbol && esriRgba(li.symbol.color);
+                    var hc = li.symbol && esriRgba(li.symbol.haloColor);
+                    labelInfo = { expr: expr, color: lc ? lc.css : '#fff', halo: hc ? hc.css : null };
+                    featLayer.eachFeature(attachLabel);
+                  }
+                }
+              });
+            } catch (err) { console.error('Overlay metadata lookup failed', err); }
+            if (o.popup !== false) {
+              layer.bindPopup(l => {
+                var props = (l.feature && l.feature.properties) || {};
+                var fmt = function (k, v) {
+                  var t = typeFor[k];
+                  if (t === 'esriFieldTypeDate' && Number.isFinite(Number(v))) return new Date(Number(v)).toLocaleDateString();
+                  if ((t === 'esriFieldTypeDouble' || t === 'esriFieldTypeSingle') && Number.isFinite(Number(v))) {
+                    return Number(v).toLocaleString(undefined, { maximumFractionDigits: 2 });
+                  }
+                  return String(v);
+                };
+                var rows = Object.keys(props)
+                    .filter(k => props[k] !== null && String(props[k]).trim() !== '' && !HIDDEN_FIELD_RE.test(k))
+                    .map(k => '<tr><td>' + escapeHtml(aliasFor[k] || k) + '</td><td>' + escapeHtml(fmt(k, props[k])) + '</td></tr>')
+                    .join('');
+                var title = o.label ? '<div class="overlay-popup-title">' + escapeHtml(o.label) + '</div>' : '';
+                return '<div class="overlay-popup">' + title + (rows ? '<table>' + rows + '</table>' : '<div>(no attributes)</div>') + '</div>';
+              });
+            }
           } else {
             layer = L.tileLayer(o.url, { maxZoom: 22, opacity: opacity, attribution: 'Imagery: SPSSEG', pane: paneName });
           }
@@ -3217,6 +3458,7 @@
                                  // just whenever the dial happens to read zero
     function updateHeadingDialDisplay() {
       document.getElementById('heading-value-display').textContent = Math.round(currentHeadingOffset);
+      if (window.__hdgSync) setTimeout(window.__hdgSync, 0);
     }
     function currentEditSiteId() {
       return (tourParam && activeTourSiteId) ? activeTourSiteId : siteId;
@@ -3248,6 +3490,169 @@
           saveBtn.textContent = 'Preview server not reachable';
           setTimeout(() => { saveBtn.textContent = original; }, 1800);
         });
+      });
+    })();
+    // ---- fast heading workflow for long stop sequences ----
+    (function () {
+      // Heading check marks are an editing aid: local preview only, never on the published site.
+      var HDG_LOCAL = (location.hostname === '127.0.0.1' || location.hostname === 'localhost');
+      if (HDG_LOCAL) document.body.classList.add('hdg-local');
+      var norm = function (s) { return s.trim().toLowerCase().replace(/[\s-]+/g, '_'); };
+      var doneSet = {};
+      var flatSet = {};  // flat stops (drone photos, PDFs): no heading to set, so not counted
+      function idxOf(sid) {
+        return (tourSiteOptions || []).findIndex(function (s) { return norm(s.site_id) === sid; });
+      }
+      function markDone(sid, on) {
+        if (on) doneSet[sid] = true;
+        var el = document.querySelector('.tour-stop-link[data-site-id="' + sid + '"]');
+        if (el) el.classList.toggle('hdg-done', !!doneSet[sid]);
+        updateProgress();
+      }
+      function updateProgress() {
+        var el = document.getElementById('hdg-progress');
+        if (!el || !tourSiteOptions) return;
+        var n = tourSiteOptions.filter(function (s) { return doneSet[norm(s.site_id)]; }).length;
+        var total = tourSiteOptions.filter(function (s) { return !flatSet[norm(s.site_id)]; }).length;
+        el.textContent = 'Headings set: ' + n + ' of ' + total;
+        var fill = document.getElementById('hdg-bar-fill');
+        if (fill) fill.style.width = (total ? (100 * n / total) : 0) + '%';
+      }
+      // A check means the stop's saved heading is not the default 0 degrees.
+      // Read from each stop's config.json once per page load, plus any stop saved this session.
+      var seeded = false;
+      function seedConfirmed() {
+        if (seeded || !tourSiteOptions || !tourSiteOptions.length) return;
+        seeded = true;
+        tourSiteOptions.forEach(function (st) {
+          var sid = norm(st.site_id);
+          fetch('tiles/' + sid + '/config.json', { cache: 'no-store' })
+            .then(function (r) { return r.ok ? r.json() : null; })
+            .then(function (cfg) {
+              if (!cfg) return;
+              if (cfg.mode === 'flat') { flatSet[sid] = true; updateProgress(); return; }
+              var nonzero = function (h) { return h != null && Number(h) % 360 !== 0; };
+              var ok = nonzero(cfg.heading_offset) ||
+                       (cfg.photos || []).some(function (ph) { return ph && nonzero(ph.heading_offset); });
+              if (ok) markDone(sid, true); else updateProgress();
+            }).catch(function () {});
+        });
+      }
+      window.__hdgSync = function () {
+        if (!tourParam || !HDG_LOCAL) return;
+        seedConfirmed();
+        var els = document.querySelectorAll('.tour-stop-link');
+        els.forEach(function (el) {
+          el.classList.toggle('hdg-done', !!doneSet[el.getAttribute('data-site-id')]);
+        });
+        updateProgress();
+      };
+      function flash(btn, text, ms) {
+        var o = btn.dataset.orig || btn.textContent;
+        btn.dataset.orig = o; btn.textContent = text;
+        setTimeout(function () { btn.textContent = o; }, ms || 1200);
+      }
+      function neighborBearing() {
+        // Bearing to the next stop; the last stop uses the direction of travel from the previous one.
+        var i = idxOf(activeTourSiteId);
+        if (i < 0) return null;
+        var me = findTourSiteLatLng(activeTourSiteId);
+        if (!me) return null;
+        if (i + 1 < tourSiteOptions.length) {
+          var n = tourSiteOptions[i + 1];
+          if (n.lat != null && n.lng != null) return computeBearingJs(me[0], me[1], n.lat, n.lng);
+        }
+        if (i > 0) {
+          var p = tourSiteOptions[i - 1];
+          if (p.lat != null && p.lng != null) return computeBearingJs(p.lat, p.lng, me[0], me[1]);
+        }
+        return null;
+      }
+      function saveThen(heading, btn, advance) {
+        var sid = activeTourSiteId;
+        if (!sid) return;
+        fetch('/__save_heading', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ site_id: sid, heading: heading, loc_photo: locPhotoFor(sid) }),
+        }).then(function (res) {
+          if (!res.ok) throw new Error('save-failed');
+          currentHeadingOffset = heading; headingIsKnown = true;
+          updateHeadingDialDisplay();
+          syncSceneCacheHeading(sid, heading, true);
+          reloadStopIfLinksWaiting(sid);
+          markDone(sid, true);
+          if (btn) flash(btn, 'Saved!', 900);
+          if (typeof updateViewCone === 'function') updateViewCone();
+          if (advance && document.getElementById('hdg-autoadv').checked) {
+            // brief pause so the cone is visible before moving on
+            setTimeout(function () { if (activeTourSiteId === sid) stepTourStop(1); }, 700);
+          }
+        }).catch(function () { if (btn) flash(btn, 'Save failed', 1800); });
+      }
+      function aimAndSave() {
+        var btn = document.getElementById('hdg-aim-btn');
+        var b = neighborBearing();
+        if (b == null || !viewL) { flash(btn, 'Missing GPS for neighbor', 1800); return; }
+        var yaw = viewL.parameters().yaw * 180 / Math.PI;
+        saveThen((b - yaw + 360) % 360, btn, true);
+      }
+      var mapArmed = false;
+      function setArmed(on) {
+        mapArmed = on;
+        var btn = document.getElementById('hdg-map-btn');
+        btn.textContent = on ? 'Click the landmark on the map... (Esc cancels)' : 'Aim at Map Point (M)';
+        if (typeof siteMap !== 'undefined' && siteMap) siteMap.getContainer().style.cursor = on ? 'crosshair' : '';
+      }
+      function mapClick(e) {
+        if (!mapArmed) return;
+        var me = findTourSiteLatLng(activeTourSiteId);
+        if (!me || !viewL) { setArmed(false); return; }
+        var b = computeBearingJs(me[0], me[1], e.latlng.lat, e.latlng.lng);
+        var yaw = viewL.parameters().yaw * 180 / Math.PI;
+        setArmed(false);
+        saveThen((b - yaw + 360) % 360, document.getElementById('hdg-map-btn'), true);
+      }
+      var mapWired = null;
+      function wireMap() {
+        if (typeof siteMap === 'undefined' || !siteMap || mapWired === siteMap) return;
+        mapWired = siteMap; siteMap.on('click', mapClick);
+      }
+      function nudgeKey(d) {
+        currentHeadingOffset = (currentHeadingOffset + d + 360) % 360;
+        headingIsKnown = true;
+        updateHeadingDialDisplay();
+        if (typeof updateViewCone === 'function') updateViewCone();
+      }
+      function jumpUnset() {
+        var i = idxOf(activeTourSiteId), n = tourSiteOptions.length;
+        for (var k = 1; k <= n; k++) {
+          var s = tourSiteOptions[(i + k) % n];
+          if (!doneSet[norm(s.site_id)]) { tourLoadStopFn(s.site_id); return; }
+        }
+        flash(document.getElementById('hdg-nextunset-btn'), 'All stops set', 1500);
+      }
+      document.getElementById('hdg-aim-btn').addEventListener('click', aimAndSave);
+      document.getElementById('hdg-map-btn').addEventListener('click', function () { wireMap(); setArmed(!mapArmed); });
+      document.getElementById('hdg-saveadv-btn').addEventListener('click', function () {
+        saveThen(currentHeadingOffset, this, true);
+      });
+      document.getElementById('hdg-nextunset-btn').addEventListener('click', jumpUnset);
+      document.addEventListener('keydown', function (e) {
+        if (!tourParam || e.ctrlKey || e.metaKey || e.altKey) return;
+        var t = e.target && e.target.tagName;
+        if (t === 'INPUT' || t === 'TEXTAREA' || t === 'SELECT') return;
+        var row = document.getElementById('heading-dial-row');
+        if (!row || row.style.display === 'none') return;
+        var k = e.key;
+        if (k === 'Enter') { e.preventDefault(); saveThen(currentHeadingOffset, document.getElementById('hdg-saveadv-btn'), true); }
+        else if (k === 'a' || k === 'A') aimAndSave();
+        else if (k === 'm' || k === 'M') { wireMap(); setArmed(!mapArmed); }
+        else if (k === 'Escape') setArmed(false);
+        else if (k === 'u' || k === 'U') jumpUnset();
+        else if (k === '[') nudgeKey(-1);
+        else if (k === ']') nudgeKey(1);
+        else if (k === '{') nudgeKey(-5);
+        else if (k === '}') nudgeKey(5);
       });
     })();
     var editHotspotsBtn = document.getElementById('edit-hotspots-btn');
@@ -4431,15 +4836,17 @@
             document.getElementById('next-stop-btn').style.display = 'inline-block';
           }
 
+          // Icon slot only when at least one stop has an icon, so plain tours look as before.
+          var anyStopIcon = sites.some(function (x) { return x.platform === 'aerial' || x.kind === 'pdf'; });
           sites.forEach((s, idx) => {
             var link = document.createElement('div');
             link.className = 'tour-stop-link';
             var label = s.display_name || s.site_id;
-            if (s.platform === 'aerial') {
-              link.innerHTML = airplaneSvg(14, 'currentColor') + escapeHtml(label);
-            } else {
-              link.textContent = label;
-            }
+            var icon = '';
+            if (s.platform === 'aerial') icon = stopIconSvg(AIRPLANE_PATH, 14, 'Drone photo');
+            else if (s.kind === 'pdf') icon = stopIconSvg(DOC_PATH, 14, 'PDF document');
+            link.innerHTML = (anyStopIcon ? '<span class="stop-icon">' + icon + '</span>' : '') +
+                             '<span class="stop-name">' + escapeHtml(label) + '</span>';
             var sidKey = s.site_id.trim().toLowerCase().replace(/[\s-]+/g, '_');
             link.setAttribute('data-site-id', sidKey);
             siteLinkElements[sidKey] = link;
@@ -4454,7 +4861,8 @@
             listEl.appendChild(empty);
           }
         })
-        .catch(() => {
+        .catch((err) => {
+          console.error('Tour load failed:', err);
           titleEl.textContent = 'Tour Not Found';
           document.title = 'Tour Not Found';
           var msg = document.createElement('div');

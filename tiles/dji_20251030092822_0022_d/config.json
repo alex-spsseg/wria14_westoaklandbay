@@ -18,5 +18,8 @@
   "basemap_type": "esri_tile",
   "basemap_url": "https://tiles.arcgis.com/tiles/buuvDFFARQiOEbVZ/arcgis/rest/services/WOB_Ortho_20250530/MapServer/tile/{z}/{y}/{x}",
   "mobile_1": 5000,
-  "mobile_2": 0
+  "mobile_2": 0,
+  "platform": "aerial",
+  "heading_offset": 98.9919201734694,
+  "heading_confirmed": true
 }

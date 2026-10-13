@@ -1,11 +1,12 @@
 {
-  "name": "WOB Imagery (10/30/2025)",
+  "name": "WOB Imagery",
   "sites": [
     {
       "site_id": "dji_20251030092219_0012_d",
-      "display_name": "South Lobe (Aerial)",
+      "display_name": "South Lobe",
       "lat": 47.21015633333334,
-      "lng": -123.08736319444444
+      "lng": -123.08736319444444,
+      "platform": "aerial"
     },
     {
       "site_id": "img_20251030_083838_00_290",
@@ -29,13 +30,15 @@
       "site_id": "dji_20251030092521_0016_d",
       "display_name": "ELJs (Aerial)",
       "lat": 47.209999583333335,
-      "lng": -123.09169874999999
+      "lng": -123.09169874999999,
+      "platform": "aerial"
     },
     {
       "site_id": "dji_20251030092822_0022_d",
-      "display_name": "West Lobe - East (Aerial)",
+      "display_name": "West Lobe - East",
       "lat": 47.21103463888889,
-      "lng": -123.09092369444444
+      "lng": -123.09092369444444,
+      "platform": "aerial"
     },
     {
       "site_id": "img_20251030_085608_00_310",
@@ -51,9 +54,10 @@
     },
     {
       "site_id": "dji_20251030092929_0023_d",
-      "display_name": "West Lobe - High Berm (Aerial)",
+      "display_name": "West Lobe - High Berm",
       "lat": 47.21107725,
-      "lng": -123.09204227777778
+      "lng": -123.09204227777778,
+      "platform": "aerial"
     },
     {
       "site_id": "img_20251030_090726_00_322",
@@ -69,9 +73,10 @@
     },
     {
       "site_id": "dji_20251030093208_0027_d",
-      "display_name": "Shelton Creek (Aerial)",
+      "display_name": "Shelton Creek",
       "lat": 47.21311633333334,
-      "lng": -123.09025591666666
+      "lng": -123.09025591666666,
+      "platform": "aerial"
     },
     {
       "site_id": "img_20251030_082428_00_275",
@@ -110,6 +115,18 @@
       "lng": -123.08997222222222
     }
   ],
-  "basemap_type": "esri_tile",
-  "basemap_url": "https://tiles.arcgis.com/tiles/buuvDFFARQiOEbVZ/arcgis/rest/services/WOB_Ortho_20250530/MapServer/tile/{z}/{y}/{x}"
+  "basemap_type": "xyz_tile",
+  "basemap_url": "http://mt0.google.com/vt/lyrs=s&hl=en&x={x}&y={y}&z={z}",
+  "overlays": [
+    {
+      "label": "Ortho (5/30/2025)",
+      "url": "https://tiles.arcgis.com/tiles/buuvDFFARQiOEbVZ/arcgis/rest/services/WOB_Ortho_20250530/MapServer/tile/{z}/{y}/{x}",
+      "opacity": 1.0,
+      "default_on": true,
+      "type": "tile"
+    }
+  ],
+  "forward_label": "Forward",
+  "backward_label": "Back",
+  "field_visit_date": "2025-10-30"
 }

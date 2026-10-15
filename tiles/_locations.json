@@ -32,6 +32,22 @@
     "open_view": "dates"
   },
   {
+    "site_id": "dji_20260909123847_0001_d",
+    "name": "West Lobe - East View",
+    "photos": 3,
+    "dates": [
+      "2026-08-28",
+      "2026-09-09",
+      "2026-09-30"
+    ],
+    "aerial": true,
+    "modes": [
+      "dates",
+      "compare"
+    ],
+    "open_view": "dates"
+  },
+  {
     "site_id": "dji_20260909124850_0001_d",
     "name": "Yacht Club",
     "photos": 3,

@@ -17,3 +17,5 @@ Live site: [All tours](https://alex-spsseg.github.io/wria14_westoaklandbay/tours
 
 - [North Lobe](https://alex-spsseg.github.io/wria14_westoaklandbay/index.html?site=dji_20260909124644_0001_d&view=compare) (3 dates)
 - [Shelton Creek](https://alex-spsseg.github.io/wria14_westoaklandbay/index.html?site=dji_20260909124449_0001_d&view=compare) (3 dates)
+- [West Lobe - East View](https://alex-spsseg.github.io/wria14_westoaklandbay/index.html?site=dji_20260909123847_0001_d&view=compare) (3 dates)
+- [Yacht Club](https://alex-spsseg.github.io/wria14_westoaklandbay/index.html?site=dji_20260909124850_0001_d&view=compare) (3 dates)

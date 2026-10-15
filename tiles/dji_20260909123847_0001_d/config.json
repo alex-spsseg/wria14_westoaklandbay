@@ -7,9 +7,38 @@
   "lng": -123.09057949999999,
   "pin_style": "dot",
   "autorotate": false,
-  "basemap_type": "esri_tile",
-  "basemap_url": "https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}",
-  "overlays": null,
+  "basemap_type": "xyz_tile",
+  "basemap_url": "http://mt0.google.com/vt/lyrs=s&hl=en&x={x}&y={y}&z={z}",
+  "overlays": [
+    {
+      "label": "Ortho (9/30/2026)",
+      "url": "https://tiles.arcgis.com/tiles/buuvDFFARQiOEbVZ/arcgis/rest/services/WOB_20260930_plus5p8ft_ortho/MapServer/tile/{z}/{y}/{x}",
+      "opacity": 1.0,
+      "default_on": true,
+      "type": "tile"
+    },
+    {
+      "label": "Ortho (9/7/2026, -0.7ft)",
+      "url": "https://tiles.arcgis.com/tiles/buuvDFFARQiOEbVZ/arcgis/rest/services/WOB_20260909_minus0p7_ortho/MapServer/tile/{z}/{y}/{x}",
+      "opacity": 1.0,
+      "default_on": false,
+      "type": "tile"
+    },
+    {
+      "label": "Ortho (8/28/2026, -0.5ft)",
+      "url": "https://tiles.arcgis.com/tiles/buuvDFFARQiOEbVZ/arcgis/rest/services/WOB_20260828_minus0p5ft_ortho_tif/MapServer/tile/{z}/{y}/{x}",
+      "opacity": 1.0,
+      "default_on": false,
+      "type": "tile"
+    },
+    {
+      "label": "Ortho (5/30/2025, -0.02ft)",
+      "url": "https://tiles.arcgis.com/tiles/buuvDFFARQiOEbVZ/arcgis/rest/services/WOB_Ortho_20250530/MapServer/tile/{z}/{y}/{x}",
+      "opacity": 1.0,
+      "default_on": true,
+      "type": "tile"
+    }
+  ],
   "default_photo": "p2",
   "hotspots": [
     {
@@ -34,8 +63,8 @@
       "levels": [],
       "mobile": 5000,
       "heading_offset": 26.36686914213658,
-      "yaw": -1.3806095230657771,
-      "pitch": 0.37076506401714054,
+      "yaw": -1.7185892258525042,
+      "pitch": 0.41783488268571745,
       "lat": 47.211100638888894,
       "lng": -123.09057949999999,
       "hotspots": [],
@@ -50,15 +79,33 @@
       "levels": [],
       "mobile": 5000,
       "heading_offset": 34.9,
-      "yaw": 0.0,
-      "pitch": 0.0,
+      "yaw": -1.7165126846768628,
+      "pitch": 0.43883636399927184,
       "lat": 47.21110052777778,
       "lng": -123.09057944444444,
       "hotspots": [],
       "source": "dji_20260930163858_0001_d",
       "conditions": "+5.8ft"
+    },
+    {
+      "id": "p3",
+      "date": "2026-08-28",
+      "label": "2026-08-28",
+      "path": "img3",
+      "format": "raw",
+      "levels": [],
+      "mobile": 5000,
+      "heading_offset": 35.0,
+      "yaw": -1.707014327580989,
+      "pitch": 0.41726060857206804,
+      "lat": 47.211101472222225,
+      "lng": -123.0905781111111,
+      "hotspots": [],
+      "source": "img1",
+      "conditions": "-0.5ft"
     }
   ],
-  "listed": false,
-  "name": "West Lobe - East View"
+  "listed": true,
+  "name": "West Lobe - East View",
+  "open_view": "dates"
 }

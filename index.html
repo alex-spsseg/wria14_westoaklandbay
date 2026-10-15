@@ -755,7 +755,7 @@
 </head>
 <body>
 
-  <div id="build-timestamp">Built 2026-10-15 10:31:28</div>
+  <div id="build-timestamp">Built 2026-10-15 10:53:52</div>
 
   <div id="status-banner"></div>
 
@@ -1303,6 +1303,16 @@
         tsViews[idx].setParameters(curParams);
       }
       tsActiveIdx = idx;
+      if (locTsBySite[siteId]) {
+        // Heading tools and the map cone now belong to this date, not to the date the page opened on.
+        var dp = tsPhotos[idx] || {};
+        currentHeadingOffset = dp.heading_offset == null ? 0 : dp.heading_offset;
+        headingIsKnown = dp.heading_offset != null;
+        var slot = (locSlotsBySite[siteId] || {})[String(idx)];
+        if (slot != null) locPhotoBySite[siteId] = slot;
+        updateHeadingDialDisplay();
+        try { updateViewCone(); } catch (e) { /* the map may not be open yet */ }
+      }
       // Only actually hits the network the first time this index is
       // shown -- once loaded, the browser (and Marzipano's own scene)
       // already have it, so this preload resolves instantly on repeat
@@ -1676,6 +1686,11 @@
             overlays: config.overlays || [],
           };
           mapToggleBtn.style.display = 'inline-block';
+          // A location's Dates view opens with the map inset showing. Phones keep it behind Show Map,
+          // where it would cover the photo.
+          if (config._locTs && window.innerWidth > 700) {
+            setTimeout(function () { try { openSiteMap(); } catch (e) { /* Show Map still works */ } }, 700);
+          }
         }
 
         if (mode === 'timeseries') {
@@ -2576,13 +2591,18 @@
       dateOrder.forEach(function (storeIdx, i) { tsSlots[String(i)] = storeIdx; });
       var startStore = locationPhotoIndex(cfg, null);
       return Object.assign(base, {
-        mode: 'timeseries', format: cfg.photos[0].format || 'raw', heading_offset: null,
+        mode: 'timeseries', format: cfg.photos[0].format || 'raw',
+        // The heading belongs to whichever date is showing, so the dial, the map cone and Save Heading
+        // follow it (selectTimeseries keeps them current when you click another date).
+        heading_offset: cfg.photos[startStore].heading_offset == null ? null : cfg.photos[startStore].heading_offset,
+        _photoIndex: startStore,
         _locView: 'dates', _locDates: locationDatesList(cfg), _locA: null, _locB: null,
         _locSlots: tsSlots, _locTs: true, _locStart: Math.max(dateOrder.indexOf(startStore), 0),
         photos: dateOrder.map(function (storeIdx) {
           var p = cfg.photos[storeIdx];
           return {
             label: fmtLocDateCond(p), thumb_label: fmtLocDate(p.date) || p.label || '',
+            heading_offset: p.heading_offset == null ? null : p.heading_offset,
             yaw: p.yaw || 0, pitch: p.pitch || 0, format: p.format || 'raw',
             levels: p.levels || [], mobile: p.mobile || 0, hotspots: resolveLocationHotspots(cfg, p),
             _img: p.path || ('img' + (storeIdx + 1)),
@@ -2900,7 +2920,9 @@
         if (viewConeLayer) { siteMap.removeLayer(viewConeLayer); viewConeLayer = null; viewConePolygons = []; }
         return;
       }
-      var liveYawDeg = (!flatConeActive && viewL) ? (viewL.parameters().yaw * 180 / Math.PI) : 0;
+      // Dates view shows one view object per date (tsViews), not viewL, so the cone follows the date on screen.
+      var coneView = (isTimeseriesModeGlobal && tsViews.length) ? tsViews[tsActiveIdx] : viewL;
+      var liveYawDeg = (!flatConeActive && coneView) ? (coneView.parameters().yaw * 180 / Math.PI) : 0;
       var heading = (currentHeadingOffset + liveYawDeg + 360) % 360;
       var halfAngle = flatConeActive ? VIEWCONE_FLAT_HALF_ANGLE : VIEWCONE_HALF_ANGLE;
 

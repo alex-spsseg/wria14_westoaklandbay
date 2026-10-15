@@ -38,7 +38,8 @@
       "pitch": 0.37076506401714054,
       "lat": 47.211100638888894,
       "lng": -123.09057949999999,
-      "hotspots": []
+      "hotspots": [],
+      "conditions": "-0.7ft"
     },
     {
       "id": "p2",
@@ -54,8 +55,10 @@
       "lat": 47.21110052777778,
       "lng": -123.09057944444444,
       "hotspots": [],
-      "source": "dji_20260930163858_0001_d"
+      "source": "dji_20260930163858_0001_d",
+      "conditions": "+5.8ft"
     }
   ],
-  "listed": false
+  "listed": false,
+  "name": "West Lobe - East View"
 }

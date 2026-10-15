@@ -7,9 +7,38 @@
   "lng": -123.0876486111111,
   "pin_style": "dot",
   "autorotate": false,
-  "basemap_type": "esri_tile",
-  "basemap_url": "https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}",
-  "overlays": null,
+  "basemap_type": "xyz_tile",
+  "basemap_url": "http://mt0.google.com/vt/lyrs=s&hl=en&x={x}&y={y}&z={z}",
+  "overlays": [
+    {
+      "label": "Ortho (9/30/2026)",
+      "url": "https://tiles.arcgis.com/tiles/buuvDFFARQiOEbVZ/arcgis/rest/services/WOB_20260930_plus5p8ft_ortho/MapServer/tile/{z}/{y}/{x}",
+      "opacity": 1.0,
+      "default_on": true,
+      "type": "tile"
+    },
+    {
+      "label": "Ortho (9/7/2026, -0.7ft)",
+      "url": "https://tiles.arcgis.com/tiles/buuvDFFARQiOEbVZ/arcgis/rest/services/WOB_20260909_minus0p7_ortho/MapServer/tile/{z}/{y}/{x}",
+      "opacity": 1.0,
+      "default_on": false,
+      "type": "tile"
+    },
+    {
+      "label": "Ortho (8/28/2026, -0.5ft)",
+      "url": "https://tiles.arcgis.com/tiles/buuvDFFARQiOEbVZ/arcgis/rest/services/WOB_20260828_minus0p5ft_ortho_tif/MapServer/tile/{z}/{y}/{x}",
+      "opacity": 1.0,
+      "default_on": false,
+      "type": "tile"
+    },
+    {
+      "label": "Ortho (5/30/2025, -0.02ft)",
+      "url": "https://tiles.arcgis.com/tiles/buuvDFFARQiOEbVZ/arcgis/rest/services/WOB_Ortho_20250530/MapServer/tile/{z}/{y}/{x}",
+      "opacity": 1.0,
+      "default_on": true,
+      "type": "tile"
+    }
+  ],
   "default_photo": "p2",
   "hotspots": [
     {
@@ -34,11 +63,12 @@
       "levels": [],
       "mobile": 5000,
       "heading_offset": 94.09805911050796,
-      "yaw": 3.0642749672209177,
-      "pitch": 0.26358365713102394,
+      "yaw": -2.60282292793737,
+      "pitch": 0.3802348594260714,
       "lat": 47.213319444444444,
       "lng": -123.0876486111111,
-      "hotspots": []
+      "hotspots": [],
+      "conditions": "-0.7ft"
     },
     {
       "id": "p2",
@@ -49,13 +79,32 @@
       "levels": [],
       "mobile": 5000,
       "heading_offset": 92.7,
-      "yaw": 2.893455188617874,
-      "pitch": 0.3279813359452426,
+      "yaw": -2.561553116252588,
+      "pitch": 0.3861846858358398,
       "lat": 47.21332022222222,
       "lng": -123.08764724999999,
       "hotspots": [],
-      "source": "dji_20260930163451_0001_d"
+      "source": "dji_20260930163451_0001_d",
+      "conditions": "+5.8ft"
+    },
+    {
+      "id": "p3",
+      "date": "2026-08-28",
+      "label": "2026-08-28",
+      "path": "img3",
+      "format": "raw",
+      "levels": [],
+      "mobile": 5000,
+      "heading_offset": 91.9,
+      "yaw": -2.5765028185597227,
+      "pitch": 0.35576795975177333,
+      "lat": 47.21331952777778,
+      "lng": -123.08764775,
+      "hotspots": [],
+      "source": "img1",
+      "conditions": "-0.5ft"
     }
   ],
-  "listed": false
+  "listed": true,
+  "name": "Yacht Club"
 }

@@ -54,7 +54,8 @@
       "lat": 47.212814111111115,
       "lng": -123.09098558333334,
       "hotspots": [],
-      "source": "img1"
+      "source": "img1",
+      "conditions": "-0.5ft"
     },
     {
       "id": "p2",
@@ -70,7 +71,8 @@
       "lat": 47.212814111111115,
       "lng": -123.09098436111111,
       "hotspots": [],
-      "source": "img2"
+      "source": "img2",
+      "conditions": "-0.7ft"
     }
   ],
   "platform": "aerial",

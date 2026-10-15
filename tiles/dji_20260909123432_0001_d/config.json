@@ -38,7 +38,8 @@
       "pitch": 0.06981317007977772,
       "lat": 47.20993666666667,
       "lng": -123.08778997222221,
-      "hotspots": []
+      "hotspots": [],
+      "conditions": "-0.7ft"
     },
     {
       "id": "p2",
@@ -54,8 +55,10 @@
       "lat": 47.20993633333334,
       "lng": -123.08778983333333,
       "hotspots": [],
-      "source": "dji_20260930161942_0001_d"
+      "source": "dji_20260930161942_0001_d",
+      "conditions": "+5.8ft"
     }
   ],
-  "listed": false
+  "listed": false,
+  "name": "South Lobe"
 }

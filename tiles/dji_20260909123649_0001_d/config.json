@@ -38,7 +38,8 @@
       "pitch": 0.5932220714531624,
       "lat": 47.21002547222223,
       "lng": -123.09168627777777,
-      "hotspots": []
+      "hotspots": [],
+      "conditions": "-0.7ft"
     },
     {
       "id": "p2",
@@ -54,8 +55,10 @@
       "lat": 47.21002738888889,
       "lng": -123.09168691666666,
       "hotspots": [],
-      "source": "dji_20260930162151_0001_d"
+      "source": "dji_20260930162151_0001_d",
+      "conditions": "+5.8ft"
     }
   ],
-  "listed": false
+  "listed": false,
+  "name": "ELJs on Goldsborough"
 }

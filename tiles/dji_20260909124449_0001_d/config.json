@@ -67,7 +67,8 @@
       "pitch": 0.3128387608650609,
       "lat": 47.212814111111115,
       "lng": -123.09098436111111,
-      "hotspots": []
+      "hotspots": [],
+      "conditions": "-0.7ft"
     },
     {
       "id": "p2",
@@ -83,7 +84,8 @@
       "lat": 47.21281338888889,
       "lng": -123.09098647222221,
       "hotspots": [],
-      "source": "dji_20260930163109_0001_d"
+      "source": "dji_20260930163109_0001_d",
+      "conditions": "+5.8ft"
     },
     {
       "id": "p3",
@@ -99,9 +101,11 @@
       "lat": 47.212814111111115,
       "lng": -123.09098558333334,
       "hotspots": [],
-      "source": "dji_20260828133753_0001_d"
+      "source": "dji_20260828133753_0001_d",
+      "conditions": "-0.5ft"
     }
   ],
   "listed": true,
-  "name": "Shelton Creek"
+  "name": "Shelton Creek",
+  "open_view": "dates"
 }

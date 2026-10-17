@@ -107,5 +107,8 @@
   ],
   "listed": true,
   "name": "West Lobe - East View",
-  "open_view": "dates"
+  "open_view": "dates",
+  "alt_checked": true,
+  "alt": 13.38,
+  "rel_alt": 29.47
 }

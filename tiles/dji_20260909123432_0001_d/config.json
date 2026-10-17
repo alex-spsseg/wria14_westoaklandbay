@@ -107,5 +107,8 @@
   ],
   "listed": false,
   "name": "South Lobe",
-  "open_view": "dates"
+  "open_view": "dates",
+  "alt_checked": true,
+  "alt": 13.46,
+  "rel_alt": 29.56
 }

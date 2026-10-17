@@ -106,5 +106,8 @@
     }
   ],
   "name": "North Lobe",
-  "open_view": "dates"
+  "open_view": "dates",
+  "alt_checked": true,
+  "alt": 15.28,
+  "rel_alt": 30.64
 }

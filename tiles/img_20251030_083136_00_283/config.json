@@ -20,5 +20,7 @@
   "mobile_1": 5000,
   "mobile_2": 0,
   "heading_offset": 322.32340044118837,
-  "heading_confirmed": true
+  "heading_confirmed": true,
+  "alt_checked": true,
+  "alt": -2.7
 }

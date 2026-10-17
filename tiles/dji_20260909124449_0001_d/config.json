@@ -107,5 +107,8 @@
   ],
   "listed": true,
   "name": "Shelton Creek",
-  "open_view": "dates"
+  "open_view": "dates",
+  "alt_checked": true,
+  "alt": 13.34,
+  "rel_alt": 29.43
 }

@@ -106,5 +106,8 @@
     }
   ],
   "listed": true,
-  "name": "Yacht Club"
+  "name": "Yacht Club",
+  "alt_checked": true,
+  "alt": 13.27,
+  "rel_alt": 29.36
 }

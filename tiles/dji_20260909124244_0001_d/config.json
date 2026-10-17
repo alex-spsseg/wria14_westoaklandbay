@@ -260,5 +260,8 @@
       "conditions": "+5.8ft"
     }
   ],
-  "listed": false
+  "listed": false,
+  "alt_checked": true,
+  "alt": 105.03,
+  "rel_alt": 121.11
 }

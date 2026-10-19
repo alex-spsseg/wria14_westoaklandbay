@@ -76,7 +76,7 @@
       "text": "",
       "link": "",
       "category": "link",
-      "pin_style": "label_hover",
+      "pin_style": "label_always",
       "target": "dji_20260828133753_0001_d",
       "link_icon": "aerial",
       "images": []

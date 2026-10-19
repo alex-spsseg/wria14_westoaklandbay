@@ -7,9 +7,10 @@
       "lat": 47.21176508333333,
       "lng": -123.08991633333333,
       "platform": "aerial",
-      "photo": "p1",
+      "overview": true,
       "alt": 105.03,
-      "rel_alt": 121.11
+      "rel_alt": 121.11,
+      "photo": "p1"
     },
     {
       "site_id": "dji_20260909123432_0001_d",
@@ -17,9 +18,9 @@
       "lat": 47.20993666666667,
       "lng": -123.08778997222221,
       "platform": "aerial",
-      "photo": "p1",
       "alt": 13.46,
-      "rel_alt": 29.56
+      "rel_alt": 29.56,
+      "photo": "p1"
     },
     {
       "site_id": "dji_20260909123649_0001_d",
@@ -27,9 +28,9 @@
       "lat": 47.21002547222223,
       "lng": -123.09168627777777,
       "platform": "aerial",
-      "photo": "p1",
       "alt": 1.07,
-      "rel_alt": 17.16
+      "rel_alt": 17.16,
+      "photo": "p1"
     },
     {
       "site_id": "dji_20260909124045_0001_d",
@@ -37,9 +38,9 @@
       "lat": 47.21126463888889,
       "lng": -123.09188036111111,
       "platform": "aerial",
-      "photo": "p1",
       "alt": 13.39,
-      "rel_alt": 29.48
+      "rel_alt": 29.48,
+      "photo": "p1"
     },
     {
       "site_id": "dji_20260909123847_0001_d",
@@ -47,41 +48,41 @@
       "lat": 47.211100638888894,
       "lng": -123.09057949999999,
       "platform": "aerial",
-      "photo": "p1",
       "alt": 13.38,
-      "rel_alt": 29.47
+      "rel_alt": 29.47,
+      "photo": "p1"
     },
     {
       "site_id": "img_20260909_115426_00_975",
-      "display_name": "West Lobe - BEZEs (ground)",
+      "display_name": "West Lobe - BEZEs",
       "lat": 47.211318464144554,
       "lng": -123.09165652579071,
       "alt": -18.4
     },
     {
       "site_id": "img_20260909_115721_00_976",
-      "display_name": "West Lobe - East End (ground)",
+      "display_name": "West Lobe - East End",
       "lat": 47.21115503627828,
       "lng": -123.09041162860127,
       "alt": -17.77
     },
     {
       "site_id": "img_20260909_115811_00_977",
-      "display_name": "West Lobe - South View 1 (ground)",
+      "display_name": "West Lobe - South View 1",
       "lat": 47.210900387263344,
       "lng": -123.09053435655558,
       "alt": -17.84
     },
     {
       "site_id": "img_20260909_115850_00_978",
-      "display_name": "West Lobe - South View 2 (ground)",
+      "display_name": "West Lobe - South View 2",
       "lat": 47.21072204818812,
       "lng": -123.09084821960224,
       "alt": -20.3
     },
     {
       "site_id": "img_20260909_120210_00_979",
-      "display_name": "West Lobe - South View 3 (ground)",
+      "display_name": "West Lobe - South View 3",
       "lat": 47.21027134099617,
       "lng": -123.09199954053582,
       "alt": -18.73
@@ -92,9 +93,9 @@
       "lat": 47.212814111111115,
       "lng": -123.09098436111111,
       "platform": "aerial",
-      "photo": "p1",
       "alt": 13.34,
-      "rel_alt": 29.43
+      "rel_alt": 29.43,
+      "photo": "p1"
     },
     {
       "site_id": "dji_20260909124644_0001_d",
@@ -102,9 +103,9 @@
       "lat": 47.2133745,
       "lng": -123.0892648611111,
       "platform": "aerial",
-      "photo": "p1",
       "alt": 15.28,
-      "rel_alt": 30.64
+      "rel_alt": 30.64,
+      "photo": "p1"
     },
     {
       "site_id": "dji_20260909124850_0001_d",
@@ -112,9 +113,9 @@
       "lat": 47.213319444444444,
       "lng": -123.0876486111111,
       "platform": "aerial",
-      "photo": "p1",
       "alt": 13.27,
-      "rel_alt": 29.36
+      "rel_alt": 29.36,
+      "photo": "p1"
     }
   ],
   "basemap_type": "xyz_tile",

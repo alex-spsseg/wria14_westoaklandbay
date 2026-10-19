@@ -20,6 +20,50 @@
       "category": "link",
       "pin_style": "label_always",
       "target": "dji_20260909124244_0001_d"
+    },
+    {
+      "yaw": 4.312942011882203,
+      "pitch": -0.006570616369155809,
+      "title": "West Lobe - East End",
+      "text": "",
+      "link": "",
+      "category": "link",
+      "pin_style": "label_hover",
+      "target": "img_20260909_115721_00_976",
+      "link_icon": "ground"
+    },
+    {
+      "yaw": 4.623692499001438,
+      "pitch": -0.0057861165058668736,
+      "title": "West Lobe - South View 1",
+      "text": "",
+      "link": "",
+      "category": "link",
+      "pin_style": "label_hover",
+      "target": "img_20260909_115811_00_977",
+      "link_icon": "ground"
+    },
+    {
+      "yaw": 4.948738244854276,
+      "pitch": 0.021050741325013386,
+      "title": "West Lobe - South View 2",
+      "text": "",
+      "link": "",
+      "category": "link",
+      "pin_style": "label_hover",
+      "target": "img_20260909_115850_00_978",
+      "link_icon": "ground"
+    },
+    {
+      "yaw": 5.911803378280724,
+      "pitch": 0.002763422390277161,
+      "title": "West Lobe - South View 3",
+      "text": "",
+      "link": "",
+      "category": "link",
+      "pin_style": "label_hover",
+      "target": "img_20260909_120210_00_979",
+      "link_icon": "ground"
     }
   ],
   "hotspots_2": [],

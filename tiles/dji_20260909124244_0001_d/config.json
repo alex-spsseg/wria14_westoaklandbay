@@ -95,7 +95,7 @@
     },
     {
       "pitch": 0.5421449485649852,
-      "title": "West Lobe - South View 3 (ground)",
+      "title": "West Lobe - South View 3",
       "text": "",
       "link": "",
       "category": "link",
@@ -107,7 +107,7 @@
     },
     {
       "pitch": 0.7331543535464942,
-      "title": "West Lobe - BEZEs (ground)",
+      "title": "West Lobe - BEZEs",
       "text": "",
       "link": "",
       "category": "link",
@@ -118,7 +118,7 @@
     },
     {
       "pitch": 1.0343200569269975,
-      "title": "West Lobe - East End (ground)",
+      "title": "West Lobe - East End",
       "text": "",
       "link": "",
       "category": "link",
@@ -129,7 +129,7 @@
     },
     {
       "pitch": 0.8164460365521222,
-      "title": "West Lobe - South View 1 (ground)",
+      "title": "West Lobe - South View 1",
       "text": "",
       "link": "",
       "category": "link",
@@ -140,7 +140,7 @@
     },
     {
       "pitch": 0.7070106975563615,
-      "title": "West Lobe - South View 2 (ground)",
+      "title": "West Lobe - South View 2",
       "text": "",
       "link": "",
       "category": "link",
@@ -263,5 +263,6 @@
   "listed": false,
   "alt_checked": true,
   "alt": 105.03,
-  "rel_alt": 121.11
+  "rel_alt": 121.11,
+  "overview": true
 }

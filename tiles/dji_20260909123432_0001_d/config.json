@@ -39,18 +39,91 @@
       "type": "tile"
     }
   ],
-  "default_photo": "p2",
+  "default_photo": "p4",
   "hotspots": [
     {
-      "pitch": -0.5350223354611998,
-      "title": "Overview",
+      "id": "h1",
+      "bearing": 301.5614045519423,
+      "pitch": 0.00032351428983682837,
+      "title": "West Lobe - East View \u00b7 247 m",
       "text": "",
       "link": "",
       "category": "link",
-      "pin_style": "label_always",
+      "pin_style": "label_hover",
+      "target": "dji_20260909123847_0001_d",
+      "link_icon": "aerial"
+    },
+    {
+      "id": "h2",
+      "bearing": 321.6921815902637,
+      "pitch": -0.3397157195096255,
+      "title": "Overview \u00b7 259 m",
+      "text": "",
+      "link": "",
+      "category": "link",
+      "pin_style": "label_hover",
       "target": "dji_20260909124244_0001_d",
-      "id": "h1",
-      "bearing": 321.69218159036063
+      "link_icon": "overview"
+    },
+    {
+      "id": "h3",
+      "bearing": 271.9230900596344,
+      "pitch": 0.04204968134051948,
+      "title": "ELJs on Goldsborough \u00b7 294 m",
+      "text": "",
+      "link": "",
+      "category": "link",
+      "pin_style": "label_hover",
+      "target": "dji_20260909123649_0001_d",
+      "link_icon": "aerial"
+    },
+    {
+      "id": "h4",
+      "bearing": 295.54577598216576,
+      "pitch": 0.00020441432214798357,
+      "title": "West Lobe - High Berm View \u00b7 342 m",
+      "text": "",
+      "link": "",
+      "category": "link",
+      "pin_style": "label_hover",
+      "target": "dji_20260909124045_0001_d",
+      "link_icon": "aerial"
+    },
+    {
+      "id": "h5",
+      "bearing": 1.6259432834155518,
+      "pitch": 0.0005049172590363523,
+      "title": "Yacht Club \u00b7 376 m",
+      "text": "",
+      "link": "",
+      "category": "link",
+      "pin_style": "label_hover",
+      "target": "dji_20260909124850_0001_d",
+      "link_icon": "aerial"
+    },
+    {
+      "id": "h6",
+      "bearing": 343.75294942168296,
+      "pitch": -0.004570857466451255,
+      "title": "North Lobe \u00b7 398 m",
+      "text": "",
+      "link": "",
+      "category": "link",
+      "pin_style": "label_hover",
+      "target": "dji_20260909124644_0001_d",
+      "link_icon": "aerial"
+    },
+    {
+      "id": "h7",
+      "bearing": 322.97000988724596,
+      "pitch": 0.00037425691929073257,
+      "title": "Shelton Creek \u00b7 401 m",
+      "text": "",
+      "link": "",
+      "category": "link",
+      "pin_style": "label_hover",
+      "target": "sheltoncreek_location",
+      "link_icon": "aerial"
     }
   ],
   "photos": [
@@ -103,6 +176,23 @@
       "hotspots": [],
       "source": "img1",
       "conditions": "-0.5ft"
+    },
+    {
+      "id": "p4",
+      "date": "2026-11-05",
+      "label": "2026-11-05",
+      "path": "img4",
+      "format": "raw",
+      "levels": [],
+      "mobile": 5000,
+      "heading_offset": 262.1,
+      "yaw": 0.6381388353455987,
+      "pitch": 0.06031886966687239,
+      "lat": 47.20993575,
+      "lng": -123.08778997222221,
+      "hotspots": [],
+      "source": "dji_20261105095600_0001_d",
+      "conditions": "+3.1ft tide"
     }
   ],
   "listed": false,

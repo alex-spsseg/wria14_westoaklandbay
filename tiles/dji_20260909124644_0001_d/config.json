@@ -11,6 +11,13 @@
   "basemap_url": "http://mt0.google.com/vt/lyrs=s&hl=en&x={x}&y={y}&z={z}",
   "overlays": [
     {
+      "label": "Ortho (11/5/2026, +3.1ft)",
+      "url": "https://tiles.arcgis.com/tiles/buuvDFFARQiOEbVZ/arcgis/rest/services/WOB_20261105_plus3p1ft_ortho_bilinear1/MapServer/tile/{z}/{y}/{x}",
+      "opacity": 1.0,
+      "default_on": true,
+      "type": "tile"
+    },
+    {
       "label": "Ortho (9/30/2026)",
       "url": "https://tiles.arcgis.com/tiles/buuvDFFARQiOEbVZ/arcgis/rest/services/WOB_20260930_plus5p8ft_ortho/MapServer/tile/{z}/{y}/{x}",
       "opacity": 1.0,
@@ -39,18 +46,91 @@
       "type": "tile"
     }
   ],
-  "default_photo": "p3",
+  "default_photo": "p4",
   "hotspots": [
     {
-      "pitch": -0.438833914352184,
-      "title": "Overview",
+      "id": "h1",
+      "bearing": 92.8702464786013,
+      "pitch": 0.016442783772065244,
+      "title": "Yacht Club \u00b7 122 m",
       "text": "",
       "link": "",
       "category": "link",
-      "pin_style": "label_always",
+      "pin_style": "label_hover",
+      "target": "dji_20260909124850_0001_d",
+      "link_icon": "aerial"
+    },
+    {
+      "id": "h2",
+      "bearing": 244.38572169289282,
+      "pitch": 0.013666913266555874,
+      "title": "Shelton Creek \u00b7 144 m",
+      "text": "",
+      "link": "",
+      "category": "link",
+      "pin_style": "label_hover",
+      "target": "sheltoncreek_location",
+      "link_icon": "aerial"
+    },
+    {
+      "id": "h3",
+      "bearing": 195.37459300027027,
+      "pitch": -0.45041305115920605,
+      "title": "Overview \u00b7 186 m",
+      "text": "",
+      "link": "",
+      "category": "link",
+      "pin_style": "label_hover",
       "target": "dji_20260909124244_0001_d",
-      "id": "h1",
-      "bearing": 195.37459300027024
+      "link_icon": "overview"
+    },
+    {
+      "id": "h4",
+      "bearing": 201.4419173730499,
+      "pitch": 0.006994394354047174,
+      "title": "West Lobe - East View \u00b7 272 m",
+      "text": "",
+      "link": "",
+      "category": "link",
+      "pin_style": "label_hover",
+      "target": "dji_20260909123847_0001_d",
+      "link_icon": "aerial"
+    },
+    {
+      "id": "h5",
+      "bearing": 220.10092841587124,
+      "pitch": 0.006162181399960237,
+      "title": "West Lobe - High Berm View \u00b7 307 m",
+      "text": "",
+      "link": "",
+      "category": "link",
+      "pin_style": "label_hover",
+      "target": "dji_20260909124045_0001_d",
+      "link_icon": "aerial"
+    },
+    {
+      "id": "h6",
+      "bearing": 163.7518670478246,
+      "pitch": 0.004570857466451255,
+      "title": "South Lobe \u00b7 398 m",
+      "text": "",
+      "link": "",
+      "category": "link",
+      "pin_style": "label_hover",
+      "target": "dji_20260909123432_0001_d",
+      "link_icon": "aerial"
+    },
+    {
+      "id": "h7",
+      "bearing": 206.15847459852887,
+      "pitch": 0.03423703789064178,
+      "title": "ELJs on Goldsborough \u00b7 415 m",
+      "text": "",
+      "link": "",
+      "category": "link",
+      "pin_style": "label_hover",
+      "target": "dji_20260909123649_0001_d",
+      "link_icon": "aerial"
     }
   ],
   "photos": [
@@ -63,8 +143,8 @@
       "levels": [],
       "mobile": 5000,
       "heading_offset": 70.36406689996761,
-      "yaw": -2.257441623497618,
-      "pitch": 0.6229191157418441,
+      "yaw": -2.145995840630757,
+      "pitch": 0.6732085448167258,
       "lat": 47.2133745,
       "lng": -123.0892648611111,
       "hotspots": [],
@@ -79,8 +159,8 @@
       "levels": [],
       "mobile": 5000,
       "heading_offset": 64.2,
-      "yaw": -2.22599970879498,
-      "pitch": 0.6189242115536331,
+      "yaw": -2.1017792022747575,
+      "pitch": 0.6688666533307988,
       "lat": 47.21337541666667,
       "lng": -123.08926613888889,
       "hotspots": [],
@@ -96,18 +176,157 @@
       "levels": [],
       "mobile": 5000,
       "heading_offset": 90.2,
-      "yaw": -2.687624183747044,
-      "pitch": 0.5853678927923198,
+      "yaw": -2.57547190999421,
+      "pitch": 0.617983546093896,
       "lat": 47.21337883333334,
       "lng": -123.08925963888889,
       "hotspots": [],
       "source": "dji_20260828133959_0001_d",
       "conditions": "-0.5ft"
+    },
+    {
+      "id": "p4",
+      "date": "2026-11-05",
+      "label": "2026-11-05",
+      "path": "img4",
+      "format": "raw",
+      "levels": [],
+      "mobile": 5000,
+      "heading_offset": 64.2,
+      "yaw": -2.4653184722794315,
+      "pitch": 0.6108035109306407,
+      "lat": 47.21337527777778,
+      "lng": -123.08926505555556,
+      "hotspots": [],
+      "source": "dji_20261105101116_0001_d",
+      "conditions": "+3.1ft tide"
     }
   ],
   "name": "North Lobe",
   "open_view": "dates",
   "alt_checked": true,
   "alt": 15.28,
-  "rel_alt": 30.64
+  "rel_alt": 30.64,
+  "align_links": [
+    {
+      "a": "p2",
+      "b": "p4",
+      "anchors": [
+        {
+          "yaw_a": -2.1194478522499782,
+          "pitch_a": 0.6832483084082703,
+          "yaw_b": -2.1403289840388755,
+          "pitch_b": 0.6869830821344998
+        },
+        {
+          "yaw_a": 1.5975774485779761,
+          "pitch_a": 0.06826311051132805,
+          "yaw_b": 1.5780872972179687,
+          "pitch_b": 0.07125315571123281
+        },
+        {
+          "yaw_a": -0.12564483669666338,
+          "pitch_a": 0.2663807349618601,
+          "yaw_b": -0.14393800298303816,
+          "pitch_b": 0.26247447807435975
+        }
+      ]
+    },
+    {
+      "a": "p1",
+      "b": "p4",
+      "anchors": [
+        {
+          "yaw_a": -2.1641722315569827,
+          "pitch_a": 0.6854656496244669,
+          "yaw_b": -2.13923873714441,
+          "pitch_b": 0.685875404651526
+        },
+        {
+          "yaw_a": 1.5656981139051405,
+          "pitch_a": 0.060035827295298105,
+          "yaw_b": 1.5783054349671521,
+          "pitch_b": 0.06996137444181016
+        },
+        {
+          "yaw_a": 0.03577583981501675,
+          "pitch_a": 0.21649474776649671,
+          "yaw_b": 0.04656937779315129,
+          "pitch_b": 0.21774663141175665
+        }
+      ]
+    },
+    {
+      "a": "p3",
+      "b": "p2",
+      "anchors": [
+        {
+          "yaw_a": -2.5890216730458047,
+          "pitch_a": 0.6403449673371568,
+          "yaw_b": -2.12076262826017,
+          "pitch_b": 0.6868787802932133
+        },
+        {
+          "yaw_a": -0.41057206236500043,
+          "pitch_a": 0.21900676619267578,
+          "yaw_b": 0.06737791179688557,
+          "pitch_b": 0.2251200786082812
+        },
+        {
+          "yaw_a": 1.1411347079806333,
+          "pitch_a": 0.06526407432480852,
+          "yaw_b": 1.5987705078027996,
+          "pitch_b": 0.06879720014168811
+        }
+      ]
+    },
+    {
+      "a": "p3",
+      "b": "p1",
+      "anchors": [
+        {
+          "yaw_a": -2.58269918997995,
+          "pitch_a": 0.64115399038538,
+          "yaw_b": -2.151044150805634,
+          "pitch_b": 0.6835503640434517
+        },
+        {
+          "yaw_a": -0.4102190157754891,
+          "pitch_a": 0.2155995790761125,
+          "yaw_b": 0.036004848259143074,
+          "pitch_b": 0.21852360694640716
+        },
+        {
+          "yaw_a": 1.1389332429150478,
+          "pitch_a": 0.0645195704064978,
+          "yaw_b": 1.567556533848984,
+          "pitch_b": 0.05918127644818938
+        }
+      ]
+    },
+    {
+      "a": "p3",
+      "b": "p4",
+      "anchors": [
+        {
+          "yaw_a": -2.593042987444067,
+          "pitch_a": 0.640974650581974,
+          "yaw_b": -2.1393262998604623,
+          "pitch_b": 0.6899338931512098
+        },
+        {
+          "yaw_a": -0.41216538827477933,
+          "pitch_a": 0.21791519359573464,
+          "yaw_b": 0.049100812533538374,
+          "pitch_b": 0.216860634043627
+        },
+        {
+          "yaw_a": 1.1405456640138993,
+          "pitch_a": 0.0653046716869703,
+          "yaw_b": 1.5778747675671916,
+          "pitch_b": 0.06940424965594261
+        }
+      ]
+    }
+  ]
 }

@@ -37,8 +37,93 @@
       "type": "tile"
     }
   ],
-  "default_photo": "p2",
-  "hotspots": [],
+  "default_photo": "p3",
+  "hotspots": [
+    {
+      "id": "h1",
+      "bearing": 145.30171023516505,
+      "pitch": -0.573892459986629,
+      "title": "Overview \u00b7 142 m",
+      "text": "",
+      "link": "",
+      "category": "link",
+      "pin_style": "label_hover",
+      "target": "dji_20260909124244_0001_d",
+      "link_icon": "overview"
+    },
+    {
+      "id": "h2",
+      "bearing": 64.38445888039695,
+      "pitch": -0.013666913266555874,
+      "title": "North Lobe \u00b7 144 m",
+      "text": "",
+      "link": "",
+      "category": "link",
+      "pin_style": "label_hover",
+      "target": "dji_20260909124644_0001_d",
+      "link_icon": "aerial"
+    },
+    {
+      "id": "h3",
+      "bearing": 201.41890126995852,
+      "pitch": -0.0004322566785515936,
+      "title": "West Lobe - High Berm View \u00b7 185 m",
+      "text": "",
+      "link": "",
+      "category": "link",
+      "pin_style": "label_hover",
+      "target": "dji_20260909124045_0001_d",
+      "link_icon": "aerial"
+    },
+    {
+      "id": "h4",
+      "bearing": 170.85441553911642,
+      "pitch": -0.0003627269902977961,
+      "title": "West Lobe - East View \u00b7 193 m",
+      "text": "",
+      "link": "",
+      "category": "link",
+      "pin_style": "label_hover",
+      "target": "dji_20260909123847_0001_d",
+      "link_icon": "aerial"
+    },
+    {
+      "id": "h5",
+      "bearing": 77.43099651703113,
+      "pitch": 0.00015489762504307394,
+      "title": "Yacht Club \u00b7 258 m",
+      "text": "",
+      "link": "",
+      "category": "link",
+      "pin_style": "label_hover",
+      "target": "dji_20260909124850_0001_d",
+      "link_icon": "aerial"
+    },
+    {
+      "id": "h6",
+      "bearing": 189.68643209749257,
+      "pitch": 0.03889101826921685,
+      "title": "ELJs on Goldsborough \u00b7 315 m",
+      "text": "",
+      "link": "",
+      "category": "link",
+      "pin_style": "label_hover",
+      "target": "dji_20260909123649_0001_d",
+      "link_icon": "aerial"
+    },
+    {
+      "id": "h7",
+      "bearing": 142.9676647409193,
+      "pitch": -0.00037425691929073257,
+      "title": "South Lobe \u00b7 401 m",
+      "text": "",
+      "link": "",
+      "category": "link",
+      "pin_style": "label_hover",
+      "target": "dji_20260909123432_0001_d",
+      "link_icon": "aerial"
+    }
+  ],
   "photos": [
     {
       "id": "p1",
@@ -73,8 +158,29 @@
       "hotspots": [],
       "source": "img2",
       "conditions": "-0.7ft"
+    },
+    {
+      "id": "p3",
+      "date": "2026-11-05",
+      "label": "2026-11-05",
+      "path": "img3",
+      "format": "raw",
+      "levels": [],
+      "mobile": 5000,
+      "heading_offset": 325.3,
+      "yaw": 1.471737612463751,
+      "pitch": 0.33330259359572173,
+      "lat": 47.21281377777778,
+      "lng": -123.09098527777778,
+      "hotspots": [],
+      "source": "dji_20261105100909_0001_d",
+      "conditions": "+3.1ft tide"
     }
   ],
   "platform": "aerial",
-  "listed": false
+  "listed": false,
+  "alt_checked": true,
+  "alt": 13.31,
+  "rel_alt": 29.36,
+  "name": "2026-08-28"
 }

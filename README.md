@@ -8,6 +8,7 @@ Live site: [All tours](https://alex-spsseg.github.io/wria14_westoaklandbay/tours
 
 ## Tours
 
+- [Site Visit (+3.1ft tide)](https://alex-spsseg.github.io/wria14_westoaklandbay/index.html?tour=20261105) (visited 2026-11-05, 8 stops)
 - [Site Visit (+5.8ft)](https://alex-spsseg.github.io/wria14_westoaklandbay/index.html?tour=20260930) (visited 2026-09-30, 11 stops)
 - [WOB Site Imagery (-0.7ft)](https://alex-spsseg.github.io/wria14_westoaklandbay/index.html?tour=20260909) (visited 2026-09-09, 13 stops)
 - [Site Visit (-0.5ft)](https://alex-spsseg.github.io/wria14_westoaklandbay/index.html?tour=wob_20280828_jpgs) (visited 2026-08-28, 10 stops)
@@ -15,7 +16,7 @@ Live site: [All tours](https://alex-spsseg.github.io/wria14_westoaklandbay/tours
 
 ## Site comparisons
 
-- [North Lobe](https://alex-spsseg.github.io/wria14_westoaklandbay/index.html?site=dji_20260909124644_0001_d&view=compare) (3 dates)
-- [Shelton Creek](https://alex-spsseg.github.io/wria14_westoaklandbay/index.html?site=dji_20260909124449_0001_d&view=compare) (3 dates)
-- [West Lobe - East View](https://alex-spsseg.github.io/wria14_westoaklandbay/index.html?site=dji_20260909123847_0001_d&view=compare) (3 dates)
-- [Yacht Club](https://alex-spsseg.github.io/wria14_westoaklandbay/index.html?site=dji_20260909124850_0001_d&view=compare) (3 dates)
+- [North Lobe](https://alex-spsseg.github.io/wria14_westoaklandbay/index.html?site=dji_20260909124644_0001_d&view=compare) (4 dates)
+- [Shelton Creek](https://alex-spsseg.github.io/wria14_westoaklandbay/index.html?site=dji_20260909124449_0001_d&view=compare) (4 dates)
+- [West Lobe - East View](https://alex-spsseg.github.io/wria14_westoaklandbay/index.html?site=dji_20260909123847_0001_d&view=compare) (4 dates)
+- [Yacht Club](https://alex-spsseg.github.io/wria14_westoaklandbay/index.html?site=dji_20260909124850_0001_d&view=compare) (4 dates)
